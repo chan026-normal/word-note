@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>단어 시험 · 베트남어 ↔ 영어</title>
+<style>
+  :root{
+    --bg:#f4f6fb; --card:#ffffff; --ink:#1f2430; --muted:#6b7280;
+    --line:#e6e9f0; --brand:#5f6fa6; --brand2:#7482b3; --brandsoft:#eceef6;
+    --good:#3f885d; --goodsoft:#eaf3ed; --bad:#bd574f; --badsoft:#f6edeb;
+    --accent:#418379; --shadow:0 6px 22px rgba(31,36,48,.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1320; --card:#191f30; --ink:#eef1f8; --muted:#9aa3b5;
+      --line:#2a3145; --brand:#707bb0; --brand2:#7d88bb; --brandsoft:#272e46;
+      --good:#56ad7d; --goodsoft:#17301e; --bad:#d77d75; --badsoft:#352020;
+      --accent:#4f9c90; --shadow:0 6px 22px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",Segoe UI,Roboto,sans-serif;
+    background:var(--bg); color:var(--ink); line-height:1.5;
+    padding-bottom:40px;
+  }
+  .topbar{
+    position:sticky; top:0; z-index:10; background:var(--card);
+    border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px;
+    padding:12px 16px;
+  }
+  .brand{
+    font-size:18px; font-weight:800; color:var(--ink); background:none; border:none;
+    cursor:pointer; padding:0; display:flex; align-items:center; gap:8px;
+  }
+  .sub{font-size:12px; color:var(--muted); margin-left:auto}
+  .wrap{max-width:680px; margin:0 auto; padding:16px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); padding:18px; margin-bottom:14px}
+  h2{font-size:15px; margin:0 0 12px; color:var(--muted); font-weight:700; letter-spacing:.2px}
+  .row{display:flex; flex-wrap:wrap; gap:8px}
+  .chip{
+    border:1.5px solid var(--line); background:var(--card); color:var(--ink);
+    padding:8px 12px; border-radius:999px; font-size:14px; cursor:pointer; font-weight:600;
+    transition:.12s; user-select:none;
+  }
+  .chip.on{background:var(--brandsoft); border-color:var(--brand); color:var(--brand)}
+  .chip small{color:var(--muted); font-weight:500}
+  .chip.on small{color:var(--brand)}
+  .seg{display:flex; gap:8px; flex-wrap:wrap}
+  .seg button{
+    flex:1; min-width:96px; border:1.5px solid var(--line); background:var(--card);
+    color:var(--ink); padding:12px 10px; border-radius:14px; font-size:14px; font-weight:700;
+    cursor:pointer; transition:.12s;
+  }
+  .seg button.on{background:var(--brand); border-color:var(--brand); color:#fff}
+  .seg .desc{display:block; font-size:11px; font-weight:500; opacity:.8; margin-top:2px}
+  .btn{
+    width:100%; border:none; border-radius:16px; padding:16px; font-size:17px; font-weight:800;
+    background:var(--brand); color:#fff; cursor:pointer; transition:.12s;
+  }
+  .btn:active{transform:scale(.99)}
+  .btn.lg{padding:18px}
+  .btn.ghost{background:var(--brandsoft); color:var(--brand)}
+  .btn.soft{background:var(--card); border:1.5px solid var(--line); color:var(--ink)}
+  .btn.line{background:none; border:1.5px solid var(--line); color:var(--muted); font-weight:700}
+  .btn2{display:flex; gap:10px}
+  .btn2 .btn{font-size:15px; padding:14px}
+  .muted{color:var(--muted)}
+  .center{text-align:center}
+  .stat{display:flex; gap:14px; justify-content:center; margin-bottom:6px}
+  .stat b{font-size:22px}
+  .tiny{font-size:12px}
+  .link{background:none;border:none;color:var(--brand);font-weight:700;cursor:pointer;font-size:14px;padding:6px}
+
+  /* quiz */
+  .qtop{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; font-size:13px; font-weight:700; color:var(--muted)}
+  .bar{height:8px; background:var(--line); border-radius:999px; overflow:hidden; margin-bottom:16px}
+  .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--brand),var(--brand2)); transition:width .25s}
+  .dirtag{display:inline-block; font-size:12px; font-weight:700; color:var(--accent); background:color-mix(in srgb,var(--accent) 14%, transparent); padding:4px 10px; border-radius:999px; margin-bottom:14px}
+  .prompt{font-size:34px; font-weight:800; text-align:center; margin:6px 0 4px; word-break:break-word; line-height:1.25}
+  .promptsub{text-align:center; color:var(--muted); font-size:13px; margin-bottom:18px}
+  .opt{
+    width:100%; text-align:left; border:1.5px solid var(--line); background:var(--card); color:var(--ink);
+    padding:15px 16px; border-radius:14px; font-size:16px; font-weight:600; cursor:pointer; margin-bottom:10px;
+    display:flex; align-items:center; gap:10px; transition:.1s;
+  }
+  .opt .num{width:24px;height:24px;flex:0 0 24px;border-radius:7px;background:var(--brandsoft);color:var(--brand);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .opt.correct{background:var(--goodsoft); border-color:var(--good); color:var(--good)}
+  .opt.correct .num{background:var(--good);color:#fff}
+  .opt.wrong{background:var(--badsoft); border-color:var(--bad); color:var(--bad)}
+  .opt.wrong .num{background:var(--bad);color:#fff}
+  .opt:disabled{cursor:default}
+  input.answer{
+    width:100%; padding:15px 16px; border:1.5px solid var(--line); border-radius:14px; font-size:18px;
+    background:var(--card); color:var(--ink); outline:none; text-align:center; font-weight:600;
+  }
+  input.answer:focus{border-color:var(--brand)}
+  .feedback{border-radius:14px; padding:14px 16px; margin-top:14px; font-weight:700; font-size:15px}
+  .feedback.ok{background:var(--goodsoft); color:var(--good)}
+  .feedback.no{background:var(--badsoft); color:var(--bad)}
+  .feedback .ans{display:block; color:var(--ink); font-weight:800; font-size:20px; margin-top:4px}
+  .spk{border:none;background:var(--brandsoft);color:var(--brand);width:38px;height:38px;border-radius:12px;cursor:pointer;font-size:17px;vertical-align:middle}
+  .spk.sm{width:30px;height:30px;font-size:14px;border-radius:9px}
+
+  /* flashcard */
+  .flash{
+    perspective:1200px; height:240px; margin:8px 0 16px; cursor:pointer;
+  }
+  .flash-inner{position:relative; width:100%; height:100%; transition:transform .5s; transform-style:preserve-3d}
+  .flash.flipped .flash-inner{transform:rotateY(180deg)}
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:18px; border:1.5px solid var(--line);
+    background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:16px;
+  }
+  .face .big{font-size:32px; font-weight:800; text-align:center; word-break:break-word}
+  .face .lbl{font-size:12px; color:var(--muted); font-weight:700}
+  .face.back{transform:rotateY(180deg); background:var(--brandsoft)}
+  .face.back .big{color:var(--brand)}
+
+  /* word list */
+  .search{width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:14px; font-size:15px; background:var(--card); color:var(--ink); outline:none; margin-bottom:12px}
+  .wlist{display:flex; flex-direction:column; gap:0}
+  .wrow{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line)}
+  .wrow:last-child{border-bottom:none}
+  .wvn{font-weight:700; font-size:16px}
+  .wen{color:var(--muted); margin-left:auto; text-align:right; font-size:15px}
+  .wen.hide{filter:blur(6px); transition:.15s}
+  .wrow:hover .wen.hide{filter:none}
+  .lz{font-size:11px;color:var(--brand);background:var(--brandsoft);padding:2px 7px;border-radius:6px;font-weight:700}
+  .del{border:none;background:var(--badsoft);color:var(--bad);border-radius:9px;width:30px;height:30px;cursor:pointer;font-weight:800}
+  label.fld{display:block; font-size:13px; font-weight:700; color:var(--muted); margin:10px 0 6px}
+  .foot{text-align:center; color:var(--muted); font-size:12px; padding:18px}
+  .emoji{font-size:46px; text-align:center; margin-bottom:6px}
+
+  /* 범위 지정 / select */
+  .sel{padding:11px 12px; border:1.5px solid var(--line); border-radius:12px; font-size:15px; background:var(--card); color:var(--ink); font-weight:600; width:100%}
+  .row2{display:grid; grid-template-columns:1fr 1.5fr; gap:8px}
+  .rsum{margin-top:12px; background:var(--brandsoft); color:var(--brand); border-radius:12px; padding:10px 12px; font-size:13px; font-weight:600}
+  .btn.accent{background:var(--accent); color:#fff}
+  .keyrow{display:flex; align-items:center; gap:8px; cursor:pointer; font-size:14px; font-weight:700; color:var(--ink); margin-top:14px}
+  .keyrow input{width:18px; height:18px}
+
+  /* 시험지 (인쇄용) — 항상 흰 종이 느낌 유지 */
+  .paper{background:#fff; color:#111; border:1px solid var(--line); border-radius:14px; padding:24px; margin-top:14px}
+  .ptitle{font-size:20px; font-weight:800; text-align:center; color:#111}
+  .pver{font-size:13px; color:#777; font-weight:700}
+  .phead{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:14px 0; font-size:14px; color:#222}
+  .pinstr{font-size:12.5px; color:#333; background:#f3f4f6; border-radius:8px; padding:9px 11px; margin-bottom:16px; line-height:1.6}
+  .pgrid{display:grid; grid-template-columns:1fr; gap:9px 28px}
+  .pq{display:flex; align-items:baseline; gap:7px; font-size:14.5px; color:#111; break-inside:avoid; padding:2px 0}
+  .pqn{color:#777; font-weight:700; min-width:26px}
+  .pqp{font-weight:700; white-space:nowrap}
+  .pqtag{font-size:10px; color:#999; white-space:nowrap}
+  .pqline{flex:1; border-bottom:1px dotted #aaa; min-width:50px; align-self:flex-end; height:15px}
+  .pkeygrid{display:grid; grid-template-columns:1fr 1fr; gap:5px 20px; margin-top:8px}
+  .pkq{font-size:13px; color:#111; break-inside:avoid}
+  .pkq b{color:#777; font-weight:700}
+  @media (min-width:560px){ .pgrid{grid-template-columns:1fr 1fr} }
+  @page{ margin:0; }   /* 브라우저 자동 머리글·바닥글(날짜·페이지번호·주소) 제거 */
+  @media print{
+    .topbar,.foot,.noprint{display:none !important}
+    body{background:#fff; margin:0; padding:0}
+    .wrap{max-width:none; padding:0}
+    .paper{border:none; border-radius:0; margin:0; padding:16mm 14mm}  /* 여백은 직접 부여 */
+    .pgrid{grid-template-columns:1fr 1fr}
+    .pq{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" data-action="goHome">📖 단어 시험</button>
+    <span class="sub">베트남어 ↔ 영어</span>
+  </header>
+  <main id="view" class="wrap"></main>
+  <div class="foot">GYBM 단어장 · 인터넷 없이도 작동해요</div>
+
+<script>
+"use strict";
+
+/* =========================================================
+   1) 단어 데이터  (왼쪽 = 베트남어 | 오른쪽 = 영어 뜻)
+   나중에 Lesson 1~5를 여기에 똑같은 형식으로 추가하면 됩니다.
+   ========================================================= */
+const RAW = {
+1:`anh|you
+bà|you, Mrs.
+bạn|you, friend
+cám ơn|thank you, to thank
+chào|hello, to greet
+chị|you
+cô|you, female teacher
+còn|and, but
+của|of
+cũng|also
+đây|here, this
+em|I, you
+gặp|to meet
+gì|what
+giới thiệu|to introduce
+hỏi|to ask
+hôm nay|today
+khỏe|to be fine, healthy
+không|no, not
+là|to be
+mệt|tired
+ông|you, sir
+rất|very
+tên|name
+thầy|male teacher, you
+tôi|I, me
+tự|self
+và|and
+với|with
+vui|happy
+xin lỗi|excuse-me, to apologize`,
+2:`ai|who
+Anh|England
+anh ấy|he, him
+bà ấy|she, her
+bạn|friend
+biết|to know
+các|quantifier, pluralizer
+chị ấy|she, her
+có lẽ|maybe, perhaps
+cô ấy|she, her
+Đài Loan|Taiwan
+đi|to go
+đó|that
+Đức|German
+em ấy|he, she
+giáo viên|teacher
+Hàn Quốc|South Korea
+họ|they, them
+khác|other, another
+kia|over there
+muốn|to want
+Mỹ|America
+nào|which
+người|person
+Nhật|Japan
+nói|to say, to tell
+nước|country
+nước ngoài|foreign country
+ông ấy|he, him
+phải|correct, yes
+phải không|Right?
+Pháp|France
+quốc tịch|nationality
+sinh viên|student
+Thái Lan|Thailand
+Trung Quốc|China
+Úc|Australia
+vâng|yes/polite speech`,
+3:`bài|lesson
+chăm chỉ|hard working, diligent
+chúng tôi|we, us
+có|to have
+dạy|to teach
+dễ|easy
+đại học|university
+đăng ký|to register
+đâu|where
+để|in order to, to
+đến|to come, to arrive
+đi học|to go to school
+đông|crowded, many
+đúng|correct
+học|to study
+học viên|learner
+khó|difficult
+khoa|department
+khoa học|science
+lớp|class
+mấy|how many
+năm|year
+nhân văn|humanity
+nhiều|plenty of, many
+nhưng|but
+nổi tiếng|famous
+ở|at, in
+ở đó|there
+số|number
+tháng|month
+thành phố|city
+thích|to like
+thú vị|interesting, fun
+thư ký|secretary
+tiếng|language
+tiếng Việt|Vietnamese language
+trong|in
+trước đây|before
+trường|school
+xã hội|social, society`,
+4:`bác sĩ|doctor
+bao nhiêu|how many
+bắt đầu|to start, to begin
+bận|busy
+bệnh viện|hospital
+buổi chiều/chiều|afternoon
+buổi sáng/sáng|morning
+buổi tối/tối|evening
+công việc|work
+công ty|company
+cơ quan|office
+dạo này|these days, lately
+đi làm|to go to work
+giờ/tiếng|hour
+hay|or
+hiện nay|nowadays
+kế toán|accountant
+khoảng|about
+lái xe|to drive
+làm/làm việc|to work
+lắm|very
+luật sư|lawyer
+máy tính|computer
+nấu ăn|to cook
+nội trợ|housewife
+ngày|day
+ngân hàng|bank
+nghề|occupation, profession
+nhà|house
+nhà hàng|restaurant
+nhầm|to mistake, wrong
+nhân viên|employee, staff
+ở|at, in
+phòng|room
+quán cà phê|coffee shop
+quận|district
+siêu thị|supermarket
+sống|to live
+tài xế|driver
+tuần|week
+trưa|noon
+từ|from
+vào|to enter, on
+vất vả|hard`,
+5:`ăn|to eat
+bằng|by
+bây giờ|now
+bia|beer
+bưu điện|post office
+chợ|market
+chúng ta|we, us
+có thể|to be able to
+cuối tuần|weekend
+du khách/khách|visitor
+đài truyền hình|television station
+đặc biệt|special
+đầu tư|to invest
+đẹp|beautiful
+đi dạo|to take a walk
+địa chỉ|address
+đường|street, road
+ga|station
+gần|near
+gia đình|family
+giá|price
+giảm giá|discount
+giỏi|good
+khen|to compliment
+lịch sử|history
+mắc|expensive
+món ăn|dish
+mời|to invite
+mua|to buy
+ngon|delicious
+ngồi|to sit
+Nhà thờ Đức Bà|Notre Dame Cathedral
+nhà sách|bookstore
+nói chuyện|to talk
+nơi|place
+phòng học|classroom
+phố đi bộ|walking street
+phường|ward
+say|drunk
+tham quan|to visit
+tắc xi|taxi
+tối nay|this evening
+tươi|fresh
+uống|to drink
+xa|far
+xe buýt|bus`,
+6:`áo dài|Vietnamese aodai
+bảo tàng|museum
+cà phê|coffee
+chỉ|only, just
+cũ|old
+cùng|same, together
+du lịch|to travel
+đi một vòng|to go around
+đá|ice
+đưa|to take sb to
+giám đốc|director
+giảng viên|instructor
+hiểu|to understand
+khác|other, different
+lịch sử|history
+lý do|reason
+mất|to take
+mong|to expect, to hope
+mở cửa|to open
+ngay|immediately
+nghề nghiệp|occupation, profession
+nhận|to receive
+nhớ|to remember
+như trước|like before
+phát âm|to pronounce
+quán ăn|small restaurant
+rảnh|free time
+sân bay|airport
+sữa|milk
+tất cả|all
+thăm|to visit
+thấy|to think, to feel
+thời gian|time
+thư|letter
+trả lời|to answer
+trễ|late
+trung tâm|centre
+văn phòng|office
+viết|to write
+với|with
+xem|to watch`,
+7:`ăn sáng|to have breakfast
+ăn tối|to have dinner
+ăn trưa|to have lunch
+bài hát|a song
+bài tập|assignment
+bàn ăn|dining-table
+bạn bè|friends
+bạn cùng lớp|classmate
+buồn ngủ|sleepy
+bữa (ăn) sáng|breakfast
+căng tin|cafeteria
+chờ|to wait
+chuẩn bị|to prepare
+đánh răng|to brush teeth
+đêm|night
+đi chơi|to go out
+đi ngủ|to go to sleep
+đi ra ngoài|to go outside
+điện thoại|telephone
+hơi|a little, a bit
+lâu|long time
+lên mạng|to surf internet
+lúc|when
+mang|to bring
+một mình|alone
+nghe|to listen, to hear
+nghỉ hưu|to retire
+nhạc|music
+nhỏ|small
+no|full
+ở nhà|at home
+phim|movie
+qua|through, by
+sử dụng|to use
+sáng nay|this morning
+sau khi|after
+thỉnh thoảng|sometimes
+thường|usually
+thức khuya|to stay up late
+tivi|television
+tin tức|news
+tiệm ăn|small restaurant
+trên|on
+trước khi|before
+xong|to finish`,
+8:`bà ngoại|grandmother
+bao lâu|how long
+bên cạnh|next to
+đầu tiên|first time
+đơn|application, form
+giải thích|to explain
+hội thoại|dialogue
+ít|rare, few
+khi|when
+kém|bad
+kinh nghiệm|experience
+lo/lo lắng|to worry
+lỗi|mistake
+luyện|to practice
+mẹ|mother
+một chút|a little bit, a moment
+năm sau|next year
+Nga|Russia
+ngại|afraid
+ngạc nhiên|to surprise
+nghĩa|meaning
+nhỏ tuổi|young
+nhau|each other, together
+nói|to speak
+ở đây|here
+phiên dịch|interpreter
+quen|to be familiar
+rẻ|cheap
+rửa mặt|to wash face
+sai|incorrect
+tác giả|writer, author
+tại|at, in
+tập thể dục|to do/take exercise
+Tây Ban Nha|Spain
+thử|to try
+tuổi|age
+từ|word
+từ từ|gradually
+tự tin|self confidence
+từng|used to
+vắng khách|empty
+Ý|Italia
+ý kiến|opinion`,
+9:`ba mẹ/bố mẹ|parents
+bao giờ|when
+bình thường|normal
+cảm thấy/thấy|to feel
+chủ nhật|sunday
+chúc mừng|to congratulate
+cuối tuần|weekend
+dọn dẹp|to clean
+đặt|to book
+đầu (tuần)|at the beginning (week)
+đi công tác|to go on a business trip
+định|to intend
+gần|nearly, about
+gọi điện thoại|to call
+hẹn|to make an appointment
+khách hàng|customer
+khó tính|hard to please
+lúc đó|at that time
+máy bay|airplane
+muộn/trễ|late
+mời|to invite
+này|this
+nhanh|fast, quickly
+nhớ|to remember
+rảnh|free time
+sau|next
+sinh|to be born
+sinh nhật|birthday
+tháng 6|june
+tháng 8|august
+thứ ba|tuesday
+thứ bảy|saturday
+thứ hai|monday
+thứ năm|thursday
+thứ sáu|friday
+trở lại|to return, to go back
+trước|last, ago
+tuần này|this week
+tuần sau|next week
+tuần trước|last week
+từ|since, from
+vào|on, in
+vé|ticket
+vui/vui vẻ|happy
+xe lửa|train`,
+10:`anh/anh trai|older brother
+anh cả|oldest brother
+bà ngoại|grandmother
+bạn thân|best friend
+chị/chị gái|older sister
+chị cả|oldest sister
+chồng|husband
+cả|oldest
+con|child, children
+con một|only child
+con gái|daughter
+con trai|son
+còn|still, and
+công viên|park
+cùng|together, same
+cùng tuổi|same age
+đặc biệt|special
+đi bộ|to walk
+đói|hungry
+đón|to pick up
+độc thân|unmarried
+em gái|younger sister
+em trai|younger brother
+gia đình|family
+giúp|to help
+họ hàng|relatives
+hoa|flower
+học sinh|student, pupil
+kết hôn/lập gia đình|to marry
+lớn hơn|older
+mất|to pass away, to die
+mọi người|everybody
+nấu/nấu ăn|to cook
+ngày nghỉ|day off
+nhỏ hơn|younger
+ông bà|grandparents
+quê|hometown
+tặng|to give, to offer
+thành viên|member
+thứ hai|second
+tranh|painting
+út|youngest
+vẫn|still
+vẽ|to draw
+về hưu/nghỉ hưu|to retire
+vợ|wife`,
+11:`bằng|by
+bất tiện|inconvenient
+bến xe|station
+cẩn thận|careful
+chậm|slowly
+chở|to give sb a ride
+đến|to arrive, to come
+đối với|for
+đúng giờ|on time, punctual
+đường phố|streets
+ga|station
+ghế|chair
+giao thông|traffic
+hàng ngày|every day
+hư|broken, out of work
+kẹt xe|traffic jam
+khứ hồi|two-way
+lên (xe buýt)|to get on (the bus)
+một chiều|one-way
+mưa|rain
+ngại|afraid
+nguy hiểm|dangerous
+người lái xe|driver
+người ta|they, people
+phần trăm|percent
+phức tạp|complicated
+phương tiện|means
+quen|to be familiar
+thân thiện|friendly
+thuê|to rent
+tiện/tiện lợi|convenient
+trạm (xe buýt)|(bus) stop
+tuy nhiên|however
+tự do|freedom
+vì vậy|therefore
+xe buýt|bus
+xe đạp|bicycle
+xe đạp điện|electric bicycle
+xe điện|electric train
+xe điện ngầm|subway
+xe máy|motorbike
+xe khách|coach bus
+xe ôm|motorbike taxi`,
+12:`bao xa|how far
+bữa sáng|breakfast
+câu|sentence
+cây số|kilometer
+chắc hẳn|must be
+chơi|to play
+có thể|may, to be able to
+công việc|work, job
+cũ|old
+cuối (năm)|end of (year)
+đầu tiên|first time
+dịp|occasion
+dừng|to stop
+hình|picture
+hơn|more than, older
+khả năng|ability
+lần|time
+năm trước|last year
+nghĩ|to think
+nghỉ hè|summer vacation
+(dọn dẹp) nhà cửa|(to clean) house
+(nghĩ) rằng|(think) that
+sáng sớm|early morning
+sinh hoạt|activity
+sử dụng|to use
+thời gian|time
+thư viện|library
+trái cây|fruit
+trước khi|before
+vắng|empty
+về|about
+vừa rồi|last, recent
+xe cộ|vehicle
+yên tĩnh|quiet`
+};
+
+/* =========================================================
+   2) 저장소 (브라우저에 내 단어 / 지난 오답 저장)
+   ========================================================= */
+const KEY = "gybm_wordnote_v1";
+function lsGet(k, fb){ try{ const v=localStorage.getItem(KEY+k); return v?JSON.parse(v):fb; }catch(e){ return fb; } }
+function lsSet(k, v){ try{ localStorage.setItem(KEY+k, JSON.stringify(v)); }catch(e){} }
+
+/* =========================================================
+   3) 단어 만들기
+   ========================================================= */
+let WORDS = [];
+function buildWords(){
+  WORDS = []; let id = 0;
+  Object.keys(RAW).forEach(L=>{
+    RAW[L].trim().split("\n").forEach(line=>{
+      line = line.trim(); if(!line) return;
+      const i = line.indexOf("|"); if(i<0) return;
+      const vn = line.slice(0,i).trim(), en = line.slice(i+1).trim();
+      if(vn && en) WORDS.push({id:id++, lesson:Number(L), vn, en});
+    });
+  });
+  lsGet("_custom", []).forEach(c=>{
+    if(c.vn && c.en) WORDS.push({id:id++, lesson:"custom", vn:c.vn, en:c.en});
+  });
+  // 단원 내 번호(num)와 전체 순서(gi) 부여 — 범위 지정에 사용
+  const cnt = {};
+  WORDS.forEach((w,i)=>{ w.gi = i; cnt[w.lesson] = (cnt[w.lesson]||0)+1; w.num = cnt[w.lesson]; });
+}
+function lessonsList(){
+  const nums=[...new Set(WORDS.filter(w=>typeof w.lesson==="number").map(w=>w.lesson))].sort((a,b)=>a-b);
+  if(WORDS.some(w=>w.lesson==="custom")) nums.push("custom");
+  return nums;
+}
+const lessonLabel = l => l==="custom" ? "내 단어" : "Lesson "+l;
+
+/* =========================================================
+   4) 도우미 함수
+   ========================================================= */
+function stripDia(s){
+  return s.normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/Đ/g,"D");
+}
+function norm(s){
+  return stripDia(String(s).toLowerCase())
+    .replace(/[().,/;:!?'"’]/g," ")
+    .replace(/\s+/g," ").trim();
+}
+function acceptable(answer){
+  const set = new Set();
+  const add = v => { const n=norm(v); if(n) set.add(n); };
+  const stripLead = v => v.replace(/^(to|a|an|the)\s+/i,"");
+  answer.split(/[,;/]/).map(x=>x.trim()).filter(Boolean).concat(answer).forEach(v=>{
+    add(v); add(stripLead(v));
+    const noParen = v.replace(/\([^)]*\)/g," ").trim();   // 괄호 내용 제거 버전
+    add(noParen); add(stripLead(noParen));
+  });
+  return set;
+}
+function isCorrectTyped(answer, input){
+  const ni = norm(input); if(!ni) return false;
+  const set = acceptable(answer);
+  if(set.has(ni)) return true;
+  return set.has(ni.replace(/^(to|a|an|the)\s+/,""));
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function speak(text, lang){
+  try{
+    if(!window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang || "en-US"; u.rate = .9;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){}
+}
+function makeQ(word, dir){
+  return { word, dir,
+    prompt: dir==="vn2en" ? word.vn : word.en,
+    answer: dir==="vn2en" ? word.en : word.vn };
+}
+function dirOf(setting){ return setting==="random" ? (Math.random()<.5?"vn2en":"en2vn") : setting; }
+const DIRLABEL = { vn2en:"🇻🇳 베트남어 → 🔤 영어", en2vn:"🔤 영어 → 🇻🇳 베트남어" };
+function spkBtn(text, lang, sm){
+  return `<button class="spk${sm?" sm":""}" data-action="speak" data-text="${esc(text)}" data-lang="${lang}" title="발음 듣기">🔊</button>`;
+}
+
+/* =========================================================
+   5) 화면 그리기
+   ========================================================= */
+const view = document.getElementById("view");
+const set = h => { view.innerHTML = h; window.scrollTo(0,0); };
+
+const state = {
+  lessons: new Set(),
+  mode: lsGet("_mode","type"),   // mc | type | flash  (기본: 주관식)
+  dir:  lsGet("_dir","vn2en"),   // vn2en | en2vn | random
+  count: lsGet("_count","all"),
+  selMode: lsGet("_selMode","lesson"), // lesson(단원별) | range(번호 범위)
+  rStart: 0, rEnd: 0             // 범위 지정 시 전체순서(gi) 기준 시작/끝
+};
+
+/* ---------- 홈 ---------- */
+function goHome(){
+  if(state.lessons.size===0) lessonsList().filter(l=>l!=="custom").forEach(l=>state.lessons.add(l));
+  if(!state.rEnd){ state.rStart = 0; state.rEnd = WORDS.length-1; }
+  renderHome();
+}
+function lessonOptionsFor(selectedLesson){
+  return lessonsList().map(l=>`<option value="${l}" ${String(l)===String(selectedLesson)?"selected":""}>${lessonLabel(l)}</option>`).join("");
+}
+function numOptionsFor(lesson, selectedGi){
+  return WORDS.filter(w=>String(w.lesson)===String(lesson))
+    .map(w=>`<option value="${w.gi}" ${w.gi===selectedGi?"selected":""}>${w.num}. ${esc(w.vn)}</option>`).join("");
+}
+function rangeBounds(){ return [Math.min(state.rStart,state.rEnd), Math.max(state.rStart,state.rEnd)]; }
+
+function selectionBlockHTML(showCount){
+  const lessons = lessonsList();
+  const chips = lessons.map(l=>{
+    const c = WORDS.filter(w=>w.lesson===l).length;
+    return `<button class="chip ${state.lessons.has(l)?"on":""}" data-action="toggleLesson" data-l="${l}">${lessonLabel(l)} <small>${c}</small></button>`;
+  }).join("");
+  const sW = WORDS[state.rStart], eW = WORDS[state.rEnd];
+  const [a,b] = rangeBounds();
+  const rangeBlock = `
+    <div class="rng">
+      <label class="fld">시작 단어</label>
+      <div class="row2">
+        <select class="sel" id="startLesson">${lessonOptionsFor(sW.lesson)}</select>
+        <select class="sel" id="startNum">${numOptionsFor(sW.lesson, sW.gi)}</select>
+      </div>
+      <label class="fld">끝 단어</label>
+      <div class="row2">
+        <select class="sel" id="endLesson">${lessonOptionsFor(eW.lesson)}</select>
+        <select class="sel" id="endNum">${numOptionsFor(eW.lesson, eW.gi)}</select>
+      </div>
+      <div class="rsum">📍 ${lessonLabel(WORDS[a].lesson)} ${WORDS[a].num}번 <b>${esc(WORDS[a].vn)}</b> ~ ${lessonLabel(WORDS[b].lesson)} ${WORDS[b].num}번 <b>${esc(WORDS[b].vn)}</b></div>
+    </div>`;
+  const selBlock = state.selMode==="range" ? rangeBlock : `
+      <div class="row">${chips}</div>
+      <div class="row" style="margin-top:10px">
+        <button class="chip" data-action="allLessons">전체 선택</button>
+        <button class="chip" data-action="noLessons">전체 해제</button>
+      </div>`;
+  return `
+    <div class="seg" style="margin-bottom:12px">
+      <button class="${state.selMode==="lesson"?"on":""}" data-action="selMode" data-v="lesson">단원별 선택</button>
+      <button class="${state.selMode==="range"?"on":""}" data-action="selMode" data-v="range">번호로 범위 지정</button>
+    </div>
+    ${selBlock}
+    ${showCount ? `<div class="muted tiny" style="margin-top:12px">선택한 단어 <b>${poolSelected().length}</b>개 / 전체 ${WORDS.length}개</div>` : ""}`;
+}
+
+function renderHome(){
+  state.screen = "home";
+  const lastWrong = lsGet("_wrong", []);
+  const startLabel = state.mode==="flash" ? "🃏 플래시카드 시작" : "✏️ 시험 시작하기";
+
+  set(`
+    <div class="card">
+      <h2>① 공부할 범위</h2>
+      ${selectionBlockHTML(true)}
+    </div>
+
+    <div class="card">
+      <h2>② 방식</h2>
+      <div class="seg">
+        <button class="${state.mode==="type"?"on":""}" data-action="mode" data-v="type">주관식<span class="desc">직접 입력</span></button>
+        <button class="${state.mode==="mc"?"on":""}" data-action="mode" data-v="mc">객관식<span class="desc">4개 중 고르기</span></button>
+        <button class="${state.mode==="flash"?"on":""}" data-action="mode" data-v="flash">플래시카드<span class="desc">암기·복습</span></button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>③ 방향</h2>
+      <div class="seg">
+        <button class="${state.dir==="vn2en"?"on":""}" data-action="dir" data-v="vn2en">베→영<span class="desc">베트남어 보고</span></button>
+        <button class="${state.dir==="en2vn"?"on":""}" data-action="dir" data-v="en2vn">영→베<span class="desc">영어 보고</span></button>
+        <button class="${state.dir==="random"?"on":""}" data-action="dir" data-v="random">랜덤<span class="desc">섞어서</span></button>
+      </div>
+    </div>
+
+    ${state.mode!=="flash" ? `
+    <div class="card">
+      <h2>④ 문제 수</h2>
+      <div class="seg">
+        ${["all",10,20,30].map(n=>`<button class="${String(state.count)===String(n)?"on":""}" data-action="count" data-v="${n}">${n==="all"?"전체":n+"개"}</button>`).join("")}
+      </div>
+    </div>`:""}
+
+    <button class="btn lg" data-action="start">${startLabel}</button>
+
+    ${lastWrong.length?`<button class="btn ghost" style="margin-top:10px" data-action="retryLast">🔁 지난번 틀린 단어 ${lastWrong.length}개 다시 풀기</button>`:""}
+
+    <button class="btn accent" style="margin-top:10px" data-action="goPaper">🖨️ 시험지 만들기 <span style="font-weight:600;opacity:.85">(인쇄·여럿이 함께)</span></button>
+
+    <div class="btn2" style="margin-top:10px">
+      <button class="btn soft" data-action="goList">📚 단어장 보기</button>
+      <button class="btn soft" data-action="goAdd">➕ 단어 추가</button>
+    </div>
+  `);
+  bindSelection();
+}
+function refresh(){ if(state.screen==="paper") genPaper(false); else renderHome(); }
+function bindSelection(){
+  const sl=document.getElementById("startLesson");
+  if(!sl) return;
+  const sn=document.getElementById("startNum"), el=document.getElementById("endLesson"), en=document.getElementById("endNum");
+  sl.onchange=()=>{ const f=WORDS.find(w=>String(w.lesson)===sl.value); state.rStart=f.gi; refresh(); };
+  sn.onchange=()=>{ state.rStart=Number(sn.value); refresh(); };
+  el.onchange=()=>{ const f=WORDS.find(w=>String(w.lesson)===el.value); state.rEnd=f.gi; refresh(); };
+  en.onchange=()=>{ state.rEnd=Number(en.value); refresh(); };
+}
+
+/* ---------- 시험 진행 ---------- */
+const Q = {};
+function poolSelected(){
+  if(state.selMode==="range"){ const [a,b]=rangeBounds(); return WORDS.slice(a, b+1); }
+  return WORDS.filter(w=>state.lessons.has(w.lesson));
+}
+
+function start(){
+  const pool = poolSelected();
+  if(pool.length===0){ alert("먼저 시험 볼 단원을 한 개 이상 골라주세요."); return; }
+  if(state.mode==="flash"){ startFlash(pool); return; }
+  let q = shuffle(pool);
+  if(state.count!=="all") q = q.slice(0, Math.min(Number(state.count), q.length));
+  Q.queue = q.map(w=>makeQ(w, dirOf(state.dir)));
+  Q.idx=0; Q.score=0; Q.wrong=[];
+  setupQ(); renderQuiz();
+}
+function startQueue(items){ Q.queue=items; Q.idx=0; Q.score=0; Q.wrong=[]; setupQ(); renderQuiz(); }
+
+function setupQ(){
+  const q = Q.queue[Q.idx];
+  Q.answered=false; Q.picked=null; Q.typed="";
+  if(state.mode==="mc"){
+    const key = q.dir==="vn2en" ? "en" : "vn";
+    const pkey = q.dir==="vn2en" ? "vn" : "en";
+    const seen = new Set([norm(q.answer)]);
+    const pn = norm(q.prompt);
+    const distract = [];
+    for(const w of shuffle(WORDS)){
+      if(norm(w[pkey])===pn) continue;
+      const v = w[key], nv = norm(v);
+      if(seen.has(nv)) continue;
+      seen.add(nv); distract.push(v);
+      if(distract.length>=3) break;
+    }
+    const opts = shuffle([q.answer, ...distract]);
+    Q.options = opts; Q.correct = opts.indexOf(q.answer);
+  }
+}
+
+function renderQuiz(){
+  const q = Q.queue[Q.idx], n = Q.queue.length;
+  const pct = Math.round((Q.idx/(n))*100);
+  const promptLang = q.dir==="vn2en" ? "vi-VN" : "en-US";
+  let body = "";
+
+  if(state.mode==="mc"){
+    body = Q.options.map((o,i)=>{
+      let cls = "opt";
+      if(Q.answered){
+        if(i===Q.correct) cls+=" correct";
+        else if(i===Q.picked) cls+=" wrong";
+      }
+      return `<button class="${cls}" data-action="pick" data-i="${i}" ${Q.answered?"disabled":""}>
+        <span class="num">${i+1}</span>${esc(o)}</button>`;
+    }).join("");
+  } else {
+    body = `<input class="answer" id="ansInput" placeholder="정답 입력 후 Enter" ${Q.answered?"disabled":""} value="${esc(Q.typed||"")}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      ${!Q.answered?`<button class="btn" style="margin-top:12px" data-action="check">확인</button>`:""}`;
+  }
+
+  let fb = "";
+  if(Q.answered){
+    const ok = state.mode==="mc" ? (Q.picked===Q.correct) : Q.lastOk;
+    fb = `<div class="feedback ${ok?"ok":"no"}">${ok?"✅ 정답이에요!":"❌ 아쉬워요"}
+      <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, q.dir==="vn2en"?"vi-VN":"en-US", true)}</span></div>
+      <button class="btn" style="margin-top:12px" data-action="next">${Q.idx+1>=n?"결과 보기 →":"다음 →"}</button>`;
+  }
+
+  set(`
+    <div class="qtop"><span>문제 ${Q.idx+1} / ${n}</span><span>점수 ${Q.score}</span></div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="card">
+      <span class="dirtag">${DIRLABEL[q.dir]}</span>
+      <div class="prompt">${esc(q.prompt)} ${spkBtn(q.prompt, promptLang)}</div>
+      <div class="promptsub">${q.dir==="vn2en"?"이 단어의 영어 뜻은?":"이 뜻의 베트남어 단어는?"}</div>
+      ${body}
+      ${fb}
+    </div>
+    <button class="btn line" data-action="quit">그만두기</button>
+  `);
+
+  if(state.mode!=="mc" && !Q.answered){
+    const inp = document.getElementById("ansInput");
+    if(inp){ inp.focus(); inp.addEventListener("keydown",e=>{ if(e.key==="Enter") checkTyped(); }); }
+  }
+  if(Q.answered){
+    // 정답 공개 후 Enter 로 다음
+    document.addEventListener("keydown", onAdvance);
+  }
+}
+function onAdvance(e){ if(e.key==="Enter"){ document.removeEventListener("keydown", onAdvance); next(); } }
+
+function pick(i){
+  if(Q.answered) return;
+  Q.answered=true; Q.picked=Number(i);
+  if(Q.picked===Q.correct) Q.score++;
+  else Q.wrong.push(wrongItem());
+  renderQuiz();
+}
+function checkTyped(){
+  if(Q.answered) return;
+  const inp = document.getElementById("ansInput");
+  Q.typed = inp ? inp.value : "";
+  const q = Q.queue[Q.idx];
+  Q.lastOk = isCorrectTyped(q.answer, Q.typed);
+  Q.answered = true;
+  if(Q.lastOk) Q.score++; else Q.wrong.push(wrongItem());
+  renderQuiz();
+}
+function wrongItem(){ const q=Q.queue[Q.idx]; return {vn:q.word.vn, en:q.word.en, lesson:q.word.lesson, dir:q.dir}; }
+function next(){
+  document.removeEventListener("keydown", onAdvance);
+  Q.idx++;
+  if(Q.idx>=Q.queue.length){ renderResult(); return; }
+  setupQ(); renderQuiz();
+}
+function quit(){
+  if(confirm("시험을 그만둘까요? 지금까지 결과를 보여드릴게요.")){
+    document.removeEventListener("keydown", onAdvance);
+    renderResult();
+  }
+}
+
+/* ---------- 결과 ---------- */
+function renderResult(){
+  const done = Q.idx + (Q.answered?1:0);
+  const answered = Math.min(done, Q.queue.length) || Q.score+Q.wrong.length;
+  const total = answered || Q.queue.length;
+  const pct = total ? Math.round((Q.score/total)*100) : 0;
+  lsSet("_wrong", Q.wrong);
+  let msg = pct>=90?"🎉 완벽해요! 시험 준비 끝!" : pct>=70?"👍 잘하고 있어요. 조금만 더!" : pct>=40?"💪 틀린 단어 위주로 복습해요." : "🌱 천천히, 반복이 답이에요!";
+  const wrongList = Q.wrong.length ? `
+    <div class="card">
+      <h2>❌ 틀린 단어 ${Q.wrong.length}개</h2>
+      <div class="wlist">
+        ${Q.wrong.map(w=>`<div class="wrow">
+          <span class="lz">${lessonLabel(w.lesson)}</span>
+          <span class="wvn">${esc(w.vn)}</span>
+          <span class="wen">${esc(w.en)}</span>
+          ${spkBtn(w.vn,"vi-VN",true)}
+        </div>`).join("")}
+      </div>
+    </div>` : `<div class="card center" style="padding:24px"><div class="emoji">🌟</div><b>다 맞혔어요!</b></div>`;
+
+  set(`
+    <div class="card center">
+      <div class="emoji">${pct>=70?"🏆":"📒"}</div>
+      <div class="stat"><div><b>${Q.score}</b><div class="tiny muted">정답</div></div>
+        <div><b>${total}</b><div class="tiny muted">문제</div></div>
+        <div><b>${pct}%</b><div class="tiny muted">정답률</div></div></div>
+      <div class="muted" style="margin-top:6px">${msg}</div>
+    </div>
+    ${wrongList}
+    ${Q.wrong.length?`<button class="btn" data-action="retryWrong">🔁 틀린 단어만 다시 풀기</button>`:""}
+    <button class="btn soft" style="margin-top:10px" data-action="goHome">🏠 처음으로</button>
+  `);
+}
+function retryWrong(){
+  const items = Q.wrong.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir));
+  if(!items.length) return goHome();
+  if(state.mode==="flash"){ startFlash(items.map(i=>i.word)); return; }
+  startQueue(items);
+}
+function retryLast(){
+  const lw = lsGet("_wrong", []);
+  if(!lw.length) return;
+  const items = lw.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir));
+  startQueue(items);
+}
+
+/* ---------- 플래시카드 ---------- */
+const F = {};
+function startFlash(pool){
+  let list = shuffle(pool);
+  if(state.count!=="all") list = list.slice(0, Math.min(Number(state.count), list.length));
+  F.cards = list.map(w=>makeQ(w, dirOf(state.dir)));
+  F.idx=0; F.flip=false; renderFlash();
+}
+function renderFlash(){
+  const c = F.cards[F.idx], n=F.cards.length;
+  const pLang = c.dir==="vn2en"?"vi-VN":"en-US", aLang = c.dir==="vn2en"?"en-US":"vi-VN";
+  set(`
+    <div class="qtop"><span>카드 ${F.idx+1} / ${n}</span><span>${DIRLABEL[c.dir]}</span></div>
+    <div class="bar"><i style="width:${Math.round((F.idx/n)*100)}%"></i></div>
+    <div class="flash ${F.flip?"flipped":""}" data-action="flip">
+      <div class="flash-inner">
+        <div class="face front"><span class="lbl">${c.dir==="vn2en"?"베트남어":"영어"} · 탭하면 뒤집혀요</span>
+          <span class="big">${esc(c.prompt)}</span>${spkBtn(c.prompt,pLang)}</div>
+        <div class="face back"><span class="lbl">${c.dir==="vn2en"?"영어 뜻":"베트남어"}</span>
+          <span class="big">${esc(c.answer)}</span>${spkBtn(c.answer,aLang)}</div>
+      </div>
+    </div>
+    <div class="btn2">
+      <button class="btn soft" data-action="prevCard" ${F.idx===0?"disabled":""}>← 이전</button>
+      <button class="btn ghost" data-action="flip">뒤집기</button>
+      <button class="btn" data-action="nextCard">${F.idx+1>=n?"끝내기":"다음 →"}</button>
+    </div>
+    <button class="btn line" style="margin-top:10px" data-action="shuffleF">🔀 순서 섞기</button>
+    <button class="btn line" style="margin-top:8px" data-action="goHome">🏠 처음으로</button>
+  `);
+}
+
+/* ---------- 단어장 보기 ---------- */
+const L = { lesson:"all", q:"", hide:false };
+function goList(){ renderList(); }
+function renderList(){
+  const lessons = lessonsList();
+  const filt = WORDS.filter(w=>{
+    if(L.lesson!=="all" && String(w.lesson)!==String(L.lesson)) return false;
+    if(L.q){ const k=norm(L.q); if(!norm(w.vn).includes(k) && !norm(w.en).includes(k)) return false; }
+    return true;
+  });
+  const chips = ['all',...lessons].map(l=>`<button class="chip ${String(L.lesson)===String(l)?"on":""}" data-action="listFilter" data-l="${l}">${l==="all"?"전체":lessonLabel(l)}</button>`).join("");
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2>📚 단어장 · ${filt.length}개</h2>
+      <input class="search" id="searchBox" placeholder="🔎 단어/뜻 검색 (베트남어·영어 모두)" value="${esc(L.q)}">
+      <div class="row" style="margin-bottom:6px">${chips}</div>
+      <button class="chip ${L.hide?"on":""}" data-action="toggleHide">${L.hide?"🙈 뜻 가림 (마우스 올리면 보임)":"👁️ 뜻 보임"}</button>
+      <div class="wlist" style="margin-top:8px">
+        ${filt.length? filt.map(w=>`<div class="wrow">
+          <span class="lz">${lessonLabel(w.lesson)}</span>
+          <span class="wvn">${esc(w.vn)} ${spkBtn(w.vn,"vi-VN",true)}</span>
+          <span class="wen ${L.hide?"hide":""}">${esc(w.en)}</span>
+        </div>`).join("") : `<div class="muted center" style="padding:20px">검색 결과가 없어요.</div>`}
+      </div>
+    </div>
+  `);
+  const sb = document.getElementById("searchBox");
+  if(sb){ sb.addEventListener("input", e=>{ L.q=e.target.value; const pos=sb.selectionStart; renderList(); const nb=document.getElementById("searchBox"); nb.focus(); nb.setSelectionRange(pos,pos); }); }
+}
+
+/* ---------- 단어 추가 ---------- */
+function goAdd(){ renderAdd(); }
+function renderAdd(){
+  const custom = lsGet("_custom", []);
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2>➕ 내 단어 추가</h2>
+      <label class="fld">베트남어 (또는 외울 단어)</label>
+      <input class="search" id="inVn" placeholder="예: cảm ơn" autocomplete="off">
+      <label class="fld">영어 뜻 (또는 한국어 뜻)</label>
+      <input class="search" id="inEn" placeholder="예: thank you / 고마워요" autocomplete="off">
+      <button class="btn" style="margin-top:12px" data-action="addWord">추가하기</button>
+      <div class="muted tiny" style="margin-top:10px">추가한 단어는 이 브라우저에 저장돼요. 단어장·시험에 '내 단어'로 함께 나와요.</div>
+    </div>
+    <div class="card">
+      <h2>내가 추가한 단어 · ${custom.length}개</h2>
+      <div class="wlist">
+        ${custom.length? custom.map((w,i)=>`<div class="wrow">
+          <span class="wvn">${esc(w.vn)}</span>
+          <span class="wen">${esc(w.en)}</span>
+          <button class="del" data-action="delWord" data-i="${i}">×</button>
+        </div>`).join("") : `<div class="muted center" style="padding:16px">아직 없어요.</div>`}
+      </div>
+    </div>
+  `);
+}
+function addWord(){
+  const vn=(document.getElementById("inVn").value||"").trim();
+  const en=(document.getElementById("inEn").value||"").trim();
+  if(!vn||!en){ alert("단어와 뜻을 모두 입력해주세요."); return; }
+  const custom = lsGet("_custom", []); custom.push({vn,en}); lsSet("_custom", custom);
+  buildWords(); renderAdd();
+}
+function delWord(i){
+  const custom = lsGet("_custom", []); custom.splice(Number(i),1); lsSet("_custom", custom);
+  buildWords(); renderAdd();
+}
+
+/* ---------- 시험지 만들기 (인쇄·여럿이 함께) ---------- */
+const P = { dir:"random", count:"all", showKey:true, version:0, questions:[] };
+function rangeTitle(){
+  if(state.selMode==="range"){ const [a,b]=rangeBounds(); return `${lessonLabel(WORDS[a].lesson)} ${WORDS[a].num}번 ~ ${lessonLabel(WORDS[b].lesson)} ${WORDS[b].num}번`; }
+  const ls=[...state.lessons].filter(l=>l!=="custom").sort((a,b)=>a-b);
+  return ls.length ? ls.map(l=>"L"+l).join(", ")+(state.lessons.has("custom")?", 내 단어":"") : "선택 범위";
+}
+function genPaper(bump){
+  const rawPool = poolSelected();
+  if(!rawPool.length){ alert("먼저 ① 에서 공부할 범위를 선택해주세요."); goHome(); return; }
+  const lc = s => s.trim().toLowerCase();
+  // 1) 같은 단어쌍 중복 제거 (책에서 여러 단원에 반복되는 동일 단어)
+  const seenPair = new Set();
+  let pool = rawPool.filter(w=>{ const k=lc(w.vn)+"||"+lc(w.en); if(seenPair.has(k)) return false; seenPair.add(k); return true; });
+  pool = shuffle(pool);
+  if(bump || !P.version) P.version = (P.version||0)+1;
+  // 2) 방향 배정 + 화면에 보이는 문제(단어) 중복 제거
+  const seenPrompt = new Set();
+  const qs = [];
+  for(const w of pool){
+    let d = P.dir==="random" ? (Math.random()<.5?"vn2en":"en2vn") : P.dir;
+    let prompt = d==="vn2en" ? w.vn : w.en;
+    if(seenPrompt.has(lc(prompt))){
+      const d2 = d==="vn2en" ? "en2vn" : "vn2en";
+      const p2 = d2==="vn2en" ? w.vn : w.en;
+      if(P.dir==="random" && !seenPrompt.has(lc(p2))){ d=d2; prompt=p2; }  // 반대 방향으로 회피
+      else continue;                                                        // 그래도 겹치면 제외
+    }
+    seenPrompt.add(lc(prompt));
+    qs.push({ vn:w.vn, en:w.en, dir:d, prompt, answer:d==="vn2en"?w.en:w.vn });
+  }
+  P.dupRemoved = rawPool.length - qs.length;   // 중복으로 제외된 단어 수
+  P.questions = (P.count!=="all") ? qs.slice(0, Math.min(Number(P.count), qs.length)) : qs;
+  renderPaper();
+}
+function renderPaper(){
+  state.screen = "paper";
+  const n = P.questions.length;
+  const qs = P.questions.map((q,i)=>
+    `<div class="pq"><span class="pqn">${i+1}.</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline"></span></div>`
+  ).join("");
+
+  set(`
+    <div class="noprint">
+      <button class="link" data-action="goHome">← 처음으로</button>
+      <div class="card">
+        <h2>🖨️ 시험지 만들기</h2>
+        <label class="fld" style="margin-top:0">시험 범위</label>
+        ${selectionBlockHTML(false)}
+        <label class="fld">출제 방향</label>
+        <div class="seg">
+          <button class="${P.dir==="random"?"on":""}" data-action="paperDir" data-v="random">랜덤 섞기</button>
+          <button class="${P.dir==="vn2en"?"on":""}" data-action="paperDir" data-v="vn2en">베→영</button>
+          <button class="${P.dir==="en2vn"?"on":""}" data-action="paperDir" data-v="en2vn">영→베</button>
+        </div>
+        <label class="fld">문제 수</label>
+        <div class="seg">
+          ${["all",20,30,50].map(c=>`<button class="${String(P.count)===String(c)?"on":""}" data-action="paperCount" data-v="${c}">${c==="all"?"범위 전체":c+"개"}</button>`).join("")}
+        </div>
+        <div class="btn2" style="margin-top:14px">
+          <button class="btn soft" data-action="regenPaper">🔀 다시 섞기</button>
+          <button class="btn accent" data-action="printPaper">🖨️ 인쇄 / PDF</button>
+        </div>
+        <div class="muted tiny" style="margin-top:10px">💡 인쇄 창에서 대상을 <b>'PDF로 저장'</b>으로 바꾸면 파일로 보관·공유돼요. 날짜·페이지번호가 보이면 인쇄 창에서 <b>'머리글 및 바닥글'</b>(Safari는 '머리말/꼬리말') 체크를 꺼주세요. 여러 명이 풀 땐 <b>다시 섞기</b>로 문제 순서를 바꿔 나눠줄 수 있어요.</div>
+      </div>
+    </div>
+
+    <div class="paper">
+      <div class="ptitle">베트남어 단어 시험</div>
+      <div class="phead"><span>이름 : ____________</span><span>날짜 : ____________</span><span>점수 : ______ / ${n}</span></div>
+      <div class="pinstr">범위: ${esc(rangeTitle())}</div>
+      <div class="pgrid">${qs}</div>
+    </div>
+  `);
+  bindSelection();
+}
+
+/* =========================================================
+   6) 클릭 이벤트 연결
+   ========================================================= */
+const actions = {
+  goHome, goList, goAdd, start, retryLast, retryWrong, retryWrongQ:retryWrong,
+  pick:(el)=>pick(el.dataset.i),
+  check:checkTyped, next, quit,
+  flip:()=>{ F.flip=!F.flip; renderFlash(); },
+  nextCard:()=>{ if(F.idx+1>=F.cards.length){ goHome(); } else { F.idx++; F.flip=false; renderFlash(); } },
+  prevCard:()=>{ if(F.idx>0){ F.idx--; F.flip=false; renderFlash(); } },
+  shuffleF:()=>{ F.cards=shuffle(F.cards); F.idx=0; F.flip=false; renderFlash(); },
+  toggleLesson:(el)=>{ const l=el.dataset.l==="custom"?"custom":Number(el.dataset.l); if(state.lessons.has(l)) state.lessons.delete(l); else state.lessons.add(l); refresh(); },
+  allLessons:()=>{ lessonsList().forEach(l=>state.lessons.add(l)); refresh(); },
+  noLessons:()=>{ state.lessons.clear(); refresh(); },
+  selMode:(el)=>{ state.selMode=el.dataset.v; lsSet("_selMode",state.selMode); refresh(); },
+  goPaper:()=>genPaper(false),
+  paperDir:(el)=>{ P.dir=el.dataset.v; genPaper(false); },
+  paperCount:(el)=>{ P.count=el.dataset.v==="all"?"all":Number(el.dataset.v); genPaper(false); },
+  regenPaper:()=>genPaper(true),
+  printPaper:()=>window.print(),
+  mode:(el)=>{ state.mode=el.dataset.v; lsSet("_mode",state.mode); renderHome(); },
+  dir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderHome(); },
+  count:(el)=>{ state.count=el.dataset.v==="all"?"all":Number(el.dataset.v); lsSet("_count",state.count); renderHome(); },
+  listFilter:(el)=>{ L.lesson=el.dataset.l==="all"?"all":(el.dataset.l==="custom"?"custom":Number(el.dataset.l)); renderList(); },
+  toggleHide:()=>{ L.hide=!L.hide; renderList(); },
+  addWord, delWord:(el)=>delWord(el.dataset.i),
+  speak:(el)=>speak(el.dataset.text, el.dataset.lang)
+};
+view.addEventListener("click", e=>{
+  const t = e.target.closest("[data-action]");
+  if(!t) return;
+  const fn = actions[t.dataset.action];
+  if(fn){ e.preventDefault(); fn(t, e); }
+});
+
+/* =========================================================
+   7) 시작!
+   ========================================================= */
+buildWords();
+goHome();
+</script>
+</body>
+</html>
