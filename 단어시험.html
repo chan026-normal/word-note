@@ -80,6 +80,7 @@
   .bar > i{display:block; height:100%; background:linear-gradient(90deg,var(--brand),var(--brand2)); transition:width .25s}
   .dirtag{display:inline-block; font-size:12px; font-weight:700; color:var(--accent); background:color-mix(in srgb,var(--accent) 14%, transparent); padding:4px 10px; border-radius:999px; margin-bottom:14px}
   .prompt{font-size:34px; font-weight:800; text-align:center; margin:6px 0 4px; word-break:break-word; line-height:1.25}
+  .prompt.sent{font-size:22px; line-height:1.4}
   .promptsub{text-align:center; color:var(--muted); font-size:13px; margin-bottom:18px}
   .opt{
     width:100%; text-align:left; border:1.5px solid var(--line); background:var(--card); color:var(--ink);
@@ -154,6 +155,12 @@
   .pqp{font-weight:700; white-space:nowrap}
   .pqtag{font-size:10px; color:#999; white-space:nowrap}
   .pqline{flex:1; border-bottom:1px dotted #aaa; min-width:50px; align-self:flex-end; height:15px}
+  .ppart{margin:20px 0 6px; font-size:15px; font-weight:800; color:#111; border-bottom:2px solid #bbb; padding-bottom:5px}
+  .pslist{display:flex; flex-direction:column; gap:15px}
+  .psq{break-inside:avoid}
+  .psq .pqn{display:inline-block}
+  .psp{font-weight:700; font-size:14.5px; color:#111}
+  .psline{border-bottom:1px solid #aaa; height:26px; margin-top:7px}
   .pkeygrid{display:grid; grid-template-columns:1fr 1fr; gap:5px 20px; margin-top:8px}
   .pkq{font-size:13px; color:#111; break-inside:avoid}
   .pkq b{color:#777; font-weight:700}
@@ -683,6 +690,39 @@ xe cộ|vehicle
 yên tĩnh|quiet`
 };
 
+/* 예문(문장) — 기존 단어로 만든 베트남어 문장 + 영어 뜻. 더 추가하려면 한 줄에 "베트남어|영어" 형식으로 넣으면 됩니다. */
+const SENTENCES = `Tôi tên là Nam.|My name is Nam.
+Bạn khỏe không?|How are you?
+Tôi là sinh viên.|I am a student.
+Anh ấy là người Hàn Quốc.|He is Korean.
+Tôi ăn sáng lúc bảy giờ.|I eat breakfast at seven o'clock.
+Hôm nay tôi đi học.|Today I go to school.
+Tôi muốn uống cà phê.|I want to drink coffee.
+Gia đình tôi có bốn người.|My family has four people.
+Cuối tuần tôi đi du lịch.|I travel on the weekend.
+Anh ấy đi làm bằng xe máy.|He goes to work by motorbike.
+Tôi sống ở thành phố.|I live in the city.
+Phòng học rất yên tĩnh.|The classroom is very quiet.
+Món ăn này rất ngon.|This dish is very delicious.
+Tôi học tiếng Việt.|I study Vietnamese.
+Bây giờ là mấy giờ?|What time is it now?
+Tôi đi chợ mua trái cây.|I go to the market to buy fruit.
+Thư viện mở cửa lúc tám giờ.|The library opens at eight o'clock.
+Chị gái tôi là bác sĩ.|My older sister is a doctor.
+Tôi rất thích nghe nhạc.|I really like listening to music.
+Hôm nay tôi rất vui.|I am very happy today.
+Tôi đi làm bằng xe buýt.|I go to work by bus.
+Anh ấy nói tiếng Anh rất giỏi.|He speaks English very well.
+Tôi muốn đặt vé máy bay.|I want to book an airplane ticket.
+Nhà hàng này rất đông.|This restaurant is very crowded.
+Tôi gặp bạn ở quán cà phê.|I meet a friend at the coffee shop.
+Tối nay tôi đi xem phim.|Tonight I go to watch a movie.
+Bố mẹ tôi đã về hưu.|My parents have retired.
+Tôi cảm thấy hơi mệt.|I feel a little tired.
+Giao thông ở đây rất phức tạp.|The traffic here is very complicated.
+Buổi sáng tôi tập thể dục.|In the morning I exercise.`;
+const SENTS = SENTENCES.trim().split("\n").map(l=>{ const i=l.indexOf("|"); return {vn:l.slice(0,i).trim(), en:l.slice(i+1).trim()}; }).filter(s=>s.vn&&s.en);
+
 /* =========================================================
    2) 저장소 (브라우저에 내 단어 / 지난 오답 저장)
    ========================================================= */
@@ -756,8 +796,8 @@ function speak(text, lang){
     speechSynthesis.cancel(); speechSynthesis.speak(u);
   }catch(e){}
 }
-function makeQ(word, dir){
-  return { word, dir,
+function makeQ(word, dir, type){
+  return { type: type||"word", word, dir,
     prompt: dir==="vn2en" ? word.vn : word.en,
     answer: dir==="vn2en" ? word.en : word.vn };
 }
@@ -837,7 +877,9 @@ function selectionBlockHTML(showCount){
 function renderHome(){
   state.screen = "home";
   const lastWrong = lsGet("_wrong", []);
-  const startLabel = state.mode==="flash" ? "🃏 플래시카드 시작" : "✏️ 시험 시작하기";
+  const startLabel = state.mode==="flash" ? "🃏 플래시카드 시작"
+    : state.mode==="exam" ? "📝 실전 시험 시작 (단어40 + 문장10)"
+    : "✏️ 시험 시작하기";
 
   set(`
     <div class="card">
@@ -851,7 +893,9 @@ function renderHome(){
         <button class="${state.mode==="type"?"on":""}" data-action="mode" data-v="type">주관식<span class="desc">직접 입력</span></button>
         <button class="${state.mode==="mc"?"on":""}" data-action="mode" data-v="mc">객관식<span class="desc">4개 중 고르기</span></button>
         <button class="${state.mode==="flash"?"on":""}" data-action="mode" data-v="flash">플래시카드<span class="desc">암기·복습</span></button>
+        <button class="${state.mode==="exam"?"on":""}" data-action="mode" data-v="exam">실전시험<span class="desc">단어40+문장10</span></button>
       </div>
+      ${state.mode==="exam"?`<div class="muted tiny" style="margin-top:10px">📝 단어 40개(직접 입력 채점) + ✍️ 문장 10개(번역·내가 맞았는지 확인) 순서로 진행돼요. 문장은 기존 단어로 만든 예문이에요.</div>`:""}
     </div>
 
     <div class="card">
@@ -863,7 +907,7 @@ function renderHome(){
       </div>
     </div>
 
-    ${state.mode!=="flash" ? `
+    ${(state.mode!=="flash" && state.mode!=="exam") ? `
     <div class="card">
       <h2>④ 문제 수</h2>
       <div class="seg">
@@ -906,17 +950,29 @@ function start(){
   const pool = poolSelected();
   if(pool.length===0){ alert("먼저 시험 볼 단원을 한 개 이상 골라주세요."); return; }
   if(state.mode==="flash"){ startFlash(pool); return; }
+  if(state.mode==="exam"){ startExam(pool); return; }
   let q = shuffle(pool);
   if(state.count!=="all") q = q.slice(0, Math.min(Number(state.count), q.length));
   Q.queue = q.map(w=>makeQ(w, dirOf(state.dir)));
   Q.idx=0; Q.score=0; Q.wrong=[];
   setupQ(); renderQuiz();
 }
-function startQueue(items){ Q.queue=items; Q.idx=0; Q.score=0; Q.wrong=[]; setupQ(); renderQuiz(); }
+function startExam(pool){
+  const words = shuffle(pool).slice(0, Math.min(40, pool.length));
+  const sents = shuffle(SENTS).slice(0, Math.min(10, SENTS.length));
+  Q.wordCount = words.length; Q.sentCount = sents.length;
+  Q.queue = [
+    ...words.map(w=>makeQ(w, dirOf(state.dir), "word")),
+    ...sents.map(s=>makeQ({vn:s.vn, en:s.en, lesson:"문장"}, dirOf(state.dir), "sentence"))
+  ];
+  Q.idx=0; Q.score=0; Q.wrong=[];
+  setupQ(); renderQuiz();
+}
+function startQueue(items){ Q.queue=items; Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null; setupQ(); renderQuiz(); }
 
 function setupQ(){
   const q = Q.queue[Q.idx];
-  Q.answered=false; Q.picked=null; Q.typed="";
+  Q.answered=false; Q.picked=null; Q.typed=""; Q.revealed=false;
   if(state.mode==="mc"){
     const key = q.dir==="vn2en" ? "en" : "vn";
     const pkey = q.dir==="vn2en" ? "vn" : "en";
@@ -938,53 +994,79 @@ function setupQ(){
 function renderQuiz(){
   const q = Q.queue[Q.idx], n = Q.queue.length;
   const pct = Math.round((Q.idx/(n))*100);
+  const isSent = q.type==="sentence";
+  const kind = state.mode==="mc" ? "mc" : (isSent ? "sent" : "word");
   const promptLang = q.dir==="vn2en" ? "vi-VN" : "en-US";
-  let body = "";
+  const ansLang = q.dir==="vn2en" ? "en-US" : "vi-VN";
 
-  if(state.mode==="mc"){
+  // 진행 라벨 (실전시험이면 단어/문장 구분)
+  let counter = `문제 ${Q.idx+1} / ${n}`;
+  if(state.mode==="exam" && Q.wordCount!=null){
+    counter = (Q.idx < Q.wordCount)
+      ? `📝 단어 ${Q.idx+1} / ${Q.wordCount}`
+      : `✍️ 문장 ${Q.idx - Q.wordCount + 1} / ${Q.sentCount}`;
+  } else if(state.mode==="exam"){
+    counter = (isSent ? "✍️ 문장" : "📝 단어") + ` ${Q.idx+1} / ${n}`;
+  }
+
+  const subText = isSent
+    ? (q.dir==="vn2en" ? "이 문장을 영어로 번역하세요" : "이 문장을 베트남어로 번역하세요")
+    : (q.dir==="vn2en" ? "이 단어의 영어 뜻은?" : "이 뜻의 베트남어 단어는?");
+
+  let body = "", fb = "";
+  const nextBtn = `<button class="btn" style="margin-top:12px" data-action="next">${Q.idx+1>=n?"결과 보기 →":"다음 →"}</button>`;
+
+  if(kind==="mc"){
     body = Q.options.map((o,i)=>{
       let cls = "opt";
-      if(Q.answered){
-        if(i===Q.correct) cls+=" correct";
-        else if(i===Q.picked) cls+=" wrong";
-      }
+      if(Q.answered){ if(i===Q.correct) cls+=" correct"; else if(i===Q.picked) cls+=" wrong"; }
       return `<button class="${cls}" data-action="pick" data-i="${i}" ${Q.answered?"disabled":""}>
         <span class="num">${i+1}</span>${esc(o)}</button>`;
     }).join("");
-  } else {
+    if(Q.answered){
+      const ok = Q.picked===Q.correct;
+      fb = `<div class="feedback ${ok?"ok":"no"}">${ok?"✅ 정답이에요!":"❌ 아쉬워요"}
+        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${nextBtn}`;
+    }
+  } else if(kind==="word"){
     body = `<input class="answer" id="ansInput" placeholder="정답 입력 후 Enter" ${Q.answered?"disabled":""} value="${esc(Q.typed||"")}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       ${!Q.answered?`<button class="btn" style="margin-top:12px" data-action="check">확인</button>`:""}`;
-  }
-
-  let fb = "";
-  if(Q.answered){
-    const ok = state.mode==="mc" ? (Q.picked===Q.correct) : Q.lastOk;
-    fb = `<div class="feedback ${ok?"ok":"no"}">${ok?"✅ 정답이에요!":"❌ 아쉬워요"}
-      <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, q.dir==="vn2en"?"vi-VN":"en-US", true)}</span></div>
-      <button class="btn" style="margin-top:12px" data-action="next">${Q.idx+1>=n?"결과 보기 →":"다음 →"}</button>`;
+    if(Q.answered){
+      fb = `<div class="feedback ${Q.lastOk?"ok":"no"}">${Q.lastOk?"✅ 정답이에요!":"❌ 아쉬워요"}
+        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${nextBtn}`;
+    }
+  } else { // 문장 번역 (자가 채점)
+    if(!Q.revealed){
+      body = `<button class="btn" data-action="revealSent">번역 확인하기</button>`;
+    } else if(!Q.answered){
+      fb = `<div class="feedback ok"><span style="font-weight:700">모범 번역</span>
+        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>
+        <div class="promptsub" style="margin-top:12px">내 번역과 비교해보세요 — 맞았나요?</div>
+        <div class="btn2"><button class="btn soft" data-action="selfWrong">❌ 틀렸어요</button><button class="btn" data-action="selfRight">✅ 맞았어요</button></div>`;
+    } else {
+      fb = `<div class="feedback ${Q.lastOk?"ok":"no"}">${Q.lastOk?"✅ 맞음 처리":"❌ 틀림 처리"}
+        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${nextBtn}`;
+    }
   }
 
   set(`
-    <div class="qtop"><span>문제 ${Q.idx+1} / ${n}</span><span>점수 ${Q.score}</span></div>
+    <div class="qtop"><span>${counter}</span><span>점수 ${Q.score}</span></div>
     <div class="bar"><i style="width:${pct}%"></i></div>
     <div class="card">
       <span class="dirtag">${DIRLABEL[q.dir]}</span>
-      <div class="prompt">${esc(q.prompt)} ${spkBtn(q.prompt, promptLang)}</div>
-      <div class="promptsub">${q.dir==="vn2en"?"이 단어의 영어 뜻은?":"이 뜻의 베트남어 단어는?"}</div>
+      <div class="prompt${isSent?" sent":""}">${esc(q.prompt)} ${spkBtn(q.prompt, promptLang)}</div>
+      <div class="promptsub">${subText}</div>
       ${body}
       ${fb}
     </div>
     <button class="btn line" data-action="quit">그만두기</button>
   `);
 
-  if(state.mode!=="mc" && !Q.answered){
+  if(kind==="word" && !Q.answered){
     const inp = document.getElementById("ansInput");
     if(inp){ inp.focus(); inp.addEventListener("keydown",e=>{ if(e.key==="Enter") checkTyped(); }); }
   }
-  if(Q.answered){
-    // 정답 공개 후 Enter 로 다음
-    document.addEventListener("keydown", onAdvance);
-  }
+  if(Q.answered){ document.addEventListener("keydown", onAdvance); }
 }
 function onAdvance(e){ if(e.key==="Enter"){ document.removeEventListener("keydown", onAdvance); next(); } }
 
@@ -1005,7 +1087,7 @@ function checkTyped(){
   if(Q.lastOk) Q.score++; else Q.wrong.push(wrongItem());
   renderQuiz();
 }
-function wrongItem(){ const q=Q.queue[Q.idx]; return {vn:q.word.vn, en:q.word.en, lesson:q.word.lesson, dir:q.dir}; }
+function wrongItem(){ const q=Q.queue[Q.idx]; return {vn:q.word.vn, en:q.word.en, lesson:q.word.lesson, dir:q.dir, type:q.type}; }
 function next(){
   document.removeEventListener("keydown", onAdvance);
   Q.idx++;
@@ -1054,7 +1136,7 @@ function renderResult(){
   `);
 }
 function retryWrong(){
-  const items = Q.wrong.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir));
+  const items = Q.wrong.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir, w.type));
   if(!items.length) return goHome();
   if(state.mode==="flash"){ startFlash(items.map(i=>i.word)); return; }
   startQueue(items);
@@ -1062,7 +1144,7 @@ function retryWrong(){
 function retryLast(){
   const lw = lsGet("_wrong", []);
   if(!lw.length) return;
-  const items = lw.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir));
+  const items = lw.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir, w.type));
   startQueue(items);
 }
 
@@ -1169,7 +1251,7 @@ function delWord(i){
 }
 
 /* ---------- 시험지 만들기 (인쇄·여럿이 함께) ---------- */
-const P = { dir:"random", count:"all", showKey:true, version:0, questions:[] };
+const P = { dir:"random", count:"all", format:"wordsent", version:0, wordQs:[], sentQs:[] };
 function rangeTitle(){
   if(state.selMode==="range"){ const [a,b]=rangeBounds(); return `${lessonLabel(WORDS[a].lesson)} ${WORDS[a].num}번 ~ ${lessonLabel(WORDS[b].lesson)} ${WORDS[b].num}번`; }
   const ls=[...state.lessons].filter(l=>l!=="custom").sort((a,b)=>a-b);
@@ -1199,23 +1281,49 @@ function genPaper(bump){
     seenPrompt.add(lc(prompt));
     qs.push({ vn:w.vn, en:w.en, dir:d, prompt, answer:d==="vn2en"?w.en:w.vn });
   }
-  P.dupRemoved = rawPool.length - qs.length;   // 중복으로 제외된 단어 수
-  P.questions = (P.count!=="all") ? qs.slice(0, Math.min(Number(P.count), qs.length)) : qs;
+  // 단어 문제 수: 단어+문장 구성이면 40개, 단어만이면 선택한 문제 수
+  const wordLimit = P.format==="wordsent" ? 40 : (P.count==="all" ? qs.length : Number(P.count));
+  P.wordQs = qs.slice(0, Math.min(wordLimit, qs.length));
+  // 문장 문제 (단어+문장 구성일 때만 10개)
+  if(P.format==="wordsent"){
+    P.sentQs = shuffle(SENTS).slice(0, Math.min(10, SENTS.length)).map(s=>{
+      const d = P.dir==="random" ? (Math.random()<.5?"vn2en":"en2vn") : P.dir;
+      return { dir:d, prompt:d==="vn2en"?s.vn:s.en, answer:d==="vn2en"?s.en:s.vn };
+    });
+  } else {
+    P.sentQs = [];
+  }
   renderPaper();
 }
 function renderPaper(){
   state.screen = "paper";
-  const n = P.questions.length;
-  const qs = P.questions.map((q,i)=>
+  const wQs = P.wordQs, sQs = P.sentQs;
+  const total = wQs.length + sQs.length;
+  const isWS = P.format==="wordsent";
+  const wordGrid = wQs.map((q,i)=>
     `<div class="pq"><span class="pqn">${i+1}.</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline"></span></div>`
   ).join("");
+  const sentList = sQs.map((q,i)=>
+    `<div class="psq"><span class="pqn">${i+1}.</span><span class="psp">${esc(q.prompt)}</span><div class="psline"></div></div>`
+  ).join("");
+  const paperBody = isWS
+    ? `<div class="ppart">1부. 단어 (${wQs.length}문제)</div>
+       <div class="pgrid">${wordGrid}</div>
+       <div class="ppart">2부. 문장 번역 (${sQs.length}문제)</div>
+       <div class="pslist">${sentList}</div>`
+    : `<div class="pgrid">${wordGrid}</div>`;
 
   set(`
     <div class="noprint">
       <button class="link" data-action="goHome">← 처음으로</button>
       <div class="card">
         <h2>🖨️ 시험지 만들기</h2>
-        <label class="fld" style="margin-top:0">시험 범위</label>
+        <label class="fld" style="margin-top:0">시험 구성</label>
+        <div class="seg">
+          <button class="${isWS?"on":""}" data-action="paperFormat" data-v="wordsent">단어40 + 문장10</button>
+          <button class="${!isWS?"on":""}" data-action="paperFormat" data-v="words">단어만</button>
+        </div>
+        <label class="fld">시험 범위</label>
         ${selectionBlockHTML(false)}
         <label class="fld">출제 방향</label>
         <div class="seg">
@@ -1223,23 +1331,23 @@ function renderPaper(){
           <button class="${P.dir==="vn2en"?"on":""}" data-action="paperDir" data-v="vn2en">베→영</button>
           <button class="${P.dir==="en2vn"?"on":""}" data-action="paperDir" data-v="en2vn">영→베</button>
         </div>
-        <label class="fld">문제 수</label>
+        ${!isWS ? `<label class="fld">문제 수</label>
         <div class="seg">
           ${["all",20,30,50].map(c=>`<button class="${String(P.count)===String(c)?"on":""}" data-action="paperCount" data-v="${c}">${c==="all"?"범위 전체":c+"개"}</button>`).join("")}
-        </div>
+        </div>`:""}
         <div class="btn2" style="margin-top:14px">
           <button class="btn soft" data-action="regenPaper">🔀 다시 섞기</button>
           <button class="btn accent" data-action="printPaper">🖨️ 인쇄 / PDF</button>
         </div>
-        <div class="muted tiny" style="margin-top:10px">💡 인쇄 창에서 대상을 <b>'PDF로 저장'</b>으로 바꾸면 파일로 보관·공유돼요. 날짜·페이지번호가 보이면 인쇄 창에서 <b>'머리글 및 바닥글'</b>(Safari는 '머리말/꼬리말') 체크를 꺼주세요. 여러 명이 풀 땐 <b>다시 섞기</b>로 문제 순서를 바꿔 나눠줄 수 있어요.</div>
+        <div class="muted tiny" style="margin-top:10px">💡 인쇄 창에서 대상을 <b>'PDF로 저장'</b>으로 바꾸면 파일로 보관·공유돼요. 날짜·페이지번호가 보이면 인쇄 창에서 <b>'머리글 및 바닥글'</b>(Safari는 '머리말/꼬리말') 체크를 꺼주세요.${isWS?" 문장은 기존 단어로 만든 예문이에요.":" 여러 명이 풀 땐 <b>다시 섞기</b>로 문제 순서를 바꿔 나눠줄 수 있어요."}</div>
       </div>
     </div>
 
     <div class="paper">
-      <div class="ptitle">베트남어 단어 시험</div>
-      <div class="phead"><span>이름 : ____________</span><span>날짜 : ____________</span><span>점수 : ______ / ${n}</span></div>
-      <div class="pinstr">범위: ${esc(rangeTitle())}</div>
-      <div class="pgrid">${qs}</div>
+      <div class="ptitle">${isWS?"베트남어 시험 (단어 + 문장)":"베트남어 단어 시험"}</div>
+      <div class="phead"><span>이름 : ____________</span><span>날짜 : ____________</span><span>점수 : ______ / ${total}</span></div>
+      <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 번역 10":""}</div>
+      ${paperBody}
     </div>
   `);
   bindSelection();
@@ -1252,6 +1360,9 @@ const actions = {
   goHome, goList, goAdd, start, retryLast, retryWrong, retryWrongQ:retryWrong,
   pick:(el)=>pick(el.dataset.i),
   check:checkTyped, next, quit,
+  revealSent:()=>{ Q.revealed=true; renderQuiz(); },
+  selfRight:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=true; Q.score++; renderQuiz(); },
+  selfWrong:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=false; Q.wrong.push(wrongItem()); renderQuiz(); },
   flip:()=>{ F.flip=!F.flip; renderFlash(); },
   nextCard:()=>{ if(F.idx+1>=F.cards.length){ goHome(); } else { F.idx++; F.flip=false; renderFlash(); } },
   prevCard:()=>{ if(F.idx>0){ F.idx--; F.flip=false; renderFlash(); } },
@@ -1263,6 +1374,7 @@ const actions = {
   goPaper:()=>genPaper(false),
   paperDir:(el)=>{ P.dir=el.dataset.v; genPaper(false); },
   paperCount:(el)=>{ P.count=el.dataset.v==="all"?"all":Number(el.dataset.v); genPaper(false); },
+  paperFormat:(el)=>{ P.format=el.dataset.v; genPaper(false); },
   regenPaper:()=>genPaper(true),
   printPaper:()=>window.print(),
   mode:(el)=>{ state.mode=el.dataset.v; lsSet("_mode",state.mode); renderHome(); },
