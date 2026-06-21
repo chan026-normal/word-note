@@ -131,6 +131,9 @@
   .wrow:hover .wen.hide{filter:none}
   .lz{font-size:11px;color:var(--brand);background:var(--brandsoft);padding:2px 7px;border-radius:6px;font-weight:700}
   .del{border:none;background:var(--badsoft);color:var(--bad);border-radius:9px;width:30px;height:30px;cursor:pointer;font-weight:800}
+  .star{border:none;background:none;cursor:pointer;font-size:20px;line-height:1;color:var(--muted);padding:2px 4px;flex:0 0 auto}
+  .star.on{color:#e2a900}
+  .notedot{font-size:11px;letter-spacing:1px;color:var(--brand);flex:0 0 auto}
   label.fld{display:block; font-size:13px; font-weight:700; color:var(--muted); margin:10px 0 6px}
   .foot{text-align:center; color:var(--muted); font-size:12px; padding:18px}
   .emoji{font-size:46px; text-align:center; margin-bottom:6px}
@@ -899,7 +902,7 @@ function selectionBlockHTML(showCount){
 
 function renderHome(){
   state.screen = "home";
-  const lastWrong = lsGet("_wrong", []);
+  const noteCount = loadNote().length;
   const startLabel = state.mode==="flash" ? "🃏 플래시카드 시작"
     : state.mode==="exam" ? "📝 실전 시험 시작 (단어40 + 문장10)"
     : "✏️ 시험 시작하기";
@@ -940,7 +943,7 @@ function renderHome(){
 
     <button class="btn lg" data-action="start">${startLabel}</button>
 
-    ${lastWrong.length?`<button class="btn ghost" style="margin-top:10px" data-action="retryLast">🔁 지난번 틀린 단어 ${lastWrong.length}개 다시 풀기</button>`:""}
+    <button class="btn ghost" style="margin-top:10px" data-action="goNote">📕 오답 노트 ${noteCount>0?`(${noteCount}개)`:"(비어있음)"}</button>
 
     <button class="btn accent" style="margin-top:10px" data-action="goPaper">🖨️ 시험지 만들기 <span style="font-weight:600;opacity:.85">(인쇄·여럿이 함께)</span></button>
 
@@ -1096,8 +1099,9 @@ function onAdvance(e){ if(e.key==="Enter"){ document.removeEventListener("keydow
 function pick(i){
   if(Q.answered) return;
   Q.answered=true; Q.picked=Number(i);
-  if(Q.picked===Q.correct) Q.score++;
-  else Q.wrong.push(wrongItem());
+  const w=Q.queue[Q.idx].word;
+  if(Q.picked===Q.correct){ Q.score++; noteRight(w); }
+  else { Q.wrong.push(wrongItem()); noteWrong(w); }
   renderQuiz();
 }
 function checkTyped(){
@@ -1107,7 +1111,7 @@ function checkTyped(){
   const q = Q.queue[Q.idx];
   Q.lastOk = isCorrectTyped(q.answer, Q.typed);
   Q.answered = true;
-  if(Q.lastOk) Q.score++; else Q.wrong.push(wrongItem());
+  if(Q.lastOk){ Q.score++; noteRight(q.word); } else { Q.wrong.push(wrongItem()); noteWrong(q.word); }
   renderQuiz();
 }
 function wrongItem(){ const q=Q.queue[Q.idx]; return {vn:q.word.vn, en:q.word.en, lesson:q.word.lesson, dir:q.dir, type:q.type}; }
@@ -1135,6 +1139,7 @@ function renderResult(){
   const wrongList = Q.wrong.length ? `
     <div class="card">
       <h2>❌ 틀린 단어 ${Q.wrong.length}개</h2>
+      <div class="muted tiny" style="margin:-6px 0 10px">📕 오답 노트에 저장됐어요 — 홈에서 모아서 집중 복습할 수 있어요.</div>
       <div class="wlist">
         ${Q.wrong.map(w=>`<div class="wrow">
           <span class="lz">${lessonLabel(w.lesson)}</span>
@@ -1169,6 +1174,48 @@ function retryLast(){
   if(!lw.length) return;
   const items = lw.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir, w.type));
   startQueue(items);
+}
+
+/* ---------- 오답 노트 ---------- */
+const GRAD = 2; // 연속 정답 GRAD번이면 노트에서 졸업(자동 제거)
+function lc2(s){ return String(s).trim().toLowerCase(); }
+function noteKey(w){ return lc2(w.vn)+"||"+lc2(w.en); }
+function loadNote(){ return lsGet("_notebook", []); }
+function saveNote(a){ lsSet("_notebook", a); }
+function noteHas(w){ const k=noteKey(w); return loadNote().some(e=>noteKey(e)===k); }
+function noteAdd(w){ const a=loadNote(),k=noteKey(w); if(!a.some(e=>noteKey(e)===k)){ a.push({vn:w.vn,en:w.en,lesson:w.lesson,type:w.type||"word",streak:0}); saveNote(a); } }
+function noteWrong(w){ const a=loadNote(),k=noteKey(w),e=a.find(x=>noteKey(x)===k); if(e){ e.streak=0; } else { a.push({vn:w.vn,en:w.en,lesson:w.lesson,type:w.type||"word",streak:0}); } saveNote(a); }
+function noteRight(w){ const a=loadNote(),k=noteKey(w),i=a.findIndex(x=>noteKey(x)===k); if(i<0) return; a[i].streak=(a[i].streak||0)+1; if(a[i].streak>=GRAD) a.splice(i,1); saveNote(a); }
+
+function goNote(){ renderNote(); }
+function startNote(){
+  const note=loadNote();
+  if(!note.length){ alert("오답 노트가 비어 있어요. 시험에서 틀리거나, 단어장에서 별표(☆)로 추가하면 모여요."); return; }
+  const items=note.map(e=>makeQ({vn:e.vn,en:e.en,lesson:e.lesson}, dirOf(state.dir), e.type));
+  if(state.mode==="flash"){ startFlash(items.map(i=>i.word)); return; }
+  startQueue(items);
+}
+function renderNote(){
+  state.screen="note";
+  const note=loadNote();
+  const rows = note.map((e,i)=>`<div class="wrow">
+      <span class="lz">${lessonLabel(e.lesson)}</span>
+      <span class="wvn">${esc(e.vn)} ${spkBtn(e.vn,"vi-VN",true)}</span>
+      <span class="wen">${esc(e.en)}</span>
+      <span class="notedot" title="연속 정답 ${e.streak||0}/${GRAD}">${"●".repeat(e.streak||0)}${"○".repeat(Math.max(0,GRAD-(e.streak||0)))}</span>
+      <button class="del" data-action="removeNote" data-i="${i}">×</button>
+    </div>`).join("");
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2>📕 오답 노트 · ${note.length}개</h2>
+      <div class="muted tiny" style="margin-bottom:12px">시험에서 틀린 단어가 자동으로 모여요. 단어장에서 별표(☆)로 직접 넣을 수도 있어요. <b>연속 ${GRAD}번 맞히면 졸업</b>(자동으로 빠짐)돼요.</div>
+      ${note.length
+        ? `<button class="btn" data-action="startNote">🎯 오답 노트로 시험 보기</button>
+           <div class="wlist" style="margin-top:14px">${rows}</div>`
+        : `<div class="center muted" style="padding:24px"><div class="emoji">📭</div>아직 비어 있어요.<br>시험을 보거나 단어장에서 ☆를 눌러 추가하세요.</div>`}
+    </div>
+  `);
 }
 
 /* ---------- 플래시카드 ---------- */
@@ -1226,6 +1273,7 @@ function renderList(){
           <span class="lz">${lessonLabel(w.lesson)}</span>
           <span class="wvn">${esc(w.vn)} ${spkBtn(w.vn,"vi-VN",true)}</span>
           <span class="wen ${L.hide?"hide":""}">${esc(w.en)}</span>
+          <button class="star ${noteHas(w)?"on":""}" data-action="starWord" data-id="${w.id}" title="오답 노트에 추가/제거">${noteHas(w)?"★":"☆"}</button>
         </div>`).join("") : `<div class="muted center" style="padding:20px">검색 결과가 없어요.</div>`}
       </div>
     </div>
@@ -1384,8 +1432,8 @@ const actions = {
   pick:(el)=>pick(el.dataset.i),
   check:checkTyped, next, quit,
   revealSent:()=>{ Q.revealed=true; renderQuiz(); },
-  selfRight:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=true; Q.score++; renderQuiz(); },
-  selfWrong:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=false; Q.wrong.push(wrongItem()); renderQuiz(); },
+  selfRight:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=true; Q.score++; noteRight(Q.queue[Q.idx].word); renderQuiz(); },
+  selfWrong:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=false; Q.wrong.push(wrongItem()); noteWrong(Q.queue[Q.idx].word); renderQuiz(); },
   flip:()=>{ F.flip=!F.flip; renderFlash(); },
   nextCard:()=>{ if(F.idx+1>=F.cards.length){ goHome(); } else { F.idx++; F.flip=false; renderFlash(); } },
   prevCard:()=>{ if(F.idx>0){ F.idx--; F.flip=false; renderFlash(); } },
@@ -1406,6 +1454,9 @@ const actions = {
   listFilter:(el)=>{ L.lesson=el.dataset.l==="all"?"all":(el.dataset.l==="custom"?"custom":Number(el.dataset.l)); renderList(); },
   toggleHide:()=>{ L.hide=!L.hide; renderList(); },
   addWord, delWord:(el)=>delWord(el.dataset.i),
+  goNote, startNote,
+  removeNote:(el)=>{ const a=loadNote(); a.splice(Number(el.dataset.i),1); saveNote(a); renderNote(); },
+  starWord:(el)=>{ const w=WORDS.find(x=>x.id===Number(el.dataset.id)); if(!w) return; if(noteHas(w)){ const a=loadNote().filter(e=>noteKey(e)!==noteKey(w)); saveNote(a); } else { noteAdd(w); } renderList(); },
   speak:(el)=>speak(el.dataset.text, el.dataset.lang)
 };
 view.addEventListener("click", e=>{
