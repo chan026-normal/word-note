@@ -841,7 +841,7 @@ const set = h => { view.innerHTML = h; window.scrollTo(0,0); };
 
 const state = {
   lessons: new Set(),
-  mode: lsGet("_mode","type"),   // mc | type | flash  (기본: 주관식)
+  mode: lsGet("_mode","type")==="mc" ? "type" : lsGet("_mode","type"),   // type | flash | exam (객관식 제거)
   dir:  lsGet("_dir","vn2en"),   // vn2en | en2vn | random
   count: lsGet("_count","all"),
   selMode: lsGet("_selMode","lesson"), // lesson(단원별) | range(번호 범위)
@@ -917,7 +917,6 @@ function renderHome(){
       <h2>② 방식</h2>
       <div class="seg">
         <button class="${state.mode==="type"?"on":""}" data-action="mode" data-v="type">주관식<span class="desc">직접 입력</span></button>
-        <button class="${state.mode==="mc"?"on":""}" data-action="mode" data-v="mc">객관식<span class="desc">4개 중 고르기</span></button>
         <button class="${state.mode==="flash"?"on":""}" data-action="mode" data-v="flash">플래시카드<span class="desc">암기·복습</span></button>
         <button class="${state.mode==="exam"?"on":""}" data-action="mode" data-v="exam">실전시험<span class="desc">단어40+문장10</span></button>
       </div>
