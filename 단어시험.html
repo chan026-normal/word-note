@@ -690,37 +690,37 @@ xe cộ|vehicle
 yên tĩnh|quiet`
 };
 
-/* 예문(문장) — 기존 단어로 만든 베트남어 문장 + 영어 뜻. 더 추가하려면 한 줄에 "베트남어|영어" 형식으로 넣으면 됩니다. */
-const SENTENCES = `Tôi tên là Nam.|My name is Nam.
-Bạn khỏe không?|How are you?
-Tôi là sinh viên.|I am a student.
-Anh ấy là người Hàn Quốc.|He is Korean.
-Tôi ăn sáng lúc bảy giờ.|I eat breakfast at seven o'clock.
-Hôm nay tôi đi học.|Today I go to school.
-Tôi muốn uống cà phê.|I want to drink coffee.
-Gia đình tôi có bốn người.|My family has four people.
-Cuối tuần tôi đi du lịch.|I travel on the weekend.
-Anh ấy đi làm bằng xe máy.|He goes to work by motorbike.
-Tôi sống ở thành phố.|I live in the city.
-Phòng học rất yên tĩnh.|The classroom is very quiet.
-Món ăn này rất ngon.|This dish is very delicious.
-Tôi học tiếng Việt.|I study Vietnamese.
-Bây giờ là mấy giờ?|What time is it now?
-Tôi đi chợ mua trái cây.|I go to the market to buy fruit.
-Thư viện mở cửa lúc tám giờ.|The library opens at eight o'clock.
-Chị gái tôi là bác sĩ.|My older sister is a doctor.
-Tôi rất thích nghe nhạc.|I really like listening to music.
-Hôm nay tôi rất vui.|I am very happy today.
-Tôi đi làm bằng xe buýt.|I go to work by bus.
-Anh ấy nói tiếng Anh rất giỏi.|He speaks English very well.
-Tôi muốn đặt vé máy bay.|I want to book an airplane ticket.
-Nhà hàng này rất đông.|This restaurant is very crowded.
-Tôi gặp bạn ở quán cà phê.|I meet a friend at the coffee shop.
-Tối nay tôi đi xem phim.|Tonight I go to watch a movie.
-Bố mẹ tôi đã về hưu.|My parents have retired.
-Tôi cảm thấy hơi mệt.|I feel a little tired.
-Giao thông ở đây rất phức tạp.|The traffic here is very complicated.
-Buổi sáng tôi tập thể dục.|In the morning I exercise.`;
+/* 예문(문장) — 교재 Lesson 1~2 기반 베트남어 문장 + 영어 뜻 (인사·소개·이름·국적·3인칭). 진도 나가면 한 줄에 "베트남어|영어" 형식으로 추가하면 됩니다. */
+const SENTENCES = `Chào chị.|Hello.
+Xin lỗi, anh tên là gì?|Excuse me, what is your name?
+Tôi xin tự giới thiệu.|Let me introduce myself.
+Tôi tên là David.|My name is David.
+Chị tên là gì?|What is your name?
+Tôi tên là Vân.|My name is Vân.
+Rất vui được gặp chị.|Nice to meet you.
+Đây là Eun Ji.|This is Eun Ji.
+Anh có khỏe không?|How are you?
+Tôi khỏe. Cảm ơn.|I am fine. Thank you.
+Tôi cũng khỏe.|I am fine too.
+Còn anh?|And you?
+Hôm nay anh có gặp Eun Ji không?|Did you meet Eun Ji today?
+Không, hôm nay tôi không gặp Eun Ji.|No, I did not meet Eun Ji today.
+Không sao.|It is okay.
+Đây là anh Graham.|This is Graham.
+Kia là chị Jackie.|That is Jackie.
+Anh ấy là người Mỹ.|He is American.
+Chị ấy là người Việt.|She is Vietnamese.
+Chị ấy là người Hàn Quốc.|She is Korean.
+Eun Ji là người Hàn Quốc.|Eun Ji is Korean.
+Eun Ji không phải là người Trung Quốc.|Eun Ji is not Chinese.
+David là bạn của chị Vân.|David is Vân's friend.
+Anh ấy cũng là bạn của chị Kate.|He is also Kate's friend.
+Họ là người Mỹ.|They are American.
+Anh ấy là người nước nào?|What country is he from?
+Anh Thomas là người Canada.|Thomas is Canadian.
+Bạn của ông Sam là người Anh, phải không?|Mr. Sam's friend is English, right?
+Anh David giới thiệu anh Brian với chị Vân.|David introduces Brian to Vân.
+Hôm qua chị Kate gặp David.|Yesterday Kate met David.`;
 const SENTS = SENTENCES.trim().split("\n").map(l=>{ const i=l.indexOf("|"); return {vn:l.slice(0,i).trim(), en:l.slice(i+1).trim()}; }).filter(s=>s.vn&&s.en);
 
 /* =========================================================
