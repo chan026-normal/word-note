@@ -122,6 +122,8 @@
 
   /* word list */
   .search{width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:14px; font-size:15px; background:var(--card); color:var(--ink); outline:none; margin-bottom:12px}
+  .ta{width:100%; min-height:88px; padding:11px 12px; border:1.5px solid var(--line); border-radius:12px; font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; background:var(--bg); color:var(--ink); outline:none; resize:vertical; word-break:break-all}
+  .ta:focus{border-color:var(--brand)}
   .wlist{display:flex; flex-direction:column; gap:0}
   .wrow{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line)}
   .wrow:last-child{border-bottom:none}
@@ -950,6 +952,7 @@ function renderHome(){
       <button class="btn soft" data-action="goList">📚 단어장 보기</button>
       <button class="btn soft" data-action="goAdd">➕ 단어 추가</button>
     </div>
+    <button class="btn line" style="margin-top:8px" data-action="goBackup">💾 백업 / 복원 <span style="font-weight:500;opacity:.8">(다른 기기로 옮기기)</span></button>
   `);
   bindSelection();
 }
@@ -1217,6 +1220,84 @@ function renderNote(){
   `);
 }
 
+/* ---------- 백업 / 복원 ---------- */
+function exportData(){
+  return JSON.stringify({ app:"gybm-wordnote", v:1, notebook:loadNote(), custom:lsGet("_custom",[]) });
+}
+function fallbackCopy(okMsg){
+  const ta=document.getElementById("exportBox");
+  if(ta){ ta.focus(); ta.select(); try{ if(document.execCommand("copy")){ alert(okMsg); return; } }catch(e){} }
+  alert("자동 복사가 안 되네요. 위 박스의 글자를 길게 눌러 전체 선택 후 복사하세요.");
+}
+function copyExport(){
+  const text=exportData(), msg="복사됐어요! 카톡으로 나에게 보내거나, 다른 브라우저에 붙여넣어 복원하세요.";
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(()=>alert(msg), ()=>fallbackCopy(msg)); return; }
+  }catch(e){}
+  fallbackCopy(msg);
+}
+function downloadExport(){
+  try{
+    const blob=new Blob([exportData()],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a"); a.href=url; a.download="단어시험_백업.json"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(e){ alert("파일 저장이 안 되면 '복사하기'를 이용해 주세요."); }
+}
+function importBackup(text){
+  let obj;
+  try{ obj=JSON.parse((text||"").trim()); }catch(e){ return {ok:false,msg:"형식이 올바르지 않아요. 백업 코드 전체를 정확히 붙여넣었는지 확인하세요."}; }
+  if(!obj || obj.app!=="gybm-wordnote"){ return {ok:false,msg:"이 앱의 백업 코드가 아니에요."}; }
+  let an=0, ac=0;
+  if(Array.isArray(obj.notebook)){
+    const cur=loadNote(), seen=new Set(cur.map(noteKey));
+    obj.notebook.forEach(e=>{ if(e&&e.vn&&e.en&&!seen.has(noteKey(e))){ cur.push({vn:e.vn,en:e.en,lesson:e.lesson,type:e.type||"word",streak:e.streak||0}); seen.add(noteKey(e)); an++; } });
+    saveNote(cur);
+  }
+  if(Array.isArray(obj.custom)){
+    const cur=lsGet("_custom",[]), k=c=>lc2(c.vn)+"||"+lc2(c.en), seen=new Set(cur.map(k));
+    obj.custom.forEach(c=>{ if(c&&c.vn&&c.en&&!seen.has(k(c))){ cur.push({vn:c.vn,en:c.en}); seen.add(k(c)); ac++; } });
+    lsSet("_custom",cur); buildWords();
+  }
+  return {ok:true,msg:`완료! 오답 노트 ${an}개, 내 단어 ${ac}개를 새로 합쳤어요. (이미 있던 건 그대로 유지)`};
+}
+function goBackup(){ renderBackup(); }
+function renderBackup(){
+  state.screen="backup";
+  const noteN=loadNote().length, customN=lsGet("_custom",[]).length;
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2>💾 백업 / 복원</h2>
+      <div class="muted tiny" style="margin-bottom:6px">오답 노트와 내 단어를 다른 브라우저·기기로 옮겨요. (브라우저마다 저장이 따로라서요.)</div>
+      <div class="muted tiny" style="margin-bottom:14px">지금 이 기기: 오답 노트 <b>${noteN}</b>개 · 내 단어 <b>${customN}</b>개</div>
+
+      <label class="fld" style="margin-top:0">① 내보내기 (이 기기에서 복사)</label>
+      <textarea class="ta" id="exportBox" readonly>${esc(exportData())}</textarea>
+      <div class="btn2" style="margin-top:8px">
+        <button class="btn soft" data-action="copyExport">📋 복사하기</button>
+        <button class="btn soft" data-action="downloadExport">💾 파일로 저장</button>
+      </div>
+      <div class="muted tiny" style="margin-top:8px">복사해서 카톡으로 나에게 보내거나, 파일로 저장해 옮기세요.</div>
+
+      <label class="fld" style="margin-top:18px">② 복원 (다른 기기에서 가져오기)</label>
+      <textarea class="ta" id="importBox" placeholder="여기에 백업 코드를 붙여넣으세요"></textarea>
+      <div class="btn2" style="margin-top:8px">
+        <label class="btn soft" style="text-align:center;cursor:pointer;line-height:1.4">📁 파일 선택<input type="file" id="importFile" accept=".json,application/json" style="display:none"></label>
+        <button class="btn" data-action="doImport">복원(합치기)</button>
+      </div>
+      <div class="muted tiny" style="margin-top:8px">합치기 방식이라 <b>기존 데이터는 안 지워져요.</b></div>
+    </div>
+  `);
+  const f=document.getElementById("importFile");
+  if(f) f.addEventListener("change", e=>{
+    const file=e.target.files[0]; if(!file) return;
+    const r=new FileReader();
+    r.onload=()=>{ const res=importBackup(r.result); alert(res.msg); if(res.ok) renderBackup(); };
+    r.readAsText(file);
+  });
+}
+
 /* ---------- 플래시카드 ---------- */
 const F = {};
 function startFlash(pool){
@@ -1453,7 +1534,8 @@ const actions = {
   listFilter:(el)=>{ L.lesson=el.dataset.l==="all"?"all":(el.dataset.l==="custom"?"custom":Number(el.dataset.l)); renderList(); },
   toggleHide:()=>{ L.hide=!L.hide; renderList(); },
   addWord, delWord:(el)=>delWord(el.dataset.i),
-  goNote, startNote,
+  goNote, startNote, goBackup, copyExport, downloadExport,
+  doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },
   removeNote:(el)=>{ const a=loadNote(); a.splice(Number(el.dataset.i),1); saveNote(a); renderNote(); },
   starWord:(el)=>{ const w=WORDS.find(x=>x.id===Number(el.dataset.id)); if(!w) return; if(noteHas(w)){ const a=loadNote().filter(e=>noteKey(e)!==noteKey(w)); saveNote(a); } else { noteAdd(w); } renderList(); },
   speak:(el)=>speak(el.dataset.text, el.dataset.lang)
