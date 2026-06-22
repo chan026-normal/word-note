@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>단어 시험 · 베트남어 ↔ 영어</title>
+<title>단어 시험 · 베트남어 ↔ 한국어</title>
 <style>
   :root{
     --bg:#f4f6fb; --card:#ffffff; --ink:#1f2430; --muted:#6b7280;
@@ -124,6 +124,11 @@
   .search{width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:14px; font-size:15px; background:var(--card); color:var(--ink); outline:none; margin-bottom:12px}
   .ta{width:100%; min-height:88px; padding:11px 12px; border:1.5px solid var(--line); border-radius:12px; font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; background:var(--bg); color:var(--ink); outline:none; resize:vertical; word-break:break-all}
   .ta:focus{border-color:var(--brand)}
+  .tgrid{display:flex; flex-wrap:wrap; gap:8px; margin-top:2px}
+  .trow{flex:1 1 150px; display:flex; align-items:center; gap:8px; background:var(--bg); border-radius:10px; padding:9px 12px}
+  .tk{font-family:ui-monospace,Menlo,Consolas,monospace; font-weight:800; color:var(--brand); white-space:nowrap}
+  .tar{color:var(--muted)}
+  .tr{font-weight:600; font-size:14px}
   .wlist{display:flex; flex-direction:column; gap:0}
   .wrow{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--line)}
   .wrow:last-child{border-bottom:none}
@@ -184,7 +189,7 @@
 <body>
   <header class="topbar">
     <button class="brand" data-action="goHome">📖 단어 시험</button>
-    <span class="sub">베트남어 ↔ 영어</span>
+    <span class="sub">베트남어 ↔ 한국어</span>
   </header>
   <main id="view" class="wrap"></main>
   <div class="foot">GYBM 단어장 · 인터넷 없이도 작동해요</div>
@@ -193,562 +198,562 @@
 "use strict";
 
 /* =========================================================
-   1) 단어 데이터  (왼쪽 = 베트남어 | 오른쪽 = 영어 뜻)
+   1) 단어 데이터  (왼쪽 = 베트남어 | 오른쪽 = 한국어 뜻)
    나중에 Lesson 1~5를 여기에 똑같은 형식으로 추가하면 됩니다.
    ========================================================= */
 const RAW = {
-1:`anh|you
-bà|you, Mrs.
-bạn|you, friend
-cám ơn|thank you, to thank
-chào|hello, to greet
-chị|you
-cô|you, female teacher
-còn|and, but
-của|of
-cũng|also
-đây|here, this
-em|I, you
-gặp|to meet
-gì|what
-giới thiệu|to introduce
-hỏi|to ask
-hôm nay|today
-khỏe|to be fine, healthy
-không|no, not
-là|to be
-mệt|tired
-ông|you, sir
-rất|very
-tên|name
-thầy|male teacher, you
-tôi|I, me
-tự|self
-và|and
-với|with
-vui|happy
-xin lỗi|excuse-me, to apologize`,
-2:`ai|who
-Anh|England
-anh ấy|he, him
-bà ấy|she, her
-bạn|friend
-biết|to know
-các|quantifier, pluralizer
-chị ấy|she, her
-có lẽ|maybe, perhaps
-cô ấy|she, her
-Đài Loan|Taiwan
-đi|to go
-đó|that
-Đức|German
-em ấy|he, she
-giáo viên|teacher
-Hàn Quốc|South Korea
-họ|they, them
-khác|other, another
-kia|over there
-muốn|to want
-Mỹ|America
-nào|which
-người|person
-Nhật|Japan
-nói|to say, to tell
-nước|country
-nước ngoài|foreign country
-ông ấy|he, him
-phải|correct, yes
-phải không|Right?
-Pháp|France
-quốc tịch|nationality
-sinh viên|student
-Thái Lan|Thailand
-Trung Quốc|China
-Úc|Australia
-vâng|yes/polite speech`,
-3:`bài|lesson
-chăm chỉ|hard working, diligent
-chúng tôi|we, us
-có|to have
-dạy|to teach
-dễ|easy
-đại học|university
-đăng ký|to register
-đâu|where
-để|in order to, to
-đến|to come, to arrive
-đi học|to go to school
-đông|crowded, many
-đúng|correct
-học|to study
-học viên|learner
-khó|difficult
-khoa|department
-khoa học|science
-lớp|class
-mấy|how many
-năm|year
-nhân văn|humanity
-nhiều|plenty of, many
-nhưng|but
-nổi tiếng|famous
-ở|at, in
-ở đó|there
-số|number
-tháng|month
-thành phố|city
-thích|to like
-thú vị|interesting, fun
-thư ký|secretary
-tiếng|language
-tiếng Việt|Vietnamese language
-trong|in
-trước đây|before
-trường|school
-xã hội|social, society`,
-4:`bác sĩ|doctor
-bao nhiêu|how many
-bắt đầu|to start, to begin
-bận|busy
-bệnh viện|hospital
-buổi chiều/chiều|afternoon
-buổi sáng/sáng|morning
-buổi tối/tối|evening
-công việc|work
-công ty|company
-cơ quan|office
-dạo này|these days, lately
-đi làm|to go to work
-giờ/tiếng|hour
-hay|or
-hiện nay|nowadays
-kế toán|accountant
-khoảng|about
-lái xe|to drive
-làm/làm việc|to work
-lắm|very
-luật sư|lawyer
-máy tính|computer
-nấu ăn|to cook
-nội trợ|housewife
-ngày|day
-ngân hàng|bank
-nghề|occupation, profession
-nhà|house
-nhà hàng|restaurant
-nhầm|to mistake, wrong
-nhân viên|employee, staff
-ở|at, in
-phòng|room
-quán cà phê|coffee shop
-quận|district
-siêu thị|supermarket
-sống|to live
-tài xế|driver
-tuần|week
-trưa|noon
-từ|from
-vào|to enter, on
-vất vả|hard`,
-5:`ăn|to eat
-bằng|by
-bây giờ|now
-bia|beer
-bưu điện|post office
-chợ|market
-chúng ta|we, us
-có thể|to be able to
-cuối tuần|weekend
-du khách/khách|visitor
-đài truyền hình|television station
-đặc biệt|special
-đầu tư|to invest
-đẹp|beautiful
-đi dạo|to take a walk
-địa chỉ|address
-đường|street, road
-ga|station
-gần|near
-gia đình|family
-giá|price
-giảm giá|discount
-giỏi|good
-khen|to compliment
-lịch sử|history
-mắc|expensive
-món ăn|dish
-mời|to invite
-mua|to buy
-ngon|delicious
-ngồi|to sit
-Nhà thờ Đức Bà|Notre Dame Cathedral
-nhà sách|bookstore
-nói chuyện|to talk
-nơi|place
-phòng học|classroom
-phố đi bộ|walking street
-phường|ward
-say|drunk
-tham quan|to visit
-tắc xi|taxi
-tối nay|this evening
-tươi|fresh
-uống|to drink
-xa|far
-xe buýt|bus`,
-6:`áo dài|Vietnamese aodai
-bảo tàng|museum
-cà phê|coffee
-chỉ|only, just
-cũ|old
-cùng|same, together
-du lịch|to travel
-đi một vòng|to go around
-đá|ice
-đưa|to take sb to
-giám đốc|director
-giảng viên|instructor
-hiểu|to understand
-khác|other, different
-lịch sử|history
-lý do|reason
-mất|to take
-mong|to expect, to hope
-mở cửa|to open
-ngay|immediately
-nghề nghiệp|occupation, profession
-nhận|to receive
-nhớ|to remember
-như trước|like before
-phát âm|to pronounce
-quán ăn|small restaurant
-rảnh|free time
-sân bay|airport
-sữa|milk
-tất cả|all
-thăm|to visit
-thấy|to think, to feel
-thời gian|time
-thư|letter
-trả lời|to answer
-trễ|late
-trung tâm|centre
-văn phòng|office
-viết|to write
-với|with
-xem|to watch`,
-7:`ăn sáng|to have breakfast
-ăn tối|to have dinner
-ăn trưa|to have lunch
-bài hát|a song
-bài tập|assignment
-bàn ăn|dining-table
-bạn bè|friends
-bạn cùng lớp|classmate
-buồn ngủ|sleepy
-bữa (ăn) sáng|breakfast
-căng tin|cafeteria
-chờ|to wait
-chuẩn bị|to prepare
-đánh răng|to brush teeth
-đêm|night
-đi chơi|to go out
-đi ngủ|to go to sleep
-đi ra ngoài|to go outside
-điện thoại|telephone
-hơi|a little, a bit
-lâu|long time
-lên mạng|to surf internet
-lúc|when
-mang|to bring
-một mình|alone
-nghe|to listen, to hear
-nghỉ hưu|to retire
-nhạc|music
-nhỏ|small
-no|full
-ở nhà|at home
-phim|movie
-qua|through, by
-sử dụng|to use
-sáng nay|this morning
-sau khi|after
-thỉnh thoảng|sometimes
-thường|usually
-thức khuya|to stay up late
-tivi|television
-tin tức|news
-tiệm ăn|small restaurant
-trên|on
-trước khi|before
-xong|to finish`,
-8:`bà ngoại|grandmother
-bao lâu|how long
-bên cạnh|next to
-đầu tiên|first time
-đơn|application, form
-giải thích|to explain
-hội thoại|dialogue
-ít|rare, few
-khi|when
-kém|bad
-kinh nghiệm|experience
-lo/lo lắng|to worry
-lỗi|mistake
-luyện|to practice
-mẹ|mother
-một chút|a little bit, a moment
-năm sau|next year
-Nga|Russia
-ngại|afraid
-ngạc nhiên|to surprise
-nghĩa|meaning
-nhỏ tuổi|young
-nhau|each other, together
-nói|to speak
-ở đây|here
-phiên dịch|interpreter
-quen|to be familiar
-rẻ|cheap
-rửa mặt|to wash face
-sai|incorrect
-tác giả|writer, author
-tại|at, in
-tập thể dục|to do/take exercise
-Tây Ban Nha|Spain
-thử|to try
-tuổi|age
-từ|word
-từ từ|gradually
-tự tin|self confidence
-từng|used to
-vắng khách|empty
-Ý|Italia
-ý kiến|opinion`,
-9:`ba mẹ/bố mẹ|parents
-bao giờ|when
-bình thường|normal
-cảm thấy/thấy|to feel
-chủ nhật|sunday
-chúc mừng|to congratulate
-cuối tuần|weekend
-dọn dẹp|to clean
-đặt|to book
-đầu (tuần)|at the beginning (week)
-đi công tác|to go on a business trip
-định|to intend
-gần|nearly, about
-gọi điện thoại|to call
-hẹn|to make an appointment
-khách hàng|customer
-khó tính|hard to please
-lúc đó|at that time
-máy bay|airplane
-muộn/trễ|late
-mời|to invite
-này|this
-nhanh|fast, quickly
-nhớ|to remember
-rảnh|free time
-sau|next
-sinh|to be born
-sinh nhật|birthday
-tháng 6|june
-tháng 8|august
-thứ ba|tuesday
-thứ bảy|saturday
-thứ hai|monday
-thứ năm|thursday
-thứ sáu|friday
-trở lại|to return, to go back
-trước|last, ago
-tuần này|this week
-tuần sau|next week
-tuần trước|last week
-từ|since, from
-vào|on, in
-vé|ticket
-vui/vui vẻ|happy
-xe lửa|train`,
-10:`anh/anh trai|older brother
-anh cả|oldest brother
-bà ngoại|grandmother
-bạn thân|best friend
-chị/chị gái|older sister
-chị cả|oldest sister
-chồng|husband
-cả|oldest
-con|child, children
-con một|only child
-con gái|daughter
-con trai|son
-còn|still, and
-công viên|park
-cùng|together, same
-cùng tuổi|same age
-đặc biệt|special
-đi bộ|to walk
-đói|hungry
-đón|to pick up
-độc thân|unmarried
-em gái|younger sister
-em trai|younger brother
-gia đình|family
-giúp|to help
-họ hàng|relatives
-hoa|flower
-học sinh|student, pupil
-kết hôn/lập gia đình|to marry
-lớn hơn|older
-mất|to pass away, to die
-mọi người|everybody
-nấu/nấu ăn|to cook
-ngày nghỉ|day off
-nhỏ hơn|younger
-ông bà|grandparents
-quê|hometown
-tặng|to give, to offer
-thành viên|member
-thứ hai|second
-tranh|painting
-út|youngest
-vẫn|still
-vẽ|to draw
-về hưu/nghỉ hưu|to retire
-vợ|wife`,
-11:`bằng|by
-bất tiện|inconvenient
-bến xe|station
-cẩn thận|careful
-chậm|slowly
-chở|to give sb a ride
-đến|to arrive, to come
-đối với|for
-đúng giờ|on time, punctual
-đường phố|streets
-ga|station
-ghế|chair
-giao thông|traffic
-hàng ngày|every day
-hư|broken, out of work
-kẹt xe|traffic jam
-khứ hồi|two-way
-lên (xe buýt)|to get on (the bus)
-một chiều|one-way
-mưa|rain
-ngại|afraid
-nguy hiểm|dangerous
-người lái xe|driver
-người ta|they, people
-phần trăm|percent
-phức tạp|complicated
-phương tiện|means
-quen|to be familiar
-thân thiện|friendly
-thuê|to rent
-tiện/tiện lợi|convenient
-trạm (xe buýt)|(bus) stop
-tuy nhiên|however
-tự do|freedom
-vì vậy|therefore
-xe buýt|bus
-xe đạp|bicycle
-xe đạp điện|electric bicycle
-xe điện|electric train
-xe điện ngầm|subway
-xe máy|motorbike
-xe khách|coach bus
-xe ôm|motorbike taxi`,
-12:`bao xa|how far
-bữa sáng|breakfast
-câu|sentence
-cây số|kilometer
-chắc hẳn|must be
-chơi|to play
-có thể|may, to be able to
-công việc|work, job
-cũ|old
-cuối (năm)|end of (year)
-đầu tiên|first time
-dịp|occasion
-dừng|to stop
-hình|picture
-hơn|more than, older
-khả năng|ability
-lần|time
-năm trước|last year
-nghĩ|to think
-nghỉ hè|summer vacation
-(dọn dẹp) nhà cửa|(to clean) house
-(nghĩ) rằng|(think) that
-sáng sớm|early morning
-sinh hoạt|activity
-sử dụng|to use
-thời gian|time
-thư viện|library
-trái cây|fruit
-trước khi|before
-vắng|empty
-về|about
-vừa rồi|last, recent
-xe cộ|vehicle
-yên tĩnh|quiet`
+1:`anh|형, 오빠, 당신(손위 남성)
+bà|할머니, 여사님
+bạn|친구, 너
+cám ơn|고맙다, 감사하다
+chào|안녕(인사하다)
+chị|누나, 언니, 당신(손위 여성)
+cô|아주머니, (여)선생님
+còn|그리고, 그런데
+của|~의
+cũng|~도, 또한
+đây|여기, 이것
+em|동생, 나/너(손아래)
+gặp|만나다
+gì|무엇
+giới thiệu|소개하다
+hỏi|묻다, 질문하다
+hôm nay|오늘
+khỏe|건강하다, 잘 지내다
+không|아니다, ~않다
+là|~이다
+mệt|피곤하다
+ông|할아버지, ~씨
+rất|매우, 아주
+tên|이름
+thầy|(남)선생님
+tôi|나, 저
+tự|스스로, 자기
+và|그리고, ~와/과
+với|~와 함께
+vui|기쁘다, 즐겁다
+xin lỗi|미안하다, 실례합니다`,
+2:`ai|누구
+Anh|영국
+anh ấy|그 (남자)
+bà ấy|그녀 (손위 여성)
+bạn|친구
+biết|알다
+các|~들 (복수)
+chị ấy|그녀 (손위 여성)
+có lẽ|아마도
+cô ấy|그녀
+Đài Loan|대만
+đi|가다
+đó|그것, 그
+Đức|독일
+em ấy|그 아이 (손아래)
+giáo viên|교사, 선생님
+Hàn Quốc|한국
+họ|그들
+khác|다른
+kia|저기, 저것
+muốn|원하다, ~하고 싶다
+Mỹ|미국
+nào|어느
+người|사람
+Nhật|일본
+nói|말하다
+nước|나라
+nước ngoài|외국
+ông ấy|그 (손위 남성)
+phải|맞다, 옳다
+phải không|맞죠?, 그렇죠?
+Pháp|프랑스
+quốc tịch|국적
+sinh viên|(대)학생
+Thái Lan|태국
+Trung Quốc|중국
+Úc|호주
+vâng|네 (공손한 대답)`,
+3:`bài|과, 수업, 글
+chăm chỉ|부지런하다, 성실하다
+chúng tôi|우리 (듣는 이 제외)
+có|있다, 가지다
+dạy|가르치다
+dễ|쉽다
+đại học|대학교
+đăng ký|등록하다, 신청하다
+đâu|어디
+để|~하기 위해
+đến|오다, 도착하다
+đi học|학교에 가다, 공부하러 가다
+đông|붐비다, 많다
+đúng|맞다, 옳다
+học|공부하다
+học viên|수강생, 학습자
+khó|어렵다
+khoa|학과
+khoa học|과학
+lớp|반, 학급
+mấy|몇
+năm|년, 해
+nhân văn|인문(학)
+nhiều|많은
+nhưng|그러나, 하지만
+nổi tiếng|유명하다
+ở|~에(서)
+ở đó|거기
+số|숫자, 번호
+tháng|월, 달
+thành phố|도시
+thích|좋아하다
+thú vị|재미있다, 흥미롭다
+thư ký|비서
+tiếng|언어, 말
+tiếng Việt|베트남어
+trong|~안에
+trước đây|예전에, 이전에
+trường|학교
+xã hội|사회`,
+4:`bác sĩ|의사
+bao nhiêu|얼마, 몇
+bắt đầu|시작하다
+bận|바쁘다
+bệnh viện|병원
+buổi chiều/chiều|오후
+buổi sáng/sáng|아침
+buổi tối/tối|저녁
+công việc|일, 업무
+công ty|회사
+cơ quan|기관, 직장
+dạo này|요즘
+đi làm|출근하다, 일하러 가다
+giờ/tiếng|시, 시간
+hay|또는, 아니면
+hiện nay|현재, 요즘
+kế toán|회계사
+khoảng|약, 대략
+lái xe|운전하다
+làm/làm việc|일하다
+lắm|매우, 아주
+luật sư|변호사
+máy tính|컴퓨터
+nấu ăn|요리하다
+nội trợ|주부
+ngày|날, 일
+ngân hàng|은행
+nghề|직업
+nhà|집
+nhà hàng|식당, 레스토랑
+nhầm|잘못 알다, 틀리다
+nhân viên|직원
+ở|~에(서)
+phòng|방
+quán cà phê|카페
+quận|구 (행정구역)
+siêu thị|슈퍼마켓
+sống|살다
+tài xế|운전기사
+tuần|주, 주일
+trưa|점심, 정오
+từ|~부터
+vào|들어가다, ~에
+vất vả|힘들다, 고되다`,
+5:`ăn|먹다
+bằng|~으로 (수단)
+bây giờ|지금
+bia|맥주
+bưu điện|우체국
+chợ|시장
+chúng ta|우리 (듣는 이 포함)
+có thể|~할 수 있다
+cuối tuần|주말
+du khách/khách|관광객, 손님
+đài truyền hình|방송국
+đặc biệt|특별하다
+đầu tư|투자하다
+đẹp|아름답다, 예쁘다
+đi dạo|산책하다
+địa chỉ|주소
+đường|길, 도로
+ga|역
+gần|가깝다
+gia đình|가족
+giá|가격
+giảm giá|할인
+giỏi|잘하다, 능숙하다
+khen|칭찬하다
+lịch sử|역사
+mắc|비싸다
+món ăn|음식, 요리
+mời|초대하다, 권하다
+mua|사다
+ngon|맛있다
+ngồi|앉다
+Nhà thờ Đức Bà|노트르담 성당
+nhà sách|서점
+nói chuyện|이야기하다
+nơi|장소, 곳
+phòng học|교실
+phố đi bộ|보행자 거리
+phường|동 (행정구역)
+say|취하다
+tham quan|관광하다, 견학하다
+tắc xi|택시
+tối nay|오늘 저녁
+tươi|신선하다
+uống|마시다
+xa|멀다
+xe buýt|버스`,
+6:`áo dài|아오자이 (베트남 전통의상)
+bảo tàng|박물관
+cà phê|커피
+chỉ|단지, ~만
+cũ|낡은, 오래된
+cùng|함께, 같이
+du lịch|여행하다
+đi một vòng|한 바퀴 돌다
+đá|얼음
+đưa|데려다주다, 건네다
+giám đốc|사장, 이사
+giảng viên|강사
+hiểu|이해하다
+khác|다른
+lịch sử|역사
+lý do|이유
+mất|(시간·돈이) 걸리다, 들다
+mong|바라다, 기대하다
+mở cửa|문을 열다, 개점하다
+ngay|즉시, 바로
+nghề nghiệp|직업
+nhận|받다
+nhớ|기억하다, 그리워하다
+như trước|예전처럼
+phát âm|발음하다
+quán ăn|식당, 분식점
+rảnh|한가하다
+sân bay|공항
+sữa|우유
+tất cả|모두, 전부
+thăm|방문하다
+thấy|느끼다, 생각하다
+thời gian|시간
+thư|편지
+trả lời|대답하다
+trễ|늦다
+trung tâm|센터, 중심
+văn phòng|사무실
+viết|쓰다
+với|~와 함께
+xem|보다`,
+7:`ăn sáng|아침을 먹다
+ăn tối|저녁을 먹다
+ăn trưa|점심을 먹다
+bài hát|노래
+bài tập|과제, 숙제
+bàn ăn|식탁
+bạn bè|친구들
+bạn cùng lớp|반 친구, 동급생
+buồn ngủ|졸리다
+bữa (ăn) sáng|아침 식사
+căng tin|매점, 구내식당
+chờ|기다리다
+chuẩn bị|준비하다
+đánh răng|양치하다
+đêm|밤
+đi chơi|놀러 가다
+đi ngủ|자러 가다
+đi ra ngoài|밖에 나가다
+điện thoại|전화
+hơi|약간, 조금
+lâu|오래
+lên mạng|인터넷을 하다
+lúc|~할 때
+mang|가져오다, 가져가다
+một mình|혼자
+nghe|듣다
+nghỉ hưu|은퇴하다
+nhạc|음악
+nhỏ|작다
+no|배부르다
+ở nhà|집에(서)
+phim|영화
+qua|~을 통해, 지나
+sử dụng|사용하다
+sáng nay|오늘 아침
+sau khi|~한 후에
+thỉnh thoảng|가끔, 때때로
+thường|보통, 주로
+thức khuya|밤늦게까지 깨어 있다
+tivi|텔레비전
+tin tức|뉴스, 소식
+tiệm ăn|식당
+trên|~위에
+trước khi|~하기 전에
+xong|끝내다, 마치다`,
+8:`bà ngoại|외할머니
+bao lâu|얼마나 오래
+bên cạnh|옆에
+đầu tiên|처음, 첫 번째
+đơn|신청서, 양식
+giải thích|설명하다
+hội thoại|대화, 회화
+ít|적다, 드물다
+khi|~할 때
+kém|부족하다, 못하다
+kinh nghiệm|경험
+lo/lo lắng|걱정하다
+lỗi|실수, 잘못
+luyện|연습하다
+mẹ|엄마, 어머니
+một chút|조금, 잠깐
+năm sau|내년
+Nga|러시아
+ngại|꺼리다, 망설이다
+ngạc nhiên|놀라다
+nghĩa|의미, 뜻
+nhỏ tuổi|어리다
+nhau|서로
+nói|말하다
+ở đây|여기(에)
+phiên dịch|통역(사)
+quen|익숙하다, 친분이 있다
+rẻ|싸다
+rửa mặt|세수하다
+sai|틀리다
+tác giả|작가, 저자
+tại|~에(서)
+tập thể dục|운동하다
+Tây Ban Nha|스페인
+thử|시도하다, 해 보다
+tuổi|나이
+từ|단어
+từ từ|천천히, 서서히
+tự tin|자신감
+từng|~한 적이 있다
+vắng khách|손님이 없다, 한산하다
+Ý|이탈리아
+ý kiến|의견`,
+9:`ba mẹ/bố mẹ|부모님
+bao giờ|언제
+bình thường|보통이다, 평범하다
+cảm thấy/thấy|느끼다
+chủ nhật|일요일
+chúc mừng|축하하다
+cuối tuần|주말
+dọn dẹp|청소하다, 정리하다
+đặt|예약하다
+đầu (tuần)|(주)초
+đi công tác|출장 가다
+định|~할 작정이다, 계획하다
+gần|거의, 가까이
+gọi điện thoại|전화하다
+hẹn|약속하다
+khách hàng|고객, 손님
+khó tính|까다롭다
+lúc đó|그때
+máy bay|비행기
+muộn/trễ|늦다
+mời|초대하다
+này|이, 이것
+nhanh|빠르다, 빨리
+nhớ|기억하다
+rảnh|한가하다
+sau|다음, 후
+sinh|태어나다
+sinh nhật|생일
+tháng 6|6월
+tháng 8|8월
+thứ ba|화요일
+thứ bảy|토요일
+thứ hai|월요일
+thứ năm|목요일
+thứ sáu|금요일
+trở lại|돌아오다, 돌아가다
+trước|전, ~전에
+tuần này|이번 주
+tuần sau|다음 주
+tuần trước|지난주
+từ|~부터
+vào|~에 (시점)
+vé|표, 티켓
+vui/vui vẻ|즐겁다, 기쁘다
+xe lửa|기차`,
+10:`anh/anh trai|형, 오빠
+anh cả|맏형, 큰오빠
+bà ngoại|외할머니
+bạn thân|친한 친구
+chị/chị gái|누나, 언니
+chị cả|맏누나, 큰언니
+chồng|남편
+cả|맏이, 첫째
+con|자녀, 아이
+con một|외동
+con gái|딸
+con trai|아들
+còn|아직, 그리고
+công viên|공원
+cùng|함께, 같은
+cùng tuổi|동갑
+đặc biệt|특별하다
+đi bộ|걷다
+đói|배고프다
+đón|마중하다, 데리러 가다
+độc thân|미혼, 독신
+em gái|여동생
+em trai|남동생
+gia đình|가족
+giúp|돕다
+họ hàng|친척
+hoa|꽃
+học sinh|학생
+kết hôn/lập gia đình|결혼하다
+lớn hơn|더 나이가 많다
+mất|돌아가시다, 죽다
+mọi người|모두, 여러분
+nấu/nấu ăn|요리하다
+ngày nghỉ|휴일, 쉬는 날
+nhỏ hơn|더 어리다
+ông bà|조부모
+quê|고향
+tặng|선물하다, 주다
+thành viên|구성원, 회원
+thứ hai|둘째, 두 번째
+tranh|그림
+út|막내
+vẫn|여전히, 아직
+vẽ|그리다
+về hưu/nghỉ hưu|은퇴하다
+vợ|아내`,
+11:`bằng|~으로 (수단)
+bất tiện|불편하다
+bến xe|정류장, 터미널
+cẩn thận|조심하다, 신중하다
+chậm|느리다, 천천히
+chở|태워 주다, 싣다
+đến|도착하다, 오다
+đối với|~에 대하여, ~에게
+đúng giờ|정시에, 시간을 지키다
+đường phố|거리
+ga|역
+ghế|의자
+giao thông|교통
+hàng ngày|매일
+hư|고장 나다
+kẹt xe|교통 체증
+khứ hồi|왕복
+lên (xe buýt)|(버스를) 타다
+một chiều|편도
+mưa|비
+ngại|꺼리다, 망설이다
+nguy hiểm|위험하다
+người lái xe|운전사
+người ta|사람들, 남들
+phần trăm|퍼센트
+phức tạp|복잡하다
+phương tiện|수단, 교통수단
+quen|익숙하다
+thân thiện|친절하다, 다정하다
+thuê|빌리다, 임대하다
+tiện/tiện lợi|편리하다
+trạm (xe buýt)|(버스) 정류장
+tuy nhiên|그러나, 하지만
+tự do|자유
+vì vậy|그래서, 따라서
+xe buýt|버스
+xe đạp|자전거
+xe đạp điện|전기 자전거
+xe điện|전차
+xe điện ngầm|지하철
+xe máy|오토바이
+xe khách|시외버스, 관광버스
+xe ôm|오토바이 택시`,
+12:`bao xa|얼마나 먼
+bữa sáng|아침 식사
+câu|문장
+cây số|킬로미터
+chắc hẳn|틀림없이, 분명히
+chơi|놀다
+có thể|~할 수 있다, ~일지도
+công việc|일, 직업
+cũ|낡은, 오래된
+cuối (năm)|(연)말
+đầu tiên|처음, 첫 번째
+dịp|기회, 때
+dừng|멈추다
+hình|사진, 그림
+hơn|~보다 더, 더
+khả năng|능력
+lần|번, 회
+năm trước|작년
+nghĩ|생각하다
+nghỉ hè|여름 방학(휴가)
+(dọn dẹp) nhà cửa|집안(청소)
+(nghĩ) rằng|~라고 (생각하다)
+sáng sớm|이른 아침
+sinh hoạt|생활, 활동
+sử dụng|사용하다
+thời gian|시간
+thư viện|도서관
+trái cây|과일
+trước khi|~하기 전에
+vắng|비다, 한산하다
+về|~에 대하여
+vừa rồi|방금, 최근
+xe cộ|차량, 탈것
+yên tĩnh|조용하다`
 };
 
-/* 예문(문장) — 교재 Lesson 1~2 기반 베트남어 문장 + 영어 뜻 (인사·소개·이름·국적·3인칭). 진도 나가면 한 줄에 "베트남어|영어" 형식으로 추가하면 됩니다. */
-const SENTENCES = `Chào chị.|Hello.
-Xin lỗi, anh tên là gì?|Excuse me, what is your name?
-Tôi xin tự giới thiệu.|Let me introduce myself.
-Tôi tên là David.|My name is David.
-Chị tên là gì?|What is your name?
-Tôi tên là Vân.|My name is Vân.
-Rất vui được gặp chị.|Nice to meet you.
-Đây là Eun Ji.|This is Eun Ji.
-Anh có khỏe không?|How are you?
-Tôi khỏe. Cám ơn.|I am fine. Thank you.
-Tôi cũng khỏe.|I am fine too.
-Còn anh?|And you?
-Hôm nay anh có gặp Eun Ji không?|Did you meet Eun Ji today?
-Không, hôm nay tôi không gặp Eun Ji.|No, I did not meet Eun Ji today.
-Không sao.|It is okay.
-Đây là anh Graham.|This is Graham.
-Kia là chị Jackie.|That is Jackie.
-Anh ấy là người Mỹ.|He is American.
-Chị ấy là người Việt.|She is Vietnamese.
-Chị ấy là người Hàn Quốc.|She is Korean.
-Eun Ji là người Hàn Quốc.|Eun Ji is Korean.
-Eun Ji không phải là người Trung Quốc.|Eun Ji is not Chinese.
-David là bạn của chị Vân.|David is Vân's friend.
-Anh ấy cũng là bạn của chị Kate.|He is also Kate's friend.
-Họ là người Mỹ.|They are American.
-Anh ấy là người nước nào?|What country is he from?
-Anh Thomas là người Canada.|Thomas is Canadian.
-Bạn của ông Sam là người Anh, phải không?|Mr. Sam's friend is English, right?
-Anh David giới thiệu anh Brian với chị Vân.|David introduces Brian to Vân.
-Hôm qua chị Kate gặp David.|Yesterday Kate met David.
-Chào các anh.|Hello, everyone.
-Anh là người nước nào?|What nationality are you?
-Tôi là người Mỹ.|I am American.
-Tôi là người Anh.|I am English.
-Tôi là người Úc.|I am Australian.
-Đây là Brian, bạn tôi.|This is Brian, my friend.
-Đây là bạn tôi.|This is my friend.
-Kia là ai?|Who is that over there?
-Đó là Kate.|That is Kate.
-Anh David là người Anh.|David is English.
-Chị ấy là người Úc.|She is Australian.
-Chị Kate là bạn anh David, phải không?|Kate is David's friend, right?
-Chị có biết anh Brian không?|Do you know Brian?
-Hôm qua tôi gặp Brian và David.|Yesterday I met Brian and David.
-Tôi là bạn anh Tom.|I am Tom's friend.
-Anh Tom có khỏe không?|How is Tom?
-Hôm nay Sam gặp Tom và bạn của Tom.|Today Sam meets Tom and Tom's friend.
-Jenny là bạn của Tom.|Jenny is Tom's friend.
-David giới thiệu Eun Ji với Mai.|David introduces Eun Ji to Mai.
-Em Saki chào tôi.|Saki greets me.
-Cô Kate cám ơn bà Bảy.|Kate thanks Mrs. Bảy.
-Chị Cúc xin lỗi anh Năm.|Cúc apologizes to Năm.
-Anh David có hai người bạn.|David has two friends.`;
+/* 예문(문장) — 교재 Lesson 1~2 기반 베트남어 문장 + 한국어 뜻 (인사·소개·이름·국적·3인칭). 진도 나가면 한 줄에 "베트남어|한국어" 형식으로 추가하면 됩니다. */
+const SENTENCES = `Chào chị.|안녕하세요. (손위 여성에게)
+Xin lỗi, anh tên là gì?|실례지만, 이름이 뭐예요?
+Tôi xin tự giới thiệu.|제 소개를 하겠습니다.
+Tôi tên là David.|제 이름은 David입니다.
+Chị tên là gì?|이름이 뭐예요?
+Tôi tên là Vân.|제 이름은 Vân입니다.
+Rất vui được gặp chị.|만나서 반갑습니다.
+Đây là Eun Ji.|이쪽은 은지예요.
+Anh có khỏe không?|잘 지내요?
+Tôi khỏe. Cám ơn.|저는 잘 지내요. 고마워요.
+Tôi cũng khỏe.|저도 잘 지내요.
+Còn anh?|당신은요?
+Hôm nay anh có gặp Eun Ji không?|오늘 은지를 만났어요?
+Không, hôm nay tôi không gặp Eun Ji.|아니요, 오늘 은지를 안 만났어요.
+Không sao.|괜찮아요.
+Đây là anh Graham.|이쪽은 Graham이에요.
+Kia là chị Jackie.|저쪽은 Jackie예요.
+Anh ấy là người Mỹ.|그는 미국 사람이에요.
+Chị ấy là người Việt.|그녀는 베트남 사람이에요.
+Chị ấy là người Hàn Quốc.|그녀는 한국 사람이에요.
+Eun Ji là người Hàn Quốc.|은지는 한국 사람이에요.
+Eun Ji không phải là người Trung Quốc.|은지는 중국 사람이 아니에요.
+David là bạn của chị Vân.|David은 Vân의 친구예요.
+Anh ấy cũng là bạn của chị Kate.|그는 Kate의 친구이기도 해요.
+Họ là người Mỹ.|그들은 미국 사람이에요.
+Anh ấy là người nước nào?|그는 어느 나라 사람이에요?
+Anh Thomas là người Canada.|Thomas는 캐나다 사람이에요.
+Bạn của ông Sam là người Anh, phải không?|Sam 씨의 친구는 영국 사람이죠?
+Anh David giới thiệu anh Brian với chị Vân.|David이 Brian을 Vân에게 소개해요.
+Hôm qua chị Kate gặp David.|어제 Kate가 David을 만났어요.
+Chào các anh.|여러분 안녕하세요.
+Anh là người nước nào?|당신은 어느 나라 사람이에요?
+Tôi là người Mỹ.|저는 미국 사람이에요.
+Tôi là người Anh.|저는 영국 사람이에요.
+Tôi là người Úc.|저는 호주 사람이에요.
+Đây là Brian, bạn tôi.|이쪽은 제 친구 Brian이에요.
+Đây là bạn tôi.|이쪽은 제 친구예요.
+Kia là ai?|저 사람은 누구예요?
+Đó là Kate.|그 사람은 Kate예요.
+Anh David là người Anh.|David은 영국 사람이에요.
+Chị ấy là người Úc.|그녀는 호주 사람이에요.
+Chị Kate là bạn anh David, phải không?|Kate는 David의 친구죠?
+Chị có biết anh Brian không?|Brian을 아세요?
+Hôm qua tôi gặp Brian và David.|어제 저는 Brian과 David을 만났어요.
+Tôi là bạn anh Tom.|저는 Tom의 친구예요.
+Anh Tom có khỏe không?|Tom은 잘 지내요?
+Hôm nay Sam gặp Tom và bạn của Tom.|오늘 Sam이 Tom과 Tom의 친구를 만나요.
+Jenny là bạn của Tom.|Jenny는 Tom의 친구예요.
+David giới thiệu Eun Ji với Mai.|David이 은지를 Mai에게 소개해요.
+Em Saki chào tôi.|Saki가 저에게 인사해요.
+Cô Kate cám ơn bà Bảy.|Kate가 Bảy 할머니께 감사해요.
+Chị Cúc xin lỗi anh Năm.|Cúc이 Năm에게 사과해요.
+Anh David có hai người bạn.|David은 친구가 두 명 있어요.`;
 const SENTS = SENTENCES.trim().split("\n").map(l=>{ const i=l.indexOf("|"); return {vn:l.slice(0,i).trim(), en:l.slice(i+1).trim()}; }).filter(s=>s.vn&&s.en);
 
 /* =========================================================
@@ -830,7 +835,7 @@ function makeQ(word, dir, type){
     answer: dir==="vn2en" ? word.en : word.vn };
 }
 function dirOf(setting){ return setting==="random" ? (Math.random()<.5?"vn2en":"en2vn") : setting; }
-const DIRLABEL = { vn2en:"🇻🇳 베트남어 → 🔤 영어", en2vn:"🔤 영어 → 🇻🇳 베트남어" };
+const DIRLABEL = { vn2en:"🇻🇳 베트남어 → 🇰🇷 한국어", en2vn:"🇰🇷 한국어 → 🇻🇳 베트남어" };
 function spkBtn(text, lang, sm){
   return `<button class="spk${sm?" sm":""}" data-action="speak" data-text="${esc(text)}" data-lang="${lang}" title="발음 듣기">🔊</button>`;
 }
@@ -928,8 +933,8 @@ function renderHome(){
     <div class="card">
       <h2>③ 방향</h2>
       <div class="seg">
-        <button class="${state.dir==="vn2en"?"on":""}" data-action="dir" data-v="vn2en">베→영<span class="desc">베트남어 보고</span></button>
-        <button class="${state.dir==="en2vn"?"on":""}" data-action="dir" data-v="en2vn">영→베<span class="desc">영어 보고</span></button>
+        <button class="${state.dir==="vn2en"?"on":""}" data-action="dir" data-v="vn2en">베→한<span class="desc">베트남어 보고</span></button>
+        <button class="${state.dir==="en2vn"?"on":""}" data-action="dir" data-v="en2vn">한→베<span class="desc">한국어 보고</span></button>
         <button class="${state.dir==="random"?"on":""}" data-action="dir" data-v="random">랜덤<span class="desc">섞어서</span></button>
       </div>
     </div>
@@ -952,7 +957,10 @@ function renderHome(){
       <button class="btn soft" data-action="goList">📚 단어장 보기</button>
       <button class="btn soft" data-action="goAdd">➕ 단어 추가</button>
     </div>
-    <button class="btn line" style="margin-top:8px" data-action="goBackup">💾 백업 / 복원 <span style="font-weight:500;opacity:.8">(다른 기기로 옮기기)</span></button>
+    <div class="btn2" style="margin-top:8px">
+      <button class="btn line" data-action="goTelex">⌨️ 베트남어 타자(Telex)</button>
+      <button class="btn line" data-action="goBackup">💾 백업 / 복원</button>
+    </div>
   `);
   bindSelection();
 }
@@ -1024,8 +1032,8 @@ function renderQuiz(){
   const pct = Math.round((Q.idx/(n))*100);
   const isSent = q.type==="sentence";
   const kind = state.mode==="mc" ? "mc" : (isSent ? "sent" : "word");
-  const promptLang = q.dir==="vn2en" ? "vi-VN" : "en-US";
-  const ansLang = q.dir==="vn2en" ? "en-US" : "vi-VN";
+  const promptLang = q.dir==="vn2en" ? "vi-VN" : "ko-KR";
+  const ansLang = q.dir==="vn2en" ? "ko-KR" : "vi-VN";
 
   // 진행 라벨 (실전시험이면 단어/문장 구분)
   let counter = `문제 ${Q.idx+1} / ${n}`;
@@ -1038,8 +1046,8 @@ function renderQuiz(){
   }
 
   const subText = isSent
-    ? (q.dir==="vn2en" ? "이 문장을 영어로 번역하세요" : "이 문장을 베트남어로 번역하세요")
-    : (q.dir==="vn2en" ? "이 단어의 영어 뜻은?" : "이 뜻의 베트남어 단어는?");
+    ? (q.dir==="vn2en" ? "이 문장을 한국어로 번역하세요" : "이 문장을 베트남어로 번역하세요")
+    : (q.dir==="vn2en" ? "이 단어의 한국어 뜻은?" : "이 뜻의 베트남어 단어는?");
 
   let body = "", fb = "";
   const nextBtn = `<button class="btn" style="margin-top:12px" data-action="next">${Q.idx+1>=n?"결과 보기 →":"다음 →"}</button>`;
@@ -1298,6 +1306,52 @@ function renderBackup(){
   });
 }
 
+/* ---------- 베트남어 타자(Telex) 도움말 ---------- */
+function goTelex(){ renderTelex(); }
+function renderTelex(){
+  state.screen="telex";
+  const row=(a,b)=>`<div class="trow"><span class="tk">${a}</span><span class="tar">→</span><span class="tr">${b}</span></div>`;
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2>⌨️ 베트남어 타자 (Telex)</h2>
+      <div class="muted tiny" style="margin-bottom:14px">한국어 → 베트남어 시험에서 베트남어를 입력할 때, 일반 키보드로 성조·특수문자를 치는 방법이에요. <b>모음을 친 뒤</b> 아래 키를 누르면 돼요.</div>
+
+      <label class="fld" style="margin-top:0">성조 (모음 뒤에 입력)</label>
+      <div class="tgrid">
+        ${row("s","á  올림(sắc)")}
+        ${row("f","à  내림(huyền)")}
+        ${row("r","ả  물음(hỏi)")}
+        ${row("x","ã  흔들림(ngã)")}
+        ${row("j","ạ  점(nặng)")}
+        ${row("z","성조 지우기")}
+      </div>
+
+      <label class="fld">특수 모음 · 자음 (같은 글자 두 번 등)</label>
+      <div class="tgrid">
+        ${row("aa","â")}
+        ${row("aw","ă")}
+        ${row("ee","ê")}
+        ${row("oo","ô")}
+        ${row("ow","ơ")}
+        ${row("w / uw","ư")}
+        ${row("dd","đ")}
+      </div>
+
+      <label class="fld">예시 (이렇게 타이핑하면)</label>
+      <div class="tgrid">
+        ${row("tooi","tôi (나/저)")}
+        ${row("khoer","khỏe (건강하다)")}
+        ${row("camr own","cảm ơn (고맙다)")}
+        ${row("ddepj","đẹp (예쁘다)")}
+        ${row("Vieetj","Việt (베트남)")}
+      </div>
+
+      <div class="muted tiny" style="margin-top:16px;line-height:1.7"><b>💡 키보드 추가하기</b><br>• <b>폰(아이폰·안드로이드)</b>: 설정 → 키보드 → 베트남어(Telex) 추가<br>• <b>맥</b>: 시스템 설정 → 키보드 → 입력 소스 → <b>Vietnamese – Telex</b> 추가<br>• <b>윈도우</b>: 무료 프로그램 <b>UniKey</b> 설치<br><br>※ 참고: 우리 앱은 <b>성조 없이 쳐도</b>(예: <b>bua sang</b> → bữa sáng) 정답 처리돼요. 급할 땐 성조 빼고 입력해도 OK!</div>
+    </div>
+  `);
+}
+
 /* ---------- 플래시카드 ---------- */
 const F = {};
 function startFlash(pool){
@@ -1308,15 +1362,15 @@ function startFlash(pool){
 }
 function renderFlash(){
   const c = F.cards[F.idx], n=F.cards.length;
-  const pLang = c.dir==="vn2en"?"vi-VN":"en-US", aLang = c.dir==="vn2en"?"en-US":"vi-VN";
+  const pLang = c.dir==="vn2en"?"vi-VN":"ko-KR", aLang = c.dir==="vn2en"?"ko-KR":"vi-VN";
   set(`
     <div class="qtop"><span>카드 ${F.idx+1} / ${n}</span><span>${DIRLABEL[c.dir]}</span></div>
     <div class="bar"><i style="width:${Math.round((F.idx/n)*100)}%"></i></div>
     <div class="flash ${F.flip?"flipped":""}" data-action="flip">
       <div class="flash-inner">
-        <div class="face front"><span class="lbl">${c.dir==="vn2en"?"베트남어":"영어"} · 탭하면 뒤집혀요</span>
+        <div class="face front"><span class="lbl">${c.dir==="vn2en"?"베트남어":"한국어"} · 탭하면 뒤집혀요</span>
           <span class="big">${esc(c.prompt)}</span>${spkBtn(c.prompt,pLang)}</div>
-        <div class="face back"><span class="lbl">${c.dir==="vn2en"?"영어 뜻":"베트남어"}</span>
+        <div class="face back"><span class="lbl">${c.dir==="vn2en"?"한국어 뜻":"베트남어"}</span>
           <span class="big">${esc(c.answer)}</span>${spkBtn(c.answer,aLang)}</div>
       </div>
     </div>
@@ -1345,7 +1399,7 @@ function renderList(){
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
       <h2>📚 단어장 · ${filt.length}개</h2>
-      <input class="search" id="searchBox" placeholder="🔎 단어/뜻 검색 (베트남어·영어 모두)" value="${esc(L.q)}">
+      <input class="search" id="searchBox" placeholder="🔎 단어/뜻 검색 (베트남어·한국어 모두)" value="${esc(L.q)}">
       <div class="row" style="margin-bottom:6px">${chips}</div>
       <button class="chip ${L.hide?"on":""}" data-action="toggleHide">${L.hide?"🙈 뜻 가림 (마우스 올리면 보임)":"👁️ 뜻 보임"}</button>
       <div class="wlist" style="margin-top:8px">
@@ -1372,8 +1426,8 @@ function renderAdd(){
       <h2>➕ 내 단어 추가</h2>
       <label class="fld">베트남어 (또는 외울 단어)</label>
       <input class="search" id="inVn" placeholder="예: cảm ơn" autocomplete="off">
-      <label class="fld">영어 뜻 (또는 한국어 뜻)</label>
-      <input class="search" id="inEn" placeholder="예: thank you / 고마워요" autocomplete="off">
+      <label class="fld">한국어 뜻</label>
+      <input class="search" id="inEn" placeholder="예: 고맙다, 감사하다" autocomplete="off">
       <button class="btn" style="margin-top:12px" data-action="addWord">추가하기</button>
       <div class="muted tiny" style="margin-top:10px">추가한 단어는 이 브라우저에 저장돼요. 단어장·시험에 '내 단어'로 함께 나와요.</div>
     </div>
@@ -1479,8 +1533,8 @@ function renderPaper(){
         <label class="fld">출제 방향</label>
         <div class="seg">
           <button class="${P.dir==="random"?"on":""}" data-action="paperDir" data-v="random">랜덤 섞기</button>
-          <button class="${P.dir==="vn2en"?"on":""}" data-action="paperDir" data-v="vn2en">베→영</button>
-          <button class="${P.dir==="en2vn"?"on":""}" data-action="paperDir" data-v="en2vn">영→베</button>
+          <button class="${P.dir==="vn2en"?"on":""}" data-action="paperDir" data-v="vn2en">베→한</button>
+          <button class="${P.dir==="en2vn"?"on":""}" data-action="paperDir" data-v="en2vn">한→베</button>
         </div>
         ${!isWS ? `<label class="fld">문제 수</label>
         <div class="seg">
@@ -1534,7 +1588,7 @@ const actions = {
   listFilter:(el)=>{ L.lesson=el.dataset.l==="all"?"all":(el.dataset.l==="custom"?"custom":Number(el.dataset.l)); renderList(); },
   toggleHide:()=>{ L.hide=!L.hide; renderList(); },
   addWord, delWord:(el)=>delWord(el.dataset.i),
-  goNote, startNote, goBackup, copyExport, downloadExport,
+  goNote, startNote, goBackup, goTelex, copyExport, downloadExport,
   doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },
   removeNote:(el)=>{ const a=loadNote(); a.splice(Number(el.dataset.i),1); saveNote(a); renderNote(); },
   starWord:(el)=>{ const w=WORDS.find(x=>x.id===Number(el.dataset.id)); if(!w) return; if(noteHas(w)){ const a=loadNote().filter(e=>noteKey(e)!==noteKey(w)); saveNote(a); } else { noteAdd(w); } renderList(); },
