@@ -1,0 +1,60 @@
+# 단어 시험 (베트남어 ↔ 한국어) — 인수인계서
+
+> 이 문서는 새 작업 세션(Claude Code / claude.ai/code)이 이 프로젝트를 바로 이어서 작업할 수 있도록 정리한 핸드오버 문서입니다.
+
+## 1. 프로젝트 개요
+- GYBM 베트남 과정 참가자(한국인, 베트남어 학습자)를 위한 **베트남어 ↔ 한국어 단어/문장 시험·암기 웹앱**.
+- **`단어시험.html` 파일 하나로 동작**하는 자기완결 앱: 프레임워크·빌드·서버 불필요, 더블클릭하면 브라우저에서 열림, **오프라인 작동**, 데이터는 브라우저 **localStorage**에 저장.
+- 순수 **바닐라 JS**(외부 라이브러리 없음). UI는 한국어.
+
+## 2. 파일 구조
+- **`단어시험.html`** — 앱 본체(HTML+CSS+JS 한 파일). 거의 모든 작업은 여기서.
+- `index.html` — 루트 URL용 리디렉트(→ `단어시험.html`). GitHub Pages 주소를 깔끔하게 하려고 둠. 수정 거의 안 함.
+- `README.md`, `.gitignore`, 이 `CLAUDE.md`.
+- `contents.zip` / 이미지 — 교재 사진 원본. **.gitignore로 제외**(저장소에 안 올라감).
+
+## 3. 실행 / 미리보기 (중요)
+- 이 환경엔 **node가 없음**. JS 검증은 브라우저 미리보기로 함.
+- 미리보기 서버: `prj_code/.claude/launch.json`의 **`wordnote`** 설정(python http.server, 포트 8137, `word_note` 폴더 serve). `preview_start name=wordnote`.
+- 파일명이 한글이라 URL은 인코딩 필요: `preview_eval`로 `location.href = location.origin + '/' + encodeURIComponent('단어시험.html')`.
+- 검증은 `preview_eval`로 함수 직접 호출(예: `WORDS.length`, `start()`, `loadNote()`) + `preview_screenshot`.
+
+## 4. 데이터 구조
+```js
+const RAW = { 1:`베트남어|한국어뜻\n...`, 2:`...`, ... 12:`...` };  // 단원별, 줄마다 "베트남어|뜻"
+const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      // 예문(문장)
+```
+- **⚠️ 중요**: 코드에서 뜻(meaning) 필드 이름은 **`en`** 이지만 **실제로는 한국어**가 들어있음(원래 영어였다가 한국어로 교체한 흔적). `vn`=베트남어, `en`=한국어 뜻.
+- 단어 **496개(Lesson 1~12)**, 문장 **53개**(Lesson 1~2 교재 기반). 단원 추가는 RAW에 같은 형식으로 넣으면 됨.
+- 사용자 진도는 **Lesson 2까지**. 더 진도 나가면 그 단원 문장을 SENTENCES에 추가.
+
+## 5. 주요 기능 & 코드 위치 (함수명)
+- 데이터 빌드: `buildWords()` — `WORDS` 배열(각 항목 `{id,lesson,vn,en,num,gi}`) 생성. 단어 추가(localStorage)도 합침.
+- 문제 생성: `makeQ(word,dir,type)`, 방향 `dir`은 `"vn2en"`(베→한) / `"en2vn"`(한→베) / 랜덤.
+- 시험 진행: `start()`, `startExam()`(실전 단어40+문장10), `startNote()`(오답노트), `setupQ()`, `renderQuiz()`, `next()`.
+- 채점(관대): `norm()`, `acceptable()`, `isCorrectTyped()` — 성조·대소문자·`to`/관사·괄호·슬래시·콤마 복수정답 모두 관대 처리. **문장은 자가채점**(reveal→맞음/틀림).
+- 시험지(인쇄): `genPaper()`, `renderPaper()`, state `P`(format: `wordsent`=단어40+문장10 / `words`=단어만). 중복 단어 자동 제거. `window.print()`. @media print로 컨트롤 숨김.
+- 오답 노트: `loadNote/saveNote/noteWrong/noteRight/noteAdd`(키=`lc(vn)||lc(en)`), `renderNote()`. 오답 자동수집, 별표(`starWord`) 직접추가, 연속 `GRAD(=2)`번 정답 시 졸업(제거).
+- 백업/복원: `exportData()`, `importBackup()`(합치기/중복제외), `renderBackup()`.
+- Telex 도움말: `renderTelex()`.
+- 기타: `renderHome()`, `renderList()`(단어장), `renderAdd()`(단어추가), `renderFlash()`(플래시카드), `selectionBlockHTML()`(단원/범위 공용), `speak()`(🔊 Web Speech: 베=vi-VN, 한=ko-KR).
+- 클릭 처리: 하단 `actions` 맵 + `view.addEventListener("click", ...)` (data-action 위임).
+
+## 6. 자주 하는 변경
+- **단어 추가**: `RAW`의 해당 단원 백틱 문자열에 `베트남어|한국어뜻` 줄 추가.
+- **문장 추가**: `SENTENCES`에 `베트남어 문장|한국어뜻` 줄 추가.
+- **방향/라벨**: `DIRLABEL`, 홈 방향 버튼(베→한/한→베), `promptLang`/`ansLang`(vi-VN/ko-KR).
+
+## 7. 컨벤션 & 주의사항
+- **색상**: 저채도 차분한 팔레트(`:root` CSS변수 `--brand:#5f6fa6` 등). 쨍한 원색 금지(사용자 요청).
+- **인쇄 시험지**: 종이에는 **이모지·안내문·정답지 없음**(미니멀). `@page{margin:0}`로 브라우저 머리글/바닥글 제거.
+- **표기**: 교재 따라 "**cám ơn**"(O), "cảm ơn"(X).
+- **localStorage 키**(접두사 `gybm_wordnote_v1`): `_notebook _custom _mode _dir _count _selMode _wrong`. 브라우저/기기마다 따로 저장됨 → 그래서 **백업/복원** 기능이 있음.
+- 객관식 모드는 제거됨(코드 일부는 남아있으나 UI 없음). 방식 = 주관식/플래시카드/실전시험.
+
+## 8. GitHub / 배포
+- 원격: **`chan026-normal/word-note`** (Public — GitHub Pages 때문에).
+- Pages URL(폰에서 사용): **https://chan026-normal.github.io/word-note/**
+- 커밋 이메일은 **noreply**로 설정됨(이 repo git config user.email = `chan026-normal@users.noreply.github.com`, local). 실제 이메일 노출 금지.
+- 워크플로: **작업 전 `git pull`**(사용자가 폰 claude.ai/code로 먼저 고쳤을 수 있음), 작업 후 `commit + push`. 커밋 메시지 끝에 `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
+- 사용자는 비개발자 → 기술은 쉬운 비유로 설명. 한국어로 소통.
