@@ -31,7 +31,10 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 ## 5. 주요 기능 & 코드 위치 (함수명)
 - 데이터 빌드: `buildWords()` — `WORDS` 배열(각 항목 `{id,lesson,vn,en,num,gi}`) 생성. 단어 추가(localStorage)도 합침.
 - 문제 생성: `makeQ(word,dir,type)`, 방향 `dir`은 `"vn2en"`(베→한) / `"en2vn"`(한→베) / 랜덤.
-- 시험 진행: `start()`, `startExam()`(실전 단어40+문장10), `startNote()`(오답노트), `setupQ()`, `renderQuiz()`, `next()`.
+- 홈/영역: `renderHome()`=**읽기·듣기·쓰기·말하기 4영역 카드**(`SKILLS`,`SKILL_ORDER`)+보조버튼(실전·플래시·단어장…). 카드 클릭→`goSkill(skill)`→`renderSetup()`(범위·문제수 선택)→`startSkill()`. `state.skill`(LS `_skill`)에 마지막 영역 저장. 방향은 영역이 고정(플래시만 사용자 선택).
+- 시험 진행: `startSkill()`(영역 시작·표준 경로) / `start()`(구버전, 현재 홈에선 미사용), `startExam()`(실전 단어40+문장10), `startNote()`(오답노트), `setupQ()`, `renderQuiz()`, `next()`.
+- 듣기(`mode:"listen"`): `renderQuiz()`의 `isListen` 분기 — 베트남어 글자 숨기고 🔊 자동재생(`.bigspk`/`.listenbox`), 정답 맞히면 글자 공개. 입력·채점은 주관식과 동일(vn2en 고정).
+- 말하기(`mode:"speak"`): `startSpeak/renderSpeak/speakAdvance/renderSpeakDone`(상태 `SP`). 🔊 듣고 따라 말한 뒤 자가채점(✅ 잘했어요 / 🔁 더 연습=오답노트 추가). 점수 없음.
 - 채점(관대): `norm()`, `acceptable()`, `isCorrectTyped()` — 성조·대소문자·`to`/관사·괄호·슬래시·콤마 복수정답 모두 관대 처리. **문장은 자가채점**(reveal→맞음/틀림).
 - 시험지(인쇄): `genPaper()`, `renderPaper()`, state `P`(format: `wordsent`=단어40+문장10 / `words`=단어만). 중복 단어 자동 제거. `window.print()`. @media print로 컨트롤 숨김.
 - 오답 노트: `loadNote/saveNote/noteWrong/noteRight/noteAdd`(키=`lc(vn)||lc(en)`), `renderNote()`. 오답 자동수집, 별표(`starWord`) 직접추가, 연속 `GRAD(=2)`번 정답 시 졸업(제거).
@@ -50,7 +53,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - **인쇄 시험지**: 종이에는 **이모지·안내문·정답지 없음**(미니멀). `@page{margin:0}`로 브라우저 머리글/바닥글 제거.
 - **표기**: 교재 따라 "**cám ơn**"(O), "cảm ơn"(X).
 - **localStorage 키**(접두사 `gybm_wordnote_v1`): `_notebook _custom _mode _dir _count _selMode _wrong`. 브라우저/기기마다 따로 저장됨 → 그래서 **백업/복원** 기능이 있음.
-- 객관식 모드는 제거됨(코드 일부는 남아있으나 UI 없음). 방식 = 주관식/플래시카드/실전시험.
+- 홈은 **4영역(읽기·듣기·쓰기·말하기)** 중심: 읽기=베→한 주관식, 쓰기=한→베 주관식, 듣기=소리 듣고 뜻(글자 숨김), 말하기=따라 말하기 자가채점. 실전시험·플래시카드는 하단 보조 버튼. 객관식 모드는 제거됨(죽은 코드 일부 잔존).
 
 ## 8. GitHub / 배포
 - 원격: **`chan026-normal/word-note`** (Public — GitHub Pages 때문에).

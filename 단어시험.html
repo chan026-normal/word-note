@@ -120,6 +120,20 @@
   .face.back{transform:rotateY(180deg); background:var(--brandsoft)}
   .face.back .big{color:var(--brand)}
 
+  /* 홈 4영역 / 듣기 / 말하기 */
+  .skillgrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .skillcard{border:1.5px solid var(--line); background:var(--card); border-radius:18px; padding:15px; cursor:pointer; text-align:left; transition:.12s; display:flex; flex-direction:column; gap:5px; box-shadow:var(--shadow); color:var(--ink)}
+  .skillcard:active{transform:scale(.985)}
+  .skillcard .ic{font-size:28px; line-height:1}
+  .skillcard .nm{font-size:17px; font-weight:800}
+  .skillcard .ds{font-size:12px; color:var(--muted); line-height:1.45}
+  .skillcard .tg{margin-top:3px; font-size:11px; font-weight:700; color:var(--brand); background:var(--brandsoft); padding:3px 9px; border-radius:999px; align-self:flex-start}
+  .secrow{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px}
+  .listenbox{display:flex; flex-direction:column; align-items:center; gap:10px; padding:14px 0 2px}
+  .bigspk{width:104px; height:104px; border-radius:50%; border:none; background:var(--brandsoft); color:var(--brand); font-size:42px; cursor:pointer; transition:.12s}
+  .bigspk:active{transform:scale(.96)}
+  .listenhint{font-size:13px; color:var(--muted)}
+
   /* word list */
   .search{width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:14px; font-size:15px; background:var(--card); color:var(--ink); outline:none; margin-bottom:12px}
   .ta{width:100%; min-height:88px; padding:11px 12px; border:1.5px solid var(--line); border-radius:12px; font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; background:var(--bg); color:var(--ink); outline:none; resize:vertical; word-break:break-all}
@@ -836,6 +850,16 @@ function makeQ(word, dir, type){
 }
 function dirOf(setting){ return setting==="random" ? (Math.random()<.5?"vn2en":"en2vn") : setting; }
 const DIRLABEL = { vn2en:"🇻🇳 베트남어 → 🇰🇷 한국어", en2vn:"🇰🇷 한국어 → 🇻🇳 베트남어" };
+/* 4영역(읽기·듣기·쓰기·말하기) + 보조(실전·플래시) 정의 */
+const SKILLS = {
+  read:  {label:"읽기",   emoji:"👀", mode:"type",   dir:"vn2en",  count:true,  tag:"베 → 한",      cardDesc:"베트남어를 보고<br>뜻 맞히기",      desc:"베트남어를 보고 → 한국어 뜻을 입력해요."},
+  listen:{label:"듣기",   emoji:"👂", mode:"listen", dir:"vn2en",  count:true,  tag:"받아쓰기",     cardDesc:"소리만 듣고<br>맞히기",          desc:"🔊 소리를 듣고 → 한국어 뜻을 입력해요. (베트남어 글자는 가려져요)"},
+  write: {label:"쓰기",   emoji:"✍️", mode:"type",   dir:"en2vn",  count:true,  tag:"한 → 베",      cardDesc:"뜻을 보고<br>베트남어 입력",      desc:"한국어 뜻을 보고 → 베트남어를 직접 입력해요. (성조 없이 쳐도 정답 처리)"},
+  speak: {label:"말하기", emoji:"🗣️", mode:"speak",  dir:"vn2en",  count:true,  tag:"따라 말하기",  cardDesc:"듣고 따라 말한 뒤<br>스스로 체크",  desc:"🔊 듣고 따라 말한 뒤 → 스스로 ✅/❌ 체크해요."},
+  exam:  {label:"실전 시험", emoji:"📝", mode:"exam", dir:"random", count:false, tag:"단어40+문장10", cardDesc:"단어 40 + 문장 10",              desc:"단어 40개 + 문장 10개를 실제 시험처럼 한 번에 풀어요."},
+  flash: {label:"플래시카드", emoji:"🃏", mode:"flash", dir:"vn2en", count:true,  tag:"암기·복습",    cardDesc:"카드를 넘기며 암기",              desc:"카드를 넘기며 외워요. 탭하면 뒤집혀서 뜻이 보여요."}
+};
+const SKILL_ORDER = ["read","listen","write","speak"];
 function spkBtn(text, lang, sm){
   return `<button class="spk${sm?" sm":""}" data-action="speak" data-text="${esc(text)}" data-lang="${lang}" title="발음 듣기">🔊</button>`;
 }
@@ -848,11 +872,12 @@ const set = h => { view.innerHTML = h; window.scrollTo(0,0); };
 
 const state = {
   lessons: new Set(),
-  mode: lsGet("_mode","type")==="mc" ? "type" : lsGet("_mode","type"),   // type | flash | exam (객관식 제거)
+  mode: lsGet("_mode","type")==="mc" ? "type" : lsGet("_mode","type"),   // type | listen | flash | exam | speak
   dir:  lsGet("_dir","vn2en"),   // vn2en | en2vn | random
   count: lsGet("_count","all"),
   selMode: lsGet("_selMode","lesson"), // lesson(단원별) | range(번호 범위)
-  rStart: 0, rEnd: 0             // 범위 지정 시 전체순서(gi) 기준 시작/끝
+  rStart: 0, rEnd: 0,            // 범위 지정 시 전체순서(gi) 기준 시작/끝
+  skill: lsGet("_skill","read")  // read | listen | write | speak | exam | flash (홈에서 고른 영역)
 };
 
 /* ---------- 홈 ---------- */
@@ -910,61 +935,42 @@ function selectionBlockHTML(showCount){
 function renderHome(){
   state.screen = "home";
   const noteCount = loadNote().length;
-  const startLabel = state.mode==="flash" ? "🃏 플래시카드 시작"
-    : state.mode==="exam" ? "📝 실전 시험 시작 (단어40 + 문장10)"
-    : "✏️ 시험 시작하기";
+  const cards = SKILL_ORDER.map(k=>{
+    const s=SKILLS[k];
+    return `<button class="skillcard" data-action="goSkill" data-skill="${k}">
+        <span class="ic">${s.emoji}</span>
+        <span class="nm">${s.label}</span>
+        <span class="ds">${s.cardDesc}</span>
+        <span class="tg">${s.tag}</span>
+      </button>`;
+  }).join("");
 
   set(`
     <div class="card">
-      <h2>① 공부할 범위</h2>
-      ${selectionBlockHTML(true)}
+      <h2>오늘 무엇을 연습할까요?</h2>
+      <div class="skillgrid">${cards}</div>
     </div>
 
-    <div class="card">
-      <h2>② 방식</h2>
-      <div class="seg">
-        <button class="${state.mode==="type"?"on":""}" data-action="mode" data-v="type">주관식<span class="desc">직접 입력</span></button>
-        <button class="${state.mode==="flash"?"on":""}" data-action="mode" data-v="flash">플래시카드<span class="desc">암기·복습</span></button>
-        <button class="${state.mode==="exam"?"on":""}" data-action="mode" data-v="exam">실전시험<span class="desc">단어40+문장10</span></button>
-      </div>
-      ${state.mode==="exam"?`<div class="muted tiny" style="margin-top:10px">📝 단어 40개(직접 입력 채점) + ✍️ 문장 10개(번역·내가 맞았는지 확인) 순서로 진행돼요. 문장은 기존 단어로 만든 예문이에요.</div>`:""}
+    <button class="btn ghost" data-action="goNote">📕 오답 노트 ${noteCount>0?`(${noteCount}개)`:"(비어있음)"}</button>
+
+    <div class="secrow">
+      <button class="btn soft" data-action="goSkill" data-skill="exam">📝 실전 시험</button>
+      <button class="btn soft" data-action="goSkill" data-skill="flash">🃏 플래시카드</button>
     </div>
-
-    <div class="card">
-      <h2>③ 방향</h2>
-      <div class="seg">
-        <button class="${state.dir==="vn2en"?"on":""}" data-action="dir" data-v="vn2en">베→한<span class="desc">베트남어 보고</span></button>
-        <button class="${state.dir==="en2vn"?"on":""}" data-action="dir" data-v="en2vn">한→베<span class="desc">한국어 보고</span></button>
-        <button class="${state.dir==="random"?"on":""}" data-action="dir" data-v="random">랜덤<span class="desc">섞어서</span></button>
-      </div>
-    </div>
-
-    ${(state.mode!=="flash" && state.mode!=="exam") ? `
-    <div class="card">
-      <h2>④ 문제 수</h2>
-      <div class="seg">
-        ${["all",10,20,30].map(n=>`<button class="${String(state.count)===String(n)?"on":""}" data-action="count" data-v="${n}">${n==="all"?"전체":n+"개"}</button>`).join("")}
-      </div>
-    </div>`:""}
-
-    <button class="btn lg" data-action="start">${startLabel}</button>
-
-    <button class="btn ghost" style="margin-top:10px" data-action="goNote">📕 오답 노트 ${noteCount>0?`(${noteCount}개)`:"(비어있음)"}</button>
 
     <button class="btn accent" style="margin-top:10px" data-action="goPaper">🖨️ 시험지 만들기 <span style="font-weight:600;opacity:.85">(인쇄·여럿이 함께)</span></button>
 
-    <div class="btn2" style="margin-top:10px">
+    <div class="secrow">
       <button class="btn soft" data-action="goList">📚 단어장 보기</button>
       <button class="btn soft" data-action="goAdd">➕ 단어 추가</button>
     </div>
-    <div class="btn2" style="margin-top:8px">
+    <div class="secrow">
       <button class="btn line" data-action="goTelex">⌨️ 베트남어 타자(Telex)</button>
       <button class="btn line" data-action="goBackup">💾 백업 / 복원</button>
     </div>
   `);
-  bindSelection();
 }
-function refresh(){ if(state.screen==="paper") genPaper(false); else renderHome(); }
+function refresh(){ if(state.screen==="setup") renderSetup(); else if(state.screen==="paper") genPaper(false); else renderHome(); }
 function bindSelection(){
   const sl=document.getElementById("startLesson");
   if(!sl) return;
@@ -973,6 +979,62 @@ function bindSelection(){
   sn.onchange=()=>{ state.rStart=Number(sn.value); refresh(); };
   el.onchange=()=>{ const f=WORDS.find(w=>String(w.lesson)===el.value); state.rEnd=f.gi; refresh(); };
   en.onchange=()=>{ state.rEnd=Number(en.value); refresh(); };
+}
+
+/* ---------- 영역 선택 → 설정 화면 ---------- */
+function goSkill(skill){ state.skill=skill; lsSet("_skill",skill); renderSetup(); }
+function renderSetup(){
+  state.screen="setup";
+  if(state.lessons.size===0) lessonsList().filter(l=>l!=="custom").forEach(l=>state.lessons.add(l));
+  if(!state.rEnd){ state.rStart = 0; state.rEnd = WORDS.length-1; }
+  const s=SKILLS[state.skill];
+  const showDir = state.skill==="flash";   // 읽기/듣기/쓰기/말하기는 방향 고정, 플래시만 선택
+  const dirSeg = showDir ? `
+    <div class="card">
+      <h2>방향</h2>
+      <div class="seg">
+        <button class="${state.dir==="vn2en"?"on":""}" data-action="setupDir" data-v="vn2en">베→한<span class="desc">베트남어 보고</span></button>
+        <button class="${state.dir==="en2vn"?"on":""}" data-action="setupDir" data-v="en2vn">한→베<span class="desc">한국어 보고</span></button>
+        <button class="${state.dir==="random"?"on":""}" data-action="setupDir" data-v="random">랜덤<span class="desc">섞어서</span></button>
+      </div>
+    </div>`:"";
+  const countSeg = s.count ? `
+    <div class="card">
+      <h2>${showDir?"③":"②"} 문제 수</h2>
+      <div class="seg">
+        ${["all",10,20,30].map(n=>`<button class="${String(state.count)===String(n)?"on":""}" data-action="count" data-v="${n}">${n==="all"?"전체":n+"개"}</button>`).join("")}
+      </div>
+    </div>`:"";
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2>${s.emoji} ${s.label}</h2>
+      <div class="muted tiny" style="margin-top:-4px">${s.desc}</div>
+    </div>
+    <div class="card">
+      <h2>① 공부할 범위</h2>
+      ${selectionBlockHTML(true)}
+    </div>
+    ${dirSeg}
+    ${countSeg}
+    <button class="btn lg" data-action="startSkill">${s.emoji} ${s.label} 시작하기</button>
+  `);
+  bindSelection();
+}
+function startSkill(){
+  const s=SKILLS[state.skill];
+  state.mode=s.mode;
+  if(state.skill!=="flash") state.dir=s.dir;   // 플래시는 사용자가 고른 방향 유지
+  const pool=poolSelected();
+  if(pool.length===0){ alert("먼저 ① 에서 공부할 범위를 한 개 이상 골라주세요."); return; }
+  if(s.mode==="flash"){ startFlash(pool); return; }
+  if(s.mode==="exam"){ startExam(pool); return; }
+  if(s.mode==="speak"){ startSpeak(pool); return; }
+  let q=shuffle(pool);
+  if(state.count!=="all") q=q.slice(0, Math.min(Number(state.count), q.length));
+  Q.queue=q.map(w=>makeQ(w, state.dir));
+  Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null;
+  setupQ(); renderQuiz();
 }
 
 /* ---------- 시험 진행 ---------- */
@@ -1031,6 +1093,7 @@ function renderQuiz(){
   const q = Q.queue[Q.idx], n = Q.queue.length;
   const pct = Math.round((Q.idx/(n))*100);
   const isSent = q.type==="sentence";
+  const isListen = state.mode==="listen";
   const kind = state.mode==="mc" ? "mc" : (isSent ? "sent" : "word");
   const promptLang = q.dir==="vn2en" ? "vi-VN" : "ko-KR";
   const ansLang = q.dir==="vn2en" ? "ko-KR" : "vi-VN";
@@ -1045,7 +1108,9 @@ function renderQuiz(){
     counter = (isSent ? "✍️ 문장" : "📝 단어") + ` ${Q.idx+1} / ${n}`;
   }
 
-  const subText = isSent
+  const subText = isListen
+    ? (Q.answered ? "" : "🔊 잘 듣고, 한국어 뜻을 입력하세요")
+    : isSent
     ? (q.dir==="vn2en" ? "이 문장을 한국어로 번역하세요" : "이 문장을 베트남어로 번역하세요")
     : (q.dir==="vn2en" ? "이 단어의 한국어 뜻은?" : "이 뜻의 베트남어 단어는?");
 
@@ -1085,12 +1150,19 @@ function renderQuiz(){
     }
   }
 
+  const dirTagHTML = isListen ? `<span class="dirtag">👂 듣기 · 소리만 듣고 맞히기</span>` : `<span class="dirtag">${DIRLABEL[q.dir]}</span>`;
+  const promptBlock = (isListen && !Q.answered)
+    ? `<div class="listenbox">
+         <button class="bigspk" data-action="speak" data-text="${esc(q.prompt)}" data-lang="${promptLang}" aria-label="다시 듣기">🔊</button>
+         <div class="listenhint">소리를 듣고 아래에 뜻을 적어요 · 탭하면 다시 들려요</div>
+       </div>`
+    : `<div class="prompt${isSent?" sent":""}">${esc(q.prompt)} ${spkBtn(q.prompt, promptLang)}</div>`;
   set(`
     <div class="qtop"><span>${counter}</span><span>점수 ${Q.score}</span></div>
     <div class="bar"><i style="width:${pct}%"></i></div>
     <div class="card">
-      <span class="dirtag">${DIRLABEL[q.dir]}</span>
-      <div class="prompt${isSent?" sent":""}">${esc(q.prompt)} ${spkBtn(q.prompt, promptLang)}</div>
+      ${dirTagHTML}
+      ${promptBlock}
       <div class="promptsub">${subText}</div>
       ${body}
       ${fb}
@@ -1102,6 +1174,7 @@ function renderQuiz(){
     const inp = document.getElementById("ansInput");
     if(inp){ inp.focus(); inp.addEventListener("keydown",e=>{ if(e.key==="Enter") checkTyped(); }); }
   }
+  if(isListen && !Q.answered){ setTimeout(()=>speak(q.prompt, promptLang), 300); }
   if(Q.answered){ document.addEventListener("keydown", onAdvance); }
 }
 function onAdvance(e){ if(e.key==="Enter"){ document.removeEventListener("keydown", onAdvance); next(); } }
@@ -1384,6 +1457,54 @@ function renderFlash(){
   `);
 }
 
+/* ---------- 말하기 (듣고 따라 말하기) ---------- */
+const SP = {};
+function startSpeak(pool){
+  let list = shuffle(pool);
+  if(state.count!=="all") list = list.slice(0, Math.min(Number(state.count), list.length));
+  SP.cards = list; SP.idx=0; SP.revealed=false;
+  renderSpeak();
+}
+function renderSpeak(){
+  const w = SP.cards[SP.idx], n=SP.cards.length;
+  set(`
+    <div class="qtop"><span>🗣️ 따라 말하기 ${SP.idx+1} / ${n}</span><span>입으로 연습</span></div>
+    <div class="bar"><i style="width:${Math.round((SP.idx/n)*100)}%"></i></div>
+    <div class="card">
+      <span class="dirtag">🗣️ 듣고 따라 말하기</span>
+      <div class="prompt">${esc(w.vn)} ${spkBtn(w.vn,"vi-VN")}</div>
+      <div class="promptsub">🔊 듣고 → 큰 소리로 따라 말해보세요</div>
+      <button class="btn ghost" data-action="speakCard">🔊 다시 듣기</button>
+      ${SP.revealed
+        ? `<div class="feedback ok" style="margin-top:12px">🇰🇷 뜻<span class="ans">${esc(w.en)}</span></div>`
+        : `<button class="btn soft" style="margin-top:10px" data-action="revealSpeak">🇰🇷 뜻 보기</button>`}
+      <div class="promptsub" style="margin-top:16px">잘 따라 말했나요?</div>
+      <div class="btn2">
+        <button class="btn soft" data-action="speakAgain">🔁 더 연습 (노트에)</button>
+        <button class="btn" data-action="speakNext">${SP.idx+1>=n?"끝내기 ✅":"잘했어요 →"}</button>
+      </div>
+    </div>
+    <button class="btn line" data-action="goHome">🏠 처음으로</button>
+  `);
+  setTimeout(()=>speak(w.vn,"vi-VN"), 300);
+}
+function speakAdvance(toNote){
+  const w = SP.cards[SP.idx];
+  if(toNote) noteAdd({vn:w.vn, en:w.en, lesson:w.lesson});
+  if(SP.idx+1>=SP.cards.length){ renderSpeakDone(); return; }
+  SP.idx++; SP.revealed=false; renderSpeak();
+}
+function renderSpeakDone(){
+  set(`
+    <div class="card center" style="padding:24px">
+      <div class="emoji">🗣️</div>
+      <b>말하기 연습 끝!</b>
+      <div class="muted" style="margin-top:6px">입으로 소리 내어 연습하면 훨씬 오래 기억돼요. 수고했어요!</div>
+    </div>
+    <button class="btn" data-action="goHome">🏠 처음으로</button>
+  `);
+}
+
 /* ---------- 단어장 보기 ---------- */
 const L = { lesson:"all", q:"", hide:false };
 function goList(){ renderList(); }
@@ -1584,7 +1705,7 @@ const actions = {
   printPaper:()=>window.print(),
   mode:(el)=>{ state.mode=el.dataset.v; lsSet("_mode",state.mode); renderHome(); },
   dir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderHome(); },
-  count:(el)=>{ state.count=el.dataset.v==="all"?"all":Number(el.dataset.v); lsSet("_count",state.count); renderHome(); },
+  count:(el)=>{ state.count=el.dataset.v==="all"?"all":Number(el.dataset.v); lsSet("_count",state.count); refresh(); },
   listFilter:(el)=>{ L.lesson=el.dataset.l==="all"?"all":(el.dataset.l==="custom"?"custom":Number(el.dataset.l)); renderList(); },
   toggleHide:()=>{ L.hide=!L.hide; renderList(); },
   addWord, delWord:(el)=>delWord(el.dataset.i),
@@ -1592,6 +1713,12 @@ const actions = {
   doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },
   removeNote:(el)=>{ const a=loadNote(); a.splice(Number(el.dataset.i),1); saveNote(a); renderNote(); },
   starWord:(el)=>{ const w=WORDS.find(x=>x.id===Number(el.dataset.id)); if(!w) return; if(noteHas(w)){ const a=loadNote().filter(e=>noteKey(e)!==noteKey(w)); saveNote(a); } else { noteAdd(w); } renderList(); },
+  goSkill:(el)=>goSkill(el.dataset.skill), startSkill,
+  setupDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderSetup(); },
+  speakCard:()=>speak(SP.cards[SP.idx].vn,"vi-VN"),
+  revealSpeak:()=>{ SP.revealed=true; renderSpeak(); },
+  speakAgain:()=>speakAdvance(true),
+  speakNext:()=>speakAdvance(false),
   speak:(el)=>speak(el.dataset.text, el.dataset.lang)
 };
 view.addEventListener("click", e=>{
