@@ -770,6 +770,58 @@ Chị Cúc xin lỗi anh Năm.|Cúc이 Năm에게 사과해요.
 Anh David có hai người bạn.|David은 친구가 두 명 있어요.`;
 const SENTS = SENTENCES.trim().split("\n").map(l=>{ const i=l.indexOf("|"); return {vn:l.slice(0,i).trim(), en:l.slice(i+1).trim()}; }).filter(s=>s.vn&&s.en);
 
+/* 시험 오답 → 오답노트에 자동 등록(1회). 단어=word, 작문=sentence(자가채점). lesson은 시험 날짜 표시용. */
+const SEED_NOTE_V = "exam-2026q2";
+const SEED_NOTE = [
+  {vn:"mười lăm", en:"숫자 15, 열다섯", lesson:"6/21 시험"},
+  {vn:"Nga", en:"러시아", lesson:"6/21 시험"},
+  {vn:"Ý", en:"이탈리아", lesson:"6/21 시험"},
+  {vn:"đẹp trai", en:"잘생기다 (남자)", lesson:"6/21 시험"},
+  {vn:"đẹp", en:"예쁘다, 아름답다", lesson:"6/21 시험"},
+  {vn:"nó", en:"그것, 걔 (사물·동물·손아래 3인칭)", lesson:"6/21 시험"},
+  {vn:"tuổi", en:"나이, 살", lesson:"6/21 시험"},
+  {vn:"dạo này", en:"요즘", lesson:"6/21 시험"},
+  {vn:"đây", en:"이것, 여기 (가까이)", lesson:"6/21 시험"},
+  {vn:"kia", en:"저것, 저기 (안 보이는 것)", lesson:"6/21 시험"},
+  {vn:"đó", en:"그것, 저것 (눈에 보이는 것)", lesson:"6/21 시험"},
+  {vn:"chắc", en:"확실히, 틀림없이", lesson:"6/21 시험"},
+  {vn:"nhớ nhà", en:"집을 그리워하다, 향수", lesson:"6/21 시험"},
+  {vn:"nghe", en:"듣다", lesson:"6/21 시험"},
+  {vn:"xem", en:"보다", lesson:"6/21 시험"},
+  {vn:"vẫn", en:"여전히, 아직", lesson:"6/21 시험"},
+  {vn:"nấu ăn", en:"요리하다", lesson:"6/21 시험"},
+  {vn:"biết", en:"알다", lesson:"6/21 시험"},
+  {vn:"Mình tự giới thiệu.", en:"제 소개를 하겠습니다.", lesson:"6/21 시험", type:"sentence"},
+  {vn:"Đó là ai?", en:"(전화에서) 그 사람은 누구예요?", lesson:"6/21 시험", type:"sentence"},
+  {vn:"Tên của anh ấy là gì?", en:"그는 이름이 무엇입니까?", lesson:"6/21 시험", type:"sentence"},
+  {vn:"Cô ơi, em có câu hỏi ạ.", en:"선생님, 질문이 있습니다. (여선생님께)", lesson:"6/21 시험", type:"sentence"},
+  {vn:"Tôi không đi đâu cả.", en:"나는 아무 데도 가지 않습니다.", lesson:"6/21 시험", type:"sentence"},
+  {vn:"Tiếng Việt có vui không?", en:"베트남어는 재미있습니까?", lesson:"6/21 시험", type:"sentence"},
+  {vn:"Mình cũng muốn về nhà.", en:"저도 집에 가고 싶어요.", lesson:"6/21 시험", type:"sentence"},
+  {vn:"Các em có câu hỏi không?", en:"질문 있나요? (선생님→학생들)", lesson:"6/21 시험", type:"sentence"},
+  {vn:"quốc tịch", en:"국적", lesson:"6/23 시험"},
+  {vn:"giáo viên", en:"교사, 선생님", lesson:"6/23 시험"},
+  {vn:"viết", en:"쓰다", lesson:"6/23 시험"},
+  {vn:"lại", en:"다시, 또", lesson:"6/23 시험"},
+  {vn:"nào", en:"어느", lesson:"6/23 시험"},
+  {vn:"xinh", en:"예쁘다, 귀엽다", lesson:"6/23 시험"},
+  {vn:"quen", en:"익숙하다, 친하다", lesson:"6/23 시험"},
+  {vn:"nghỉ", en:"쉬다, 휴식하다", lesson:"6/23 시험"},
+  {vn:"hẹn", en:"약속하다", lesson:"6/23 시험"},
+  {vn:"Ba Lan", en:"폴란드", lesson:"6/23 시험"},
+  {vn:"khát", en:"목마르다", lesson:"6/23 시험"},
+  {vn:"hai chấm", en:"콜론 (:)", lesson:"6/23 시험"},
+  {vn:"đấy", en:"그것, 저기 (that, there)", lesson:"6/23 시험"},
+  {vn:"Cô Hằng có ở đây không?", en:"Hằng 선생님은 여기 계십니까?", lesson:"6/23 시험", type:"sentence"},
+  {vn:"Anh Khôi bao giờ về?", en:"Khôi는 언제 돌아오나요?", lesson:"6/23 시험", type:"sentence"},
+  {vn:"Trang ăn ở đâu?", en:"Trang은 어디서 먹나요?", lesson:"6/23 시험", type:"sentence"},
+  {vn:"Mình tên là Anh Long. Rất vui được gặp bạn.", en:"제 이름은 Anh Long이에요. 만나서 반가워요.", lesson:"6/23 시험", type:"sentence"},
+  {vn:"Ai giới thiệu Quốc Vinh?", en:"누가 Quốc Vinh을 소개하나요?", lesson:"6/23 시험", type:"sentence"},
+  {vn:"Chị là người nước nào?", en:"(당신은) 어느 나라 사람이에요?", lesson:"6/23 시험", type:"sentence"},
+  {vn:"Em rất thích cà phê.", en:"저는 커피를 매우 좋아합니다.", lesson:"6/23 시험", type:"sentence"},
+  {vn:"Hà Mi không phải là người Nhật.", en:"Hà Mi는 일본 사람이 아닙니다.", lesson:"6/23 시험", type:"sentence"}
+];
+
 /* =========================================================
    2) 저장소 (브라우저에 내 단어 / 지난 오답 저장)
    ========================================================= */
@@ -803,7 +855,7 @@ function lessonsList(){
   if(WORDS.some(w=>w.lesson==="custom")) nums.push("custom");
   return nums;
 }
-const lessonLabel = l => l==="custom" ? "내 단어" : "Lesson "+l;
+const lessonLabel = l => l==="custom" ? "내 단어" : (typeof l==="number" ? "Lesson "+l : l);
 
 /* =========================================================
    4) 도우미 함수
@@ -1269,6 +1321,16 @@ function noteHas(w){ const k=noteKey(w); return loadNote().some(e=>noteKey(e)===
 function noteAdd(w){ const a=loadNote(),k=noteKey(w); if(!a.some(e=>noteKey(e)===k)){ a.push({vn:w.vn,en:w.en,lesson:w.lesson,type:w.type||"word",streak:0}); saveNote(a); } }
 function noteWrong(w){ const a=loadNote(),k=noteKey(w),e=a.find(x=>noteKey(x)===k); if(e){ e.streak=0; } else { a.push({vn:w.vn,en:w.en,lesson:w.lesson,type:w.type||"word",streak:0}); } saveNote(a); }
 function noteRight(w){ const a=loadNote(),k=noteKey(w),i=a.findIndex(x=>noteKey(x)===k); if(i<0) return; a[i].streak=(a[i].streak||0)+1; if(a[i].streak>=GRAD) a.splice(i,1); saveNote(a); }
+function seedNote(){
+  if(lsGet("_seedv","")===SEED_NOTE_V) return;   // 이미 등록됨(버전별 1회)
+  const a=loadNote(), seen=new Set(a.map(noteKey));
+  SEED_NOTE.forEach(s=>{
+    if(!s.vn||!s.en) return;
+    const k=noteKey(s); if(seen.has(k)) return;   // 기존 오답노트와 중복이면 건너뜀
+    a.push({vn:s.vn, en:s.en, lesson:s.lesson, type:s.type||"word", streak:0}); seen.add(k);
+  });
+  saveNote(a); lsSet("_seedv", SEED_NOTE_V);
+}
 
 function goNote(){ renderNote(); }
 function startNote(){
@@ -1732,6 +1794,7 @@ view.addEventListener("click", e=>{
    7) 시작!
    ========================================================= */
 buildWords();
+seedNote();
 goHome();
 </script>
 </body>
