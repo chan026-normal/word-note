@@ -38,6 +38,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 채점(관대): `norm()`, `acceptable()`, `isCorrectTyped()` — 성조·대소문자·`to`/관사·괄호·슬래시·콤마 복수정답 모두 관대 처리. **문장은 자가채점**(reveal→맞음/틀림).
 - 시험지(인쇄): `genPaper()`, `renderPaper()`, state `P`(format: `wordsent`=단어40+문장10 / `words`=단어만). 중복 단어 자동 제거. `window.print()`. @media print로 컨트롤 숨김.
 - 오답 노트: `loadNote/saveNote/noteWrong/noteRight/noteAdd`(키=`lc(vn)||lc(en)`), `renderNote()`. 오답 자동수집, 별표(`starWord`) 직접추가, 연속 `GRAD(=2)`번 정답 시 졸업(제거).
+  - **시험 오답 미리 등록**: `SEED_NOTE`(배열, `{vn,en,lesson,type?}`) + `seedNote()` — 앱 첫 실행 시 1회 오답노트에 머지(`_seedv`=`SEED_NOTE_V` 플래그로 중복 방지, 기존 노트와 합치고 중복 제외). **새 시험 오답을 받으면 `SEED_NOTE`에 추가하고 `SEED_NOTE_V` 값을 바꾸면** 다음 로드 때 재등록됨. 단어는 `type` 생략(word), 작문은 `type:"sentence"`(자가채점). `lesson`엔 시험 라벨(문자열 "6/21 시험" 등 — `lessonLabel`이 문자열은 그대로 표시).
 - 백업/복원: `exportData()`, `importBackup()`(합치기/중복제외), `renderBackup()`.
 - Telex 도움말: `renderTelex()`.
 - 기타: `renderHome()`, `renderList()`(단어장), `renderAdd()`(단어추가), `renderFlash()`(플래시카드), `selectionBlockHTML()`(단원/범위 공용), `speak()`(🔊 Web Speech: 베=vi-VN, 한=ko-KR).
