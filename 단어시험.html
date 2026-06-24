@@ -711,7 +711,37 @@ vắng|비다, 한산하다
 về|~에 대하여
 vừa rồi|방금, 최근
 xe cộ|차량, 탈것
-yên tĩnh|조용하다`
+yên tĩnh|조용하다`,
+13:`bẩn|더럽다
+buồn|슬프다
+bơi|수영하다
+bể bơi|수영장
+giống|같다, 닮다
+ngày mai|내일
+ngủ|자다
+nhà thờ|교회
+suy nghĩ|생각 (명사)
+Lào|라오스
+Ma-lai-xi-a|말레이시아
+Hy Lạp|그리스
+Cam-pu-chia|캄보디아
+bóng|공
+bóng đá|축구
+râu|수염
+đều|모두, 다
+cả nhà|온 가족
+không ai|아무도
+từ mới|새 단어
+chắc|확실히, 틀림없이
+chắc là|아마 ~일 것이다
+rượu|술
+biển|바다
+linh|숫자 중간 0 채우기 (북부)
+lẻ|숫자 중간 0 채우기 (남부)
+nghìn|천, 1000 (북부·표준)
+ngàn|천, 1000 (남부)
+chục|열 묶음, 10개
+vạn|만, 10000`
 };
 
 /* 예문(문장) — 교재 Lesson 1~2 기반 베트남어 문장 + 한국어 뜻 (인사·소개·이름·국적·3인칭). 진도 나가면 한 줄에 "베트남어|한국어" 형식으로 추가하면 됩니다. */
@@ -855,7 +885,8 @@ function lessonsList(){
   if(WORDS.some(w=>w.lesson==="custom")) nums.push("custom");
   return nums;
 }
-const lessonLabel = l => l==="custom" ? "내 단어" : (typeof l==="number" ? "Lesson "+l : l);
+const LESSON_NAMES = { 13: "오늘 배운 ⭐" };
+const lessonLabel = l => l==="custom" ? "내 단어" : (typeof l==="number" ? (LESSON_NAMES[l] || ("Lesson "+l)) : l);
 
 /* =========================================================
    4) 도우미 함수
@@ -1648,7 +1679,11 @@ function delWord(i){
 }
 
 /* ---------- 시험지 만들기 (인쇄·여럿이 함께) ---------- */
-const P = { dir:"random", count:"all", format:"wordsent", version:0, wordQs:[], sentQs:[] };
+/* 우선출제: '오늘 배운 단어' = 13단원(오늘 배운 ⭐) + 아래 기존 단어들 */
+const REVIEW_EXTRA = ["bận","đói","buồn ngủ","khác","nghĩ","về","tuy nhiên","nhưng","nhau","biết","ít","nhiều","sữa","chợ","chơi","cuối tuần","đến","trường","đại học","khoa học","xã hội","nhân văn","thành phố","Tây Ban Nha","đá","hàng ngày"];
+const REVIEW_EXTRA_N = new Set(REVIEW_EXTRA.map(norm));
+const isReviewWord = w => w.lesson===13 || REVIEW_EXTRA_N.has(norm(w.vn));
+const P = { dir:"random", count:"all", format:"wordsent", version:0, wordQs:[], sentQs:[], priority:false };
 function rangeTitle(){
   if(state.selMode==="range"){ const [a,b]=rangeBounds(); return `${lessonLabel(WORDS[a].lesson)} ${WORDS[a].num}번 ~ ${lessonLabel(WORDS[b].lesson)} ${WORDS[b].num}번`; }
   const ls=[...state.lessons].filter(l=>l!=="custom").sort((a,b)=>a-b);
@@ -1658,10 +1693,18 @@ function genPaper(bump){
   const rawPool = poolSelected();
   if(!rawPool.length){ alert("먼저 ① 에서 공부할 범위를 선택해주세요."); goHome(); return; }
   const lc = s => s.trim().toLowerCase();
+  // 0) 우선출제 ON: '오늘 배운 단어'를 선택 범위에 없어도 함께 포함
+  let basePool = rawPool.slice();
+  if(P.priority){
+    const have = new Set(basePool.map(w=>lc(w.vn)+"||"+lc(w.en)));
+    WORDS.forEach(w=>{ const k=lc(w.vn)+"||"+lc(w.en); if(isReviewWord(w) && !have.has(k)){ basePool.push(w); have.add(k); } });
+  }
   // 1) 같은 단어쌍 중복 제거 (책에서 여러 단원에 반복되는 동일 단어)
   const seenPair = new Set();
-  let pool = rawPool.filter(w=>{ const k=lc(w.vn)+"||"+lc(w.en); if(seenPair.has(k)) return false; seenPair.add(k); return true; });
+  let pool = basePool.filter(w=>{ const k=lc(w.vn)+"||"+lc(w.en); if(seenPair.has(k)) return false; seenPair.add(k); return true; });
   pool = shuffle(pool);
+  // 우선출제 ON: '오늘 배운 단어'를 시험지 앞쪽으로
+  if(P.priority){ pool = [...pool.filter(isReviewWord), ...pool.filter(w=>!isReviewWord(w))]; }
   if(bump || !P.version) P.version = (P.version||0)+1;
   // 2) 방향 배정 + 화면에 보이는 문제(단어) 중복 제거
   const seenPrompt = new Set();
@@ -1720,6 +1763,7 @@ function renderPaper(){
           <button class="${isWS?"on":""}" data-action="paperFormat" data-v="wordsent">단어40 + 문장10</button>
           <button class="${!isWS?"on":""}" data-action="paperFormat" data-v="words">단어만</button>
         </div>
+        <button class="chip ${P.priority?"on":""}" style="margin-top:10px" data-action="paperPriority">📌 오늘 배운 ⭐ 단어 먼저 출제${P.priority?" ✓":""}</button>
         <label class="fld">시험 범위</label>
         ${selectionBlockHTML(false)}
         <label class="fld">출제 방향</label>
@@ -1772,6 +1816,7 @@ const actions = {
   paperDir:(el)=>{ P.dir=el.dataset.v; genPaper(false); },
   paperCount:(el)=>{ P.count=el.dataset.v==="all"?"all":Number(el.dataset.v); genPaper(false); },
   paperFormat:(el)=>{ P.format=el.dataset.v; genPaper(false); },
+  paperPriority:()=>{ P.priority=!P.priority; genPaper(false); },
   regenPaper:()=>genPaper(true),
   printPaper:()=>window.print(),
   mode:(el)=>{ state.mode=el.dataset.v; lsSet("_mode",state.mode); renderHome(); },
