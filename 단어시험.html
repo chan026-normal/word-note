@@ -800,6 +800,61 @@ Chị Cúc xin lỗi anh Năm.|Cúc이 Năm에게 사과해요.
 Anh David có hai người bạn.|David은 친구가 두 명 있어요.`;
 const SENTS = SENTENCES.trim().split("\n").map(l=>{ const i=l.indexOf("|"); return {vn:l.slice(0,i).trim(), en:l.slice(i+1).trim()}; }).filter(s=>s.vn&&s.en);
 
+/* 단원별 문장 (✍️ 문장 시험용). 진도 나가면 SENT_RAW에 단원 번호로 추가. 한 줄 "베트남어|한국어". */
+const SENT_RAW = {
+2:`Chào các anh.|여러분 안녕하세요.
+Chào Vân. Khỏe không?|Vân 안녕하세요. 잘 지내요?
+Dạ, khỏe. Cảm ơn anh. Anh có khỏe không?|네, 잘 지내요. 고마워요. 당신은 잘 지내요?
+Cảm ơn. Tôi khỏe. À, đây là Brian, bạn tôi.|고마워요. 저는 잘 지내요. 아, 이쪽은 제 친구 Brian이에요.
+Chào anh Brian. Xin lỗi, anh là người nước nào?|Brian 안녕하세요. 실례지만, 당신은 어느 나라 사람이에요?
+Tôi là người Mỹ.|저는 미국 사람이에요.
+Tôi tên là Vân. Rất vui được gặp anh.|제 이름은 Vân이에요. 만나서 반가워요.
+Rất vui được gặp chị.|만나서 반가워요.
+Chị Vân ơi! Kia là ai?|Vân 언니! 저 사람은 누구예요?
+À, đó là Kate.|아, 저 사람은 Kate예요.
+Chị Kate là bạn anh David, phải không?|Kate는 David의 친구죠?
+Vâng, chị ấy là bạn anh David.|네, 그녀는 David의 친구예요.
+Anh David là người Anh. Chị Kate cũng là người Anh phải không, chị?|David은 영국 사람이에요. Kate도 영국 사람이죠, 언니?
+Không phải. Chị ấy là người Úc.|아니에요. 그녀는 호주 사람이에요.
+Kate, chị có biết anh Brian không?|Kate, Brian을 아세요?
+Brian, người Mỹ phải không?|Brian, 미국 사람이죠?
+Phải. Anh ấy là người Mỹ.|맞아요. 그는 미국 사람이에요.
+Hôm qua tôi gặp Brian và David.|어제 저는 Brian과 David을 만났어요.
+Một người tên là Eun Ji, người Trung Quốc.|한 명은 Eun Ji라는 중국 사람이에요.
+Còn một người tên là Hiroki, người Nhật.|그리고 또 한 명은 Hiroki라는 일본 사람이에요.
+Eun Ji không phải là người Trung Quốc. Chị ấy là người Hàn Quốc.|Eun Ji는 중국 사람이 아니에요. 그녀는 한국 사람이에요.
+Anh ấy là người Mỹ.|그는 미국 사람이에요.
+Cô ấy là người Úc.|그녀는 호주 사람이에요.
+Đây là chị Cúc và chị Lan. Các chị ấy là người Việt.|이쪽은 Cúc과 Lan이에요. 그녀들은 베트남 사람이에요.
+Anh Brian là người Mỹ, còn anh David là người Anh.|Brian은 미국 사람이고, David은 영국 사람이에요.
+Chị là người nước nào?|당신은 어느 나라 사람이에요?
+Tôi là người Việt.|저는 베트남 사람이에요.
+Đây là anh Thomas. Anh ấy là người Đức.|이쪽은 Thomas예요. 그는 독일 사람이에요.
+Kia là bà Linda. Bà ấy là người Canada.|저쪽은 Linda 할머니예요. 그녀는 캐나다 사람이에요.
+Họ là Henry, Helene và Martin. Họ là người Pháp.|그들은 Henry, Helene, Martin이에요. 그들은 프랑스 사람이에요.
+Tôi xin tự giới thiệu, tôi tên là Kate. Tôi là người Anh.|제 소개를 하겠습니다, 제 이름은 Kate예요. 저는 영국 사람이에요.
+Đây là anh Tae Hyun. Anh ấy là người Hàn Quốc.|이쪽은 태현이에요. 그는 한국 사람이에요.
+Đó là chị Monica. Chị ấy là người Chile.|그쪽은 Monica예요. 그녀는 칠레 사람이에요.
+Kia là ông Kevin. Ông ấy là người Mỹ.|저쪽은 Kevin 할아버지예요. 그는 미국 사람이에요.
+Xin lỗi, bạn tên là gì?|실례지만, 이름이 뭐예요?
+Tôi tên là Jae Won.|제 이름은 재원이에요.
+Rất vui được gặp bạn.|만나서 반가워요.
+Anh David giới thiệu anh Brian với chị Vân. Chị ấy rất vui.|David이 Brian을 Vân에게 소개해요. 그녀는 매우 기뻐요.
+Hôm nay tôi gặp ông Nick và bà Amy. Họ là người Mỹ.|오늘 나는 Nick 씨와 Amy 씨를 만나요. 그들은 미국 사람이에요.
+Hôm qua ông Sam đi với một người bạn. Bạn ông ấy là người Anh, phải không?|어제 Sam 씨가 친구 한 명과 갔어요. 그의 친구는 영국 사람이죠?
+Tôi không biết em Andy. Em ấy là người nước nào?|나는 Andy를 몰라요. 그 아이는 어느 나라 사람이에요?
+Bà Bảy không mệt. Bà ấy khỏe.|Bảy 씨는 피곤하지 않아요. 그녀는 건강해요.
+Reiko là người Nhật. Bạn của chị ấy cũng là người Nhật.|Reiko는 일본 사람이에요. 그녀의 친구도 일본 사람이에요.
+Họ là người nước ngoài.|그들은 외국인이에요.
+Một người bạn của Tanaka tên là Jack, người Úc.|Tanaka의 친구 한 명은 Jack이라는 호주 사람이에요.
+Reiko không biết Henry là người nước nào. Có lẽ anh ấy là người Pháp.|Reiko는 Henry가 어느 나라 사람인지 몰라요. 아마 그는 프랑스 사람일 거예요.`
+};
+const SENT_BY_LESSON = {};
+Object.keys(SENT_RAW).forEach(L=>{
+  SENT_BY_LESSON[L] = SENT_RAW[L].trim().split("\n").map(line=>{ const i=line.indexOf("|"); return {vn:line.slice(0,i).trim(), en:line.slice(i+1).trim()}; }).filter(s=>s.vn&&s.en);
+});
+const sentLessons = () => Object.keys(SENT_BY_LESSON).map(Number).sort((a,b)=>a-b);
+
 /* 시험 오답 → 오답노트에 자동 등록(1회). 단어=word, 작문=sentence(자가채점). lesson은 시험 날짜 표시용. */
 const SEED_NOTE_V = "exam-2026q2-r3";
 const SEED_NOTE = [
@@ -1064,6 +1119,7 @@ function renderHome(){
       <button class="btn soft" data-action="goSkill" data-skill="exam">📝 실전 시험</button>
       <button class="btn soft" data-action="goSkill" data-skill="flash">🃏 플래시카드</button>
     </div>
+    <button class="btn soft" style="margin-top:10px" data-action="goSent">✍️ 문장 시험 <span style="font-weight:600;opacity:.85">(단원별 회화·예문)</span></button>
 
     <button class="btn accent" style="margin-top:10px" data-action="goPaper">🖨️ 시험지 만들기 <span style="font-weight:600;opacity:.85">(인쇄·여럿이 함께)</span></button>
 
@@ -1630,6 +1686,44 @@ function renderSpeakDone(){
   `);
 }
 
+/* ---------- 문장 시험 (단원별) ---------- */
+function goSent(){ if(!state.sentLesson) state.sentLesson = sentLessons()[0]; renderSentSetup(); }
+function renderSentSetup(){
+  state.screen="sentsetup";
+  const lessons = sentLessons();
+  const cur = state.sentLesson || lessons[0];
+  const chips = lessons.map(l=>`<button class="chip ${String(cur)===String(l)?"on":""}" data-action="sentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("");
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2>✍️ 문장 시험</h2>
+      <div class="muted tiny" style="margin-top:-4px">단원을 고르면 그 단원 문장만 시험 봐요. 번역한 뒤 모범답안과 비교해 <b>스스로 채점</b>해요.</div>
+    </div>
+    <div class="card">
+      <h2>① 단원</h2>
+      <div class="row">${chips}</div>
+    </div>
+    <div class="card">
+      <h2>② 방향</h2>
+      <div class="seg">
+        <button class="${state.dir==="vn2en"?"on":""}" data-action="sentDir" data-v="vn2en">베→한<span class="desc">베트남어 보고</span></button>
+        <button class="${state.dir==="en2vn"?"on":""}" data-action="sentDir" data-v="en2vn">한→베<span class="desc">한국어 보고</span></button>
+        <button class="${state.dir==="random"?"on":""}" data-action="sentDir" data-v="random">랜덤<span class="desc">섞어서</span></button>
+      </div>
+    </div>
+    <button class="btn lg" data-action="startSent">✍️ Lesson ${cur} 문장 시험 시작 (${(SENT_BY_LESSON[cur]||[]).length}문장)</button>
+  `);
+}
+function startSent(){
+  const l = state.sentLesson || sentLessons()[0];
+  const pool = SENT_BY_LESSON[l]||[];
+  if(!pool.length){ alert("이 단원에 문장이 없어요."); return; }
+  state.mode="type";
+  Q.queue = shuffle(pool).map(s=>makeQ({vn:s.vn, en:s.en, lesson:"L"+l+" 문장"}, dirOf(state.dir), "sentence"));
+  Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null;
+  setupQ(); renderQuiz();
+}
+
 /* ---------- 단어장 보기 ---------- */
 const L = { lesson:"all", q:"", hide:false };
 function goList(){ renderList(); }
@@ -1848,7 +1942,9 @@ const actions = {
   listFilter:(el)=>{ L.lesson=el.dataset.l==="all"?"all":(el.dataset.l==="custom"?"custom":Number(el.dataset.l)); renderList(); },
   toggleHide:()=>{ L.hide=!L.hide; renderList(); },
   addWord, delWord:(el)=>delWord(el.dataset.i),
-  goNote, startNote, goBackup, goTelex, copyExport, downloadExport,
+  goNote, startNote, goSent, startSent, goBackup, goTelex, copyExport, downloadExport,
+  sentLesson:(el)=>{ state.sentLesson=Number(el.dataset.l); renderSentSetup(); },
+  sentDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderSentSetup(); },
   doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },
   removeNote:(el)=>{ const a=loadNote(); a.splice(Number(el.dataset.i),1); saveNote(a); renderNote(); },
   noteDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderNote(); },
