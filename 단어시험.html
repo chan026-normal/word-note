@@ -876,6 +876,7 @@ function acceptable(answer){
     add(v); add(stripLead(v));
     const noParen = v.replace(/\([^)]*\)/g," ").trim();   // 괄호 내용 제거 버전
     add(noParen); add(stripLead(noParen));
+    (v.match(/\d+/g)||[]).forEach(n=>add(n));             // 답에 든 숫자만 입력해도 정답 (예: "숫자 15"→"15")
   });
   return set;
 }
@@ -1339,6 +1340,7 @@ function startNote(){
   if(!note.length){ alert("오답 노트가 비어 있어요. 시험에서 틀리거나, 단어장에서 별표(☆)로 추가하면 모여요."); return; }
   const items=note.map(e=>makeQ({vn:e.vn,en:e.en,lesson:e.lesson}, dirOf(state.dir), e.type));
   if(state.mode==="flash"){ startFlash(items.map(i=>i.word)); return; }
+  if(state.mode==="listen"||state.mode==="speak") state.mode="type";   // 오답 노트 시험은 주관식(듣기/말하기 모드로 깨지지 않게)
   startQueue(items);
 }
 function renderNote(){
@@ -1357,7 +1359,13 @@ function renderNote(){
       <h2>📕 오답 노트 · ${note.length}개</h2>
       <div class="muted tiny" style="margin-bottom:12px">시험에서 틀린 단어가 자동으로 모여요. 단어장에서 별표(☆)로 직접 넣을 수도 있어요. <b>연속 ${GRAD}번 맞히면 졸업</b>(자동으로 빠짐)돼요.</div>
       ${note.length
-        ? `<button class="btn" data-action="startNote">🎯 오답 노트로 시험 보기</button>
+        ? `<div class="muted tiny" style="margin-bottom:6px">시험 방향</div>
+           <div class="seg" style="margin-bottom:10px">
+             <button class="${state.dir==="vn2en"?"on":""}" data-action="noteDir" data-v="vn2en">베→한<span class="desc">베트남어 보고</span></button>
+             <button class="${state.dir==="en2vn"?"on":""}" data-action="noteDir" data-v="en2vn">한→베<span class="desc">한국어 보고</span></button>
+             <button class="${state.dir==="random"?"on":""}" data-action="noteDir" data-v="random">랜덤<span class="desc">섞어서</span></button>
+           </div>
+           <button class="btn" data-action="startNote">🎯 오답 노트로 시험 보기</button>
            <div class="wlist" style="margin-top:14px">${rows}</div>`
         : `<div class="center muted" style="padding:24px"><div class="emoji">📭</div>아직 비어 있어요.<br>시험을 보거나 단어장에서 ☆를 눌러 추가하세요.</div>`}
     </div>
@@ -1775,6 +1783,7 @@ const actions = {
   goNote, startNote, goBackup, goTelex, copyExport, downloadExport,
   doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },
   removeNote:(el)=>{ const a=loadNote(); a.splice(Number(el.dataset.i),1); saveNote(a); renderNote(); },
+  noteDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderNote(); },
   starWord:(el)=>{ const w=WORDS.find(x=>x.id===Number(el.dataset.id)); if(!w) return; if(noteHas(w)){ const a=loadNote().filter(e=>noteKey(e)!==noteKey(w)); saveNote(a); } else { noteAdd(w); } renderList(); },
   goSkill:(el)=>goSkill(el.dataset.skill), startSkill,
   setupDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderSetup(); },
