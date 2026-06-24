@@ -33,6 +33,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 문제 생성: `makeQ(word,dir,type)`, 방향 `dir`은 `"vn2en"`(베→한) / `"en2vn"`(한→베) / 랜덤.
 - 홈/영역: `renderHome()`=**읽기·듣기·쓰기·말하기 4영역 카드**(`SKILLS`,`SKILL_ORDER`)+보조버튼(실전·플래시·단어장…). 카드 클릭→`goSkill(skill)`→`renderSetup()`(범위·문제수 선택)→`startSkill()`. `state.skill`(LS `_skill`)에 마지막 영역 저장. 방향은 영역이 고정(플래시만 사용자 선택).
 - 시험 진행: `startSkill()`(영역 시작·표준 경로) / `start()`(구버전, 현재 홈에선 미사용), `startExam()`(실전 단어40+문장10), `startNote()`(오답노트), `setupQ()`, `renderQuiz()`, `next()`.
+- ✍️ 문장 시험(단원별, 2026-06-24): `SENT_RAW`={단원번호:`베트남어 문장\|한국어`}(현재 2단원 46개) + `SENT_BY_LESSON`/`sentLessons()`. 홈 "✍️ 문장 시험"→`goSent`→`renderSentSetup`(단원·방향 선택)→`startSent`(`sentence` 타입 자가채점). **기존 `SENTENCES`/`SENTS`(실전시험·시험지용, 단원 구분 없는 53개)와는 별개**. 단원 추가는 `SENT_RAW`에 번호 키로 문장 넣으면 됨(교재 사진→문장 추출, 한국어 뜻은 직접 번역).
 - 듣기(`mode:"listen"`): `renderQuiz()`의 `isListen` 분기 — 베트남어 글자 숨기고 🔊 자동재생(`.bigspk`/`.listenbox`), 정답 맞히면 글자 공개. 입력·채점은 주관식과 동일(vn2en 고정).
 - 말하기(`mode:"speak"`): `startSpeak/renderSpeak/speakAdvance/renderSpeakDone`(상태 `SP`). 🔊 듣고 따라 말한 뒤 자가채점(✅ 잘했어요 / 🔁 더 연습=오답노트 추가). 점수 없음.
 - 채점(관대): `norm()`, `acceptable()`, `isCorrectTyped()` — 성조·대소문자·`to`/관사·괄호·슬래시·콤마 복수정답 모두 관대 처리. **답에 든 숫자만 입력해도 정답**(예: "숫자 15, 열다섯"→"15"). **문장은 자가채점**(reveal→맞음/틀림).
