@@ -801,7 +801,7 @@ Anh David có hai người bạn.|David은 친구가 두 명 있어요.`;
 const SENTS = SENTENCES.trim().split("\n").map(l=>{ const i=l.indexOf("|"); return {vn:l.slice(0,i).trim(), en:l.slice(i+1).trim()}; }).filter(s=>s.vn&&s.en);
 
 /* 시험 오답 → 오답노트에 자동 등록(1회). 단어=word, 작문=sentence(자가채점). lesson은 시험 날짜 표시용. */
-const SEED_NOTE_V = "exam-2026q2-r2";
+const SEED_NOTE_V = "exam-2026q2-r3";
 const SEED_NOTE = [
   {vn:"mười lăm", en:"숫자 15, 열다섯", lesson:"6/22 시험"},
   {vn:"Nga", en:"러시아", lesson:"6/22 시험"},
@@ -849,7 +849,30 @@ const SEED_NOTE = [
   {vn:"Ai giới thiệu Quốc Vinh?", en:"누가 Quốc Vinh을 소개하나요?", lesson:"6/23 시험", type:"sentence"},
   {vn:"Chị là người nước nào?", en:"(당신은) 어느 나라 사람이에요?", lesson:"6/23 시험", type:"sentence"},
   {vn:"Em rất thích cà phê.", en:"저는 커피를 매우 좋아합니다.", lesson:"6/23 시험", type:"sentence"},
-  {vn:"Hà Mi không phải là người Nhật.", en:"Hà Mi는 일본 사람이 아닙니다.", lesson:"6/23 시험", type:"sentence"}
+  {vn:"Hà Mi không phải là người Nhật.", en:"Hà Mi는 일본 사람이 아닙니다.", lesson:"6/23 시험", type:"sentence"},
+  {vn:"chợ", en:"시장 (market)", lesson:"6/24 시험"},
+  {vn:"đêm khuya", en:"늦은 밤", lesson:"6/24 시험"},
+  {vn:"quốc tịch", en:"국적", lesson:"6/24 시험"},
+  {vn:"sạch sẽ", en:"깨끗하다 (clean) — quen(익숙하다)과 헷갈림 주의", lesson:"6/24 시험"},
+  {vn:"nhưng", en:"그러나 (but, 절 연결)", lesson:"6/24 시험"},
+  {vn:"tuy nhiên", en:"그러나, 하지만 (however, 문장 앞)", lesson:"6/24 시험"},
+  {vn:"đẹp trai", en:"잘생기다 (남자)", lesson:"6/24 시험"},
+  {vn:"nhân viên", en:"직원", lesson:"6/24 시험"},
+  {vn:"quá", en:"너무 — làm(하다)과 헷갈림 주의", lesson:"6/24 시험"},
+  {vn:"không sao", en:"괜찮아요 (no problem)", lesson:"6/24 시험"},
+  {vn:"vẫn", en:"여전히, 아직", lesson:"6/24 시험"},
+  {vn:"lắng nghe", en:"경청하다 — nghe(그냥 듣다)와 구분", lesson:"6/24 시험"},
+  {vn:"ngày mai", en:"내일 (mai 철자 주의)", lesson:"6/24 시험"},
+  {vn:"bơi", en:"수영하다", lesson:"6/24 시험"},
+  {vn:"Quốc Vinh nghĩ là Hami chắc là có thể nói được tiếng Thái.", en:"Quốc Vinh은 Hami가 아마도 태국어를 할 수 있다고 생각한다. (nghĩ là + chắc là + nói được)", lesson:"6/24 시험", type:"sentence"},
+  {vn:"Vân chào Brian và hỏi Brian là người nước nào.", en:"Vân은 Brian에게 인사하고, 어느 나라 사람이냐고 물었다. (간접화법-물음표 없음)", lesson:"6/24 시험", type:"sentence"},
+  {vn:"Linh Chi có hai người bạn Pháp và bốn người bạn Nhật.", en:"Linh Chi는 프랑스 친구 2명과 일본 친구 4명이 있다. (숫자+người+bạn+국적)", lesson:"6/24 시험", type:"sentence"},
+  {vn:"Anh ấy đã đi chơi biển với hai người bạn Nhật tên là Eunji và Hiroki.", en:"그 오빠는 Eunji와 Hiroki라는 일본인 친구 2명과 바다에 놀러갔다. (과거 đã + tên là)", lesson:"6/24 시험", type:"sentence"},
+  {vn:"Eungi nghĩ là Kate là bạn của Hải.", en:"Eungi는 Kate가 Hải의 친구라고 생각한다. (nghĩ là + là + của)", lesson:"6/24 시험", type:"sentence"},
+  {vn:"Chị Kate cũng là người Anh, phải không?", en:"Kate 언니도 영국 사람이 맞죠? (cũng là ~ phải không)", lesson:"6/24 시험", type:"sentence"},
+  {vn:"Hôm qua và hôm nay tôi đều ăn phở.", en:"나는 어제와 오늘 다 쌀국수를 먹었다. (đều는 주어 뒤)", lesson:"6/24 시험", type:"sentence"},
+  {vn:`Mai hỏi David: "Anh có thích xoài không?"`, en:`Mai는 David에게 "오빠, 망고 좋아해?"라고 물었다. (có ~ không 짝)`, lesson:"6/24 시험", type:"sentence"},
+  {vn:"Trang đã đi bơi vào cuối tuần.", en:"Trang은 주말에 수영하러 갔다. (과거 đã)", lesson:"6/24 시험", type:"sentence"}
 ];
 
 /* =========================================================
