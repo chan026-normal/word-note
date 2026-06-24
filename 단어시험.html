@@ -1800,7 +1800,7 @@ function delWord(i){
 const REVIEW_EXTRA = ["bận","đói","buồn ngủ","khác","nghĩ","về","tuy nhiên","nhưng","nhau","biết","ít","nhiều","sữa","chợ","chơi","cuối tuần","đến","trường","đại học","khoa học","xã hội","nhân văn","thành phố","Tây Ban Nha","đá","hàng ngày"];
 const REVIEW_EXTRA_N = new Set(REVIEW_EXTRA.map(norm));
 const isReviewWord = w => w.lesson===13 || REVIEW_EXTRA_N.has(norm(w.vn));
-const P = { dir:"random", count:"all", format:"wordsent", version:0, wordQs:[], sentQs:[], priority:false };
+const P = { dir:"random", count:"all", format:"wordsent", version:0, wordQs:[], sentQs:[], priority:false, sentLesson:"all" };
 function rangeTitle(){
   if(state.selMode==="range"){ const [a,b]=rangeBounds(); return `${lessonLabel(WORDS[a].lesson)} ${WORDS[a].num}번 ~ ${lessonLabel(WORDS[b].lesson)} ${WORDS[b].num}번`; }
   const ls=[...state.lessons].filter(l=>l!=="custom").sort((a,b)=>a-b);
@@ -1843,7 +1843,8 @@ function genPaper(bump){
   P.wordQs = qs.slice(0, Math.min(wordLimit, qs.length));
   // 문장 문제 (단어+문장 구성일 때만 10개)
   if(P.format==="wordsent"){
-    P.sentQs = shuffle(SENTS).slice(0, Math.min(10, SENTS.length)).map(s=>{
+    const sentPool = (P.sentLesson!=="all" && SENT_BY_LESSON[P.sentLesson]) ? SENT_BY_LESSON[P.sentLesson] : SENTS;
+    P.sentQs = shuffle(sentPool).slice(0, Math.min(10, sentPool.length)).map(s=>{
       const d = P.dir==="random" ? (Math.random()<.5?"vn2en":"en2vn") : P.dir;
       return { dir:d, prompt:d==="vn2en"?s.vn:s.en, answer:d==="vn2en"?s.en:s.vn };
     });
@@ -1881,8 +1882,13 @@ function renderPaper(){
           <button class="${!isWS?"on":""}" data-action="paperFormat" data-v="words">단어만</button>
         </div>
         <button class="chip ${P.priority?"on":""}" style="margin-top:10px" data-action="paperPriority">📌 오늘 배운 ⭐ 단어 먼저 출제${P.priority?" ✓":""}</button>
-        <label class="fld">시험 범위</label>
+        <label class="fld">시험 범위 <span style="font-weight:600;color:var(--muted)">(1부 단어)</span></label>
         ${selectionBlockHTML(false)}
+        ${isWS ? `<label class="fld">문장 범위 <span style="font-weight:600;color:var(--muted)">(2부 문장 번역)</span></label>
+        <div class="row">
+          <button class="chip ${P.sentLesson==="all"?"on":""}" data-action="paperSentLesson" data-l="all">전체 <small>${SENTS.length}</small></button>
+          ${sentLessons().map(l=>`<button class="chip ${String(P.sentLesson)===String(l)?"on":""}" data-action="paperSentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}</small></button>`).join("")}
+        </div>`:""}
         <label class="fld">출제 방향</label>
         <div class="seg">
           <button class="${P.dir==="random"?"on":""}" data-action="paperDir" data-v="random">랜덤 섞기</button>
@@ -1934,6 +1940,7 @@ const actions = {
   paperCount:(el)=>{ P.count=el.dataset.v==="all"?"all":Number(el.dataset.v); genPaper(false); },
   paperFormat:(el)=>{ P.format=el.dataset.v; genPaper(false); },
   paperPriority:()=>{ P.priority=!P.priority; genPaper(false); },
+  paperSentLesson:(el)=>{ P.sentLesson = el.dataset.l==="all"?"all":Number(el.dataset.l); genPaper(false); },
   regenPaper:()=>genPaper(true),
   printPaper:()=>window.print(),
   mode:(el)=>{ state.mode=el.dataset.v; lsSet("_mode",state.mode); renderHome(); },
