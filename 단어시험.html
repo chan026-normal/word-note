@@ -1011,6 +1011,20 @@ function isCorrectTyped(answer, input){
   if(set.has(ni)) return true;
   return set.has(ni.replace(/^(to|a|an|the)\s+/,""));
 }
+/* 베트남어 답은 성조(đ/d 포함)까지 채점 — "ok"=완전정답 / "tone"=철자는 맞고 성조만 틀림 / "no"=오답 */
+function normTone(s){ return String(s).toLowerCase().replace(/[().,/;:!?'"’]/g," ").replace(/\s+/g," ").trim(); }
+function acceptableTone(answer){
+  const set=new Set();
+  const add=v=>{ const n=normTone(v); if(n) set.add(n); };
+  answer.split(/[,;/]/).map(x=>x.trim()).filter(Boolean).concat(answer).forEach(v=>{ add(v); add(v.replace(/\([^)]*\)/g," ").trim()); });
+  return set;
+}
+function checkVnTyped(answer, input){
+  if(!normTone(input)) return "no";
+  if(acceptableTone(answer).has(normTone(input))) return "ok";   // 성조까지 정확
+  if(isCorrectTyped(answer, input)) return "tone";               // 성조 빼면 맞음 → 성조만 틀림
+  return "no";
+}
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function speak(text, lang){
@@ -1032,7 +1046,7 @@ const DIRLABEL = { vn2en:"🇻🇳 베트남어 → 🇰🇷 한국어", en2vn:"
 const SKILLS = {
   read:  {label:"읽기",   emoji:"👀", mode:"type",   dir:"vn2en",  count:true,  tag:"베 → 한",      cardDesc:"베트남어를 보고<br>뜻 맞히기",      desc:"베트남어를 보고 → 한국어 뜻을 입력해요."},
   listen:{label:"듣기",   emoji:"👂", mode:"listen", dir:"vn2en",  count:true,  tag:"받아쓰기",     cardDesc:"소리만 듣고<br>맞히기",          desc:"🔊 소리를 듣고 → 한국어 뜻을 입력해요. (베트남어 글자는 가려져요)"},
-  write: {label:"쓰기",   emoji:"✍️", mode:"type",   dir:"en2vn",  count:true,  tag:"한 → 베",      cardDesc:"뜻을 보고<br>베트남어 입력",      desc:"한국어 뜻을 보고 → 베트남어를 직접 입력해요. (성조 없이 쳐도 정답 처리)"},
+  write: {label:"쓰기",   emoji:"✍️", mode:"type",   dir:"en2vn",  count:true,  tag:"한 → 베",      cardDesc:"뜻을 보고<br>베트남어 입력",      desc:"한국어 뜻을 보고 → 베트남어를 직접 입력해요. (성조까지 정확히!)"},
   speak: {label:"말하기", emoji:"🗣️", mode:"speak",  dir:"vn2en",  count:true,  tag:"따라 말하기",  cardDesc:"듣고 따라 말한 뒤<br>스스로 체크",  desc:"🔊 듣고 따라 말한 뒤 → 스스로 ✅/❌ 체크해요."},
   exam:  {label:"실전 시험", emoji:"📝", mode:"exam", dir:"random", count:false, tag:"단어40+문장10", cardDesc:"단어 40 + 문장 10",              desc:"단어 40개 + 문장 10개를 실제 시험처럼 한 번에 풀어요."},
   flash: {label:"플래시카드", emoji:"🃏", mode:"flash", dir:"vn2en", count:true,  tag:"암기·복습",    cardDesc:"카드를 넘기며 암기",              desc:"카드를 넘기며 외워요. 탭하면 뒤집혀서 뜻이 보여요."}
@@ -1161,13 +1175,13 @@ function bindSelection(){
 }
 
 /* ---------- 영역 선택 → 설정 화면 ---------- */
-function goSkill(skill){ state.skill=skill; lsSet("_skill",skill); renderSetup(); }
+function goSkill(skill){ state.skill=skill; lsSet("_skill",skill); const sd=(SKILLS[skill]||{}).dir; if(sd && skill!=="exam") state.dir=sd; renderSetup(); }
 function renderSetup(){
   state.screen="setup";
   if(state.lessons.size===0) lessonsList().filter(l=>l!=="custom").forEach(l=>state.lessons.add(l));
   if(!state.rEnd){ state.rStart = 0; state.rEnd = WORDS.length-1; }
   const s=SKILLS[state.skill];
-  const showDir = state.skill==="flash";   // 읽기/듣기/쓰기/말하기는 방향 고정, 플래시만 선택
+  const showDir = state.skill!=="exam";   // 실전시험(랜덤 고정) 외에는 베→한/한→베/랜덤 직접 선택
   const dirSeg = showDir ? `
     <div class="card">
       <h2>방향</h2>
@@ -1203,7 +1217,7 @@ function renderSetup(){
 function startSkill(){
   const s=SKILLS[state.skill];
   state.mode=s.mode;
-  if(state.skill!=="flash") state.dir=s.dir;   // 플래시는 사용자가 고른 방향 유지
+  if(state.skill==="exam") state.dir="random";   // 실전시험만 랜덤 고정, 나머지는 setup에서 고른 방향 사용
   const pool=poolSelected();
   if(pool.length===0){ alert("먼저 ① 에서 공부할 범위를 한 개 이상 골라주세요."); return; }
   if(s.mode==="flash"){ startFlash(pool); return; }
@@ -1288,7 +1302,7 @@ function renderQuiz(){
   }
 
   const subText = isListen
-    ? (Q.answered ? "" : "🔊 잘 듣고, 한국어 뜻을 입력하세요")
+    ? (Q.answered ? "" : (q.dir==="vn2en" ? "🔊 잘 듣고, 한국어 뜻을 입력하세요" : "🔊 잘 듣고, 베트남어를 입력하세요"))
     : isSent
     ? (q.dir==="vn2en" ? "이 문장을 한국어로 번역하세요" : "이 문장을 베트남어로 번역하세요")
     : (q.dir==="vn2en" ? "이 단어의 한국어 뜻은?" : "이 뜻의 베트남어 단어는?");
@@ -1312,7 +1326,8 @@ function renderQuiz(){
     body = `<input class="answer" id="ansInput" placeholder="정답 입력 후 Enter" ${Q.answered?"disabled":""} value="${esc(Q.typed||"")}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       ${!Q.answered?`<button class="btn" style="margin-top:12px" data-action="check">확인</button>`:""}`;
     if(Q.answered){
-      fb = `<div class="feedback ${Q.lastOk?"ok":"no"}">${Q.lastOk?"✅ 정답이에요!":"❌ 아쉬워요"}
+      const head = Q.lastOk ? "✅ 정답이에요!" : (Q.toneOnly ? "⚠️ 성조가 틀려요 (철자는 맞아요!)" : "❌ 아쉬워요");
+      fb = `<div class="feedback ${Q.lastOk?"ok":"no"}">${head}
         <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${nextBtn}`;
     }
   } else { // 문장 번역 (자가 채점)
@@ -1333,7 +1348,7 @@ function renderQuiz(){
   const promptBlock = (isListen && !Q.answered)
     ? `<div class="listenbox">
          <button class="bigspk" data-action="speak" data-text="${esc(q.prompt)}" data-lang="${promptLang}" aria-label="다시 듣기">🔊</button>
-         <div class="listenhint">소리를 듣고 아래에 뜻을 적어요 · 탭하면 다시 들려요</div>
+         <div class="listenhint">${q.dir==="vn2en"?"소리를 듣고 뜻을 적어요":"소리를 듣고 베트남어를 적어요"} · 탭하면 다시 들려요</div>
        </div>`
     : `<div class="prompt${isSent?" sent":""}">${esc(q.prompt)} ${spkBtn(q.prompt, promptLang)}</div>`;
   set(`
@@ -1371,7 +1386,13 @@ function checkTyped(){
   const inp = document.getElementById("ansInput");
   Q.typed = inp ? inp.value : "";
   const q = Q.queue[Q.idx];
-  Q.lastOk = isCorrectTyped(q.answer, Q.typed);
+  Q.toneOnly = false;
+  if(q.dir==="en2vn"){   // 답이 베트남어 → 성조까지 채점
+    const r = checkVnTyped(q.answer, Q.typed);
+    Q.lastOk = (r==="ok"); Q.toneOnly = (r==="tone");
+  } else {
+    Q.lastOk = isCorrectTyped(q.answer, Q.typed);
+  }
   Q.answered = true;
   if(Q.lastOk){ Q.score++; noteRight(q.word); } else { Q.wrong.push(wrongItem()); noteWrong(q.word); }
   renderQuiz();
@@ -1449,15 +1470,9 @@ function noteAdd(w){ const a=loadNote(),k=noteKey(w); if(!a.some(e=>noteKey(e)==
 function noteWrong(w){ const a=loadNote(),k=noteKey(w),e=a.find(x=>noteKey(x)===k); if(e){ e.streak=0; } else { a.push({vn:w.vn,en:w.en,lesson:w.lesson,type:w.type||"word",streak:0}); } saveNote(a); }
 function noteRight(w){ const a=loadNote(),k=noteKey(w),i=a.findIndex(x=>noteKey(x)===k); if(i<0) return; a[i].streak=(a[i].streak||0)+1; if(a[i].streak>=GRAD) a.splice(i,1); saveNote(a); }
 function seedNote(){
-  if(lsGet("_seedv","")===SEED_NOTE_V) return;   // 버전별 1회
-  const a=loadNote(), byKey=new Map(a.map(e=>[noteKey(e), e]));
-  SEED_NOTE.forEach(s=>{
-    if(!s.vn||!s.en) return;
-    const k=noteKey(s), ex=byKey.get(k);
-    if(ex){ ex.lesson=s.lesson; ex.type=s.type||"word"; }   // 이미 있으면 라벨·타입만 갱신(streak 유지)
-    else { const it={vn:s.vn, en:s.en, lesson:s.lesson, type:s.type||"word", streak:0}; a.push(it); byKey.set(k, it); }
-  });
-  saveNote(a); lsSet("_seedv", SEED_NOTE_V);
+  /* 동기 공유용으로 '시험 오답 자동 등록'을 껐습니다.
+     새 사용자는 빈 오답노트로 시작 → 시험을 보거나 '➕ 오답 직접 추가'로 채웁니다.
+     이미 등록된 오답은 각 기기 localStorage(_notebook)에 그대로 유지됩니다. */
 }
 
 function goNote(){ renderNote(); }
@@ -1637,7 +1652,7 @@ function renderTelex(){
         ${row("Vieetj","Việt (베트남)")}
       </div>
 
-      <div class="muted tiny" style="margin-top:16px;line-height:1.7"><b>💡 키보드 추가하기</b><br>• <b>폰(아이폰·안드로이드)</b>: 설정 → 키보드 → 베트남어(Telex) 추가<br>• <b>맥</b>: 시스템 설정 → 키보드 → 입력 소스 → <b>Vietnamese – Telex</b> 추가<br>• <b>윈도우</b>: 무료 프로그램 <b>UniKey</b> 설치<br><br>※ 참고: 우리 앱은 <b>성조 없이 쳐도</b>(예: <b>bua sang</b> → bữa sáng) 정답 처리돼요. 급할 땐 성조 빼고 입력해도 OK!</div>
+      <div class="muted tiny" style="margin-top:16px;line-height:1.7"><b>💡 키보드 추가하기</b><br>• <b>폰(아이폰·안드로이드)</b>: 설정 → 키보드 → 베트남어(Telex) 추가<br>• <b>맥</b>: 시스템 설정 → 키보드 → 입력 소스 → <b>Vietnamese – Telex</b> 추가<br>• <b>윈도우</b>: 무료 프로그램 <b>UniKey</b> 설치<br><br>※ 베트남어는 성조로 뜻이 바뀌어요(<b>nhưng</b> 그러나 ↔ <b>nhung</b> 벨벳). 그래서 이 앱은 <b>성조까지 정확해야 정답</b>이에요. 철자는 맞고 성조만 틀리면 <b>⚠️ 성조가 틀려요</b>라고 알려주니, 위 표를 참고해 성조까지 또박또박 입력해 보세요!</div>
     </div>
   `);
 }
@@ -1679,23 +1694,27 @@ const SP = {};
 function startSpeak(pool){
   let list = shuffle(pool);
   if(state.count!=="all") list = list.slice(0, Math.min(Number(state.count), list.length));
-  SP.cards = list; SP.idx=0; SP.revealed=false;
+  SP.cards = list.map(w=>({vn:w.vn, en:w.en, lesson:w.lesson, dir:dirOf(state.dir)}));
+  SP.idx=0; SP.revealed=false;
   renderSpeak();
 }
 function renderSpeak(){
   const w = SP.cards[SP.idx], n=SP.cards.length;
+  const showVn = w.dir!=="en2vn";   // 베→한: 베트남어 듣고 따라 말하기 / 한→베: 한국어 보고 베트남어로 말하기
+  const front = showVn ? w.vn : w.en, fLang = showVn ? "vi-VN" : "ko-KR";
+  const back  = showVn ? w.en : w.vn, bLang = showVn ? "ko-KR" : "vi-VN";
   set(`
-    <div class="qtop"><span>🗣️ 따라 말하기 ${SP.idx+1} / ${n}</span><span>입으로 연습</span></div>
+    <div class="qtop"><span>🗣️ 말하기 ${SP.idx+1} / ${n}</span><span>${DIRLABEL[w.dir]||"입으로 연습"}</span></div>
     <div class="bar"><i style="width:${Math.round((SP.idx/n)*100)}%"></i></div>
     <div class="card">
-      <span class="dirtag">🗣️ 듣고 따라 말하기</span>
-      <div class="prompt">${esc(w.vn)} ${spkBtn(w.vn,"vi-VN")}</div>
-      <div class="promptsub">🔊 듣고 → 큰 소리로 따라 말해보세요</div>
-      <button class="btn ghost" data-action="speakCard">🔊 다시 듣기</button>
+      <span class="dirtag">🗣️ ${showVn?"듣고 따라 말하기":"보고 베트남어로 말하기"}</span>
+      <div class="prompt">${esc(front)} ${spkBtn(front,fLang)}</div>
+      <div class="promptsub">${showVn?"🔊 듣고 → 큰 소리로 따라 말해보세요":"🇰🇷 뜻을 보고 → 베트남어로 소리 내어 말해보세요"}</div>
+      <button class="btn ghost" data-action="speakCard">🔊 베트남어 발음 듣기</button>
       ${SP.revealed
-        ? `<div class="feedback ok" style="margin-top:12px">🇰🇷 뜻<span class="ans">${esc(w.en)}</span></div>`
-        : `<button class="btn soft" style="margin-top:10px" data-action="revealSpeak">🇰🇷 뜻 보기</button>`}
-      <div class="promptsub" style="margin-top:16px">잘 따라 말했나요?</div>
+        ? `<div class="feedback ok" style="margin-top:12px">${showVn?"🇰🇷 뜻":"🇻🇳 정답"}<span class="ans">${esc(back)} ${spkBtn(back,bLang,true)}</span></div>`
+        : `<button class="btn soft" style="margin-top:10px" data-action="revealSpeak">${showVn?"🇰🇷 뜻 보기":"🇻🇳 정답 보기"}</button>`}
+      <div class="promptsub" style="margin-top:16px">잘 말했나요?</div>
       <div class="btn2">
         <button class="btn soft" data-action="speakAgain">🔁 더 연습 (노트에)</button>
         <button class="btn" data-action="speakNext">${SP.idx+1>=n?"끝내기 ✅":"잘했어요 →"}</button>
@@ -1703,7 +1722,7 @@ function renderSpeak(){
     </div>
     <button class="btn line" data-action="goHome">🏠 처음으로</button>
   `);
-  setTimeout(()=>speak(w.vn,"vi-VN"), 300);
+  if(showVn) setTimeout(()=>speak(w.vn,"vi-VN"), 300);
 }
 function speakAdvance(toNote){
   const w = SP.cards[SP.idx];
