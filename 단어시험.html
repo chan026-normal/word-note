@@ -856,7 +856,7 @@ Object.keys(SENT_RAW).forEach(L=>{
 const sentLessons = () => Object.keys(SENT_BY_LESSON).map(Number).sort((a,b)=>a-b);
 
 /* 시험 오답 → 오답노트에 자동 등록(1회). 단어=word, 작문=sentence(자가채점). lesson은 시험 날짜 표시용. */
-const SEED_NOTE_V = "exam-2026q2-r3";
+const SEED_NOTE_V = "exam-2026q2-r4";
 const SEED_NOTE = [
   {vn:"mười lăm", en:"숫자 15, 열다섯", lesson:"6/22 시험"},
   {vn:"Nga", en:"러시아", lesson:"6/22 시험"},
@@ -927,7 +927,23 @@ const SEED_NOTE = [
   {vn:"Chị Kate cũng là người Anh, phải không?", en:"Kate 언니도 영국 사람이 맞죠? (cũng là ~ phải không)", lesson:"6/24 시험", type:"sentence"},
   {vn:"Hôm qua và hôm nay tôi đều ăn phở.", en:"나는 어제와 오늘 다 쌀국수를 먹었다. (đều는 주어 뒤)", lesson:"6/24 시험", type:"sentence"},
   {vn:`Mai hỏi David: "Anh có thích xoài không?"`, en:`Mai는 David에게 "오빠, 망고 좋아해?"라고 물었다. (có ~ không 짝)`, lesson:"6/24 시험", type:"sentence"},
-  {vn:"Trang đã đi bơi vào cuối tuần.", en:"Trang은 주말에 수영하러 갔다. (과거 đã)", lesson:"6/24 시험", type:"sentence"}
+  {vn:"Trang đã đi bơi vào cuối tuần.", en:"Trang은 주말에 수영하러 갔다. (과거 đã)", lesson:"6/24 시험", type:"sentence"},
+  {vn:"để", en:"두다, 놓다 / ~하기 위해 (dễ '쉬운'과 구분: đ+hỏi)", lesson:"6/25 시험"},
+  {vn:"dễ", en:"쉽다, 쉬운 (để '두다'와 구분: d+ngã)", lesson:"6/25 시험"},
+  {vn:"nổi tiếng", en:"유명한 (성조 주의: nổi + tiếng)", lesson:"6/25 시험"},
+  {vn:"trường", en:"학교 (성조 huyền)", lesson:"6/25 시험"},
+  {vn:"nhưng", en:"그러나 (but, 절 연결)", lesson:"6/25 시험"},
+  {vn:"chăm chỉ", en:"열심히 하는, 성실한 (chỉ 성조 hỏi)", lesson:"6/25 시험"},
+  {vn:"trước đây", en:"예전에, 이전에 (tr- 주의, thước='자'와 구분)", lesson:"6/25 시험"},
+  {vn:"dạy", en:"가르치다 (dại='어리석은'과 구분)", lesson:"6/25 시험"},
+  {vn:"đăng ký", en:"등록하다, 신청하다 (đ로 시작)", lesson:"6/25 시험"},
+  {vn:"đâu", en:"어디 (thơ='시'와 헷갈림 주의)", lesson:"6/25 시험"},
+  {vn:"ở đó", en:"거기에 (ở đâu '어디에'와 구분)", lesson:"6/25 시험"},
+  {vn:"thành phố", en:"도시", lesson:"6/25 시험"},
+  {vn:"đến", en:"오다, 도착하다", lesson:"6/25 시험"},
+  {vn:"Chị là người Anh, phải không? Vâng, tôi là người Anh.", en:"당신은 영국 사람입니까? - 네, 저는 영국 사람입니다. (phải không 대답은 Vâng/Dạ, Có 아님)", lesson:"6/25 시험", type:"sentence"},
+  {vn:"Nam mệt, phải không? Vâng, anh ấy mệt.", en:"Nam은 피곤합니까? - 네, 그는 피곤합니다. (대답 Vâng + anh ấy)", lesson:"6/25 시험", type:"sentence"},
+  {vn:"Anh Sơn đi Úc. Anh Vi cũng đi Úc.", en:"Sơn은 호주에 갑니다. Vi도 호주에 갑니다. (đi+장소, ở 빼기 / cũng)", lesson:"6/25 시험", type:"sentence"}
 ];
 
 /* =========================================================
