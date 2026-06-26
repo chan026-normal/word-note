@@ -808,6 +808,41 @@ const SENTS = SENTENCES.trim().split("\n").map(l=>{ const i=l.indexOf("|"); retu
 
 /* 단원별 문장 (✍️ 문장 시험용). 진도 나가면 SENT_RAW에 단원 번호로 추가. 한 줄 "베트남어|한국어". */
 const SENT_RAW = {
+1:`Chào chị.|안녕하세요. (손위 여성에게)
+Chào anh. Xin lỗi, anh tên là gì?|안녕하세요. 실례지만, 이름이 뭐예요?
+Tôi xin tự giới thiệu, tôi tên là David.|제 소개를 하겠습니다, 제 이름은 David입니다.
+Chị tên là gì?|이름이 뭐예요?
+Tôi tên là Vân.|제 이름은 Vân입니다.
+Không sao.|괜찮아요.
+Xin giới thiệu với Vân, đây là Eun Ji.|Vân에게 소개할게요, 이쪽은 은지예요.
+Đây là Vân.|이쪽은 Vân이에요.
+Rất vui được gặp Eun Ji.|은지를 만나서 반가워요.
+Chào chị Vân. Rất vui được gặp chị.|Vân 안녕하세요. 만나서 반가워요.
+Chào Vân. Vân có khỏe không?|Vân 안녕하세요. 잘 지내요?
+Cám ơn anh. Tôi khỏe. Còn anh? Anh có khỏe không?|고마워요. 저는 잘 지내요. 당신은요? 잘 지내요?
+Tôi cũng khỏe. Cám ơn.|저도 잘 지내요. 고마워요.
+Hôm nay anh có gặp Eun Ji không?|오늘 은지를 만났어요?
+Không, hôm nay tôi không gặp Eun Ji.|아니요, 오늘 은지를 안 만났어요.
+Đây là bà Dung.|이쪽은 Dung 할머니예요.
+Đây là cô Jane.|이쪽은 Jane 선생님이에요.
+Đây là ông Vương.|이쪽은 Vương 할아버지예요.
+Tôi giới thiệu anh Hải với bà Amanda.|Hải를 Amanda 할머니께 소개해요.
+Tôi tên là Mai. Tôi là bạn anh Tom.|제 이름은 Mai예요. Tom의 친구예요.
+Tôi cũng là bạn của anh Tom.|저도 Tom의 친구예요.
+Anh Tom có khỏe không?|Tom 잘 지내요?
+Cám ơn chị. Tôi khỏe. Rất vui được gặp chị.|고마워요. 저는 잘 지내요. 만나서 반가워요.
+Hôm nay Sam gặp Tom và bạn của Tom.|오늘 Sam이 Tom과 Tom의 친구를 만났어요.
+Sam chào Tom và hỏi tên bạn của Tom.|Sam이 Tom에게 인사하고 Tom의 친구 이름을 물었어요.
+Jenny cũng chào Sam và tự giới thiệu tên.|Jenny도 Sam에게 인사하고 이름을 소개했어요.
+Jenny là bạn của Tom.|Jenny는 Tom의 친구예요.
+Tom nói: Tôi không gặp Eun Ji.|Tom이 말했어요: 나는 은지를 안 만났어요.
+Hôm nay em có khỏe không?|오늘 잘 지내요?
+Tôi gặp anh Park.|저는 Park을 만나요.
+Ông Hà rất vui.|Hà 할아버지는 매우 기뻐요.
+Hiroko là bạn chị So Jeong.|Hiroko는 So Jeong의 친구예요.
+Thầy không vui.|선생님은 기쁘지 않아요.
+Đây là em Kathy.|이쪽은 Kathy예요.
+Tôi tên Amy. Còn ông? Ông tên là gì?|저는 Amy예요. 당신은? 이름이 뭐예요?`,
 2:`Chào các anh.|여러분 안녕하세요.
 Chào Vân. Khỏe không?|Vân 안녕하세요. 잘 지내요?
 Dạ, khỏe. Cảm ơn anh. Anh có khỏe không?|네, 잘 지내요. 고마워요. 당신은 잘 지내요?
