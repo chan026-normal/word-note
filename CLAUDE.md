@@ -43,8 +43,8 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 시험지(인쇄): `genPaper()`, `renderPaper()`, state `P`(format: `wordsent`=단어40+문장10 / `words`=단어만). 중복 단어 자동 제거. `window.print()`. @media print로 컨트롤 숨김.
   - **우선출제**(`P.priority` 토글, 시험지 화면의 "📌 오늘 배운 ⭐ 단어 먼저 출제"): 켜면 '오늘 배운 단어'(`isReviewWord` = 13단원 ∪ `REVIEW_EXTRA` 기존단어 norm매칭)를 선택 범위에 없어도 포함하고 시험지 앞쪽에 배치. 새 시험 단어 묶음을 우선시킬 땐 13단원에 추가하거나 `REVIEW_EXTRA`에 vn 추가.
   - **문장 범위**(`P.sentLesson`, wordsent 2부 문장): "전체"(`allSentences()` = 모든 단원 문장 합 122개, 2026-06-27 수정 — 옛 `SENTS`53 아님) 또는 단원별(`SENT_BY_LESSON[n]`) 선택. `paperSentLesson` 액션, 시험지 화면 "문장 범위" 칩. `genPaper`에서 `sentPool` 분기.
-  - **정답지**(`P.withKey` 토글 "📝 정답지 같이 인쇄", 기본 ON, 2026-06-27): `renderPaper`가 시험지 `.paper` 뒤에 `.paper.pkey` 정답지 블록 추가(문제 순서 그대로 `프롬프트 → 정답`, 정답은 `.pkq i` 초록 강조). `@media print`에서 `.pkey{break-before:page}`로 **새 페이지(맨 마지막 장)**. `paperKey` 액션은 `renderPaper()`만 호출(재섞기 X). 학생용은 끄기. CSS는 `.pkeygrid/.pkq`.
-  - **A4 한 장에 맞춤**(`P.onePage` 토글 "📄 A4 한 장에 맞춤", **기본 ON**, 2026-06-27): 켜면 두 `.paper`에 `onepage` 클래스 → `.paper.onepage *` 압축 CSS(폰트·줄간격·여백 축소)로 단어40+문장10이 **A4 1장**에 들어감(정답지까지 합쳐 총 2장). `paperOne` 액션(`renderPaper()`만). 압축값은 실제 인쇄 PDF로 맞춤(문장 10번째까지 1장 보장). 끄면 글씨 큰 3장.
+  - **정답지 + 시험지/정답지 따로 저장**(2026-06-27): `renderPaper`가 시험지 `.paper` 뒤에 `.paper.pkey` 정답지 블록을 **항상** 추가(문제 순서 그대로 `프롬프트 → 정답`, 정답 `.pkq i` 초록). 미리보기엔 둘 다 보임. **인쇄 버튼 2개**(`printPaperOnly`/`printKeyOnly` → `printOnly("paper"|"key")`): `body`에 `ponly-paper`/`ponly-key` 클래스를 잠깐 붙여 `@media print`에서 한쪽만 보이게 한 뒤 `window.print()`, `afterprint`+setTimeout 백업으로 클래스 제거. → **시험지 PDF / 정답지 PDF를 따로 저장**. `ponly-key`일 땐 `.pkey`의 `break-before` 무효화로 빈 첫 장 방지. (예전 `P.withKey` "정답지 같이 인쇄" 토글은 이 따로저장 방식으로 **대체·제거**됨.) CSS `.pkeygrid/.pkq`.
+  - **A4 한 장에 맞춤**(`P.onePage` 토글 "📄 A4 한 장에 맞춤", **기본 ON**, 2026-06-27): 켜면 두 `.paper`에 `onepage` 클래스 → `.paper.onepage *` 압축 CSS(폰트·줄간격·여백 축소)로 단어40+문장10이 **A4 1장**에 들어감(시험지·정답지 각각 1장). `paperOne` 액션(`renderPaper()`만). 압축값은 실제 인쇄 PDF로 맞춤(문장 10번째까지 1장 보장).
 - 오답 노트: `loadNote/saveNote/noteWrong/noteRight/noteAdd`(키=`lc(vn)||lc(en)`), `renderNote()`. 오답 자동수집, 별표(`starWord`) 직접추가, 연속 `GRAD(=2)`번 정답 시 졸업(제거). `renderNote`에 **시험 방향**(베→한/한→베/랜덤, `noteDir`→`state.dir`) 선택. `startNote`는 듣기/말하기 모드 진입 시 주관식(`type`)으로 폴백. **오답 직접 추가**(2026-06-25): `renderNote` 상단 폼(베트남어+뜻 입력) → `addNoteWord`/`addNoteSent` 액션 → `addNoteManual("word"|"sentence")` → `noteAdd`(lesson="내 오답", `noteHas` 중복체크). 누구나 종이 시험 오답을 앱에서 직접 입력(동기 공유 대비).
   - **시험 오답 미리 등록** (⚠️ **2026-06-25 비활성화**: 동기 공유 위해 `seedNote()`를 빈 함수로 만듦 → 새 사용자는 빈 오답노트, 기존 등록분은 각 기기 localStorage 유지, `SEED_NOTE` 배열은 코드에 잔존하나 미사용. 되살리려면 `seedNote` 본문 복원): `SEED_NOTE`(배열, `{vn,en,lesson,type?}`) + `seedNote()` — 앱 첫 실행 시 1회 오답노트에 머지(`_seedv`=`SEED_NOTE_V` 플래그). 같은 단어가 이미 있으면 `lesson`·`type`만 갱신(streak 유지), 없으면 추가. **새 시험 오답 추가/라벨 정정 시 `SEED_NOTE` 수정 후 `SEED_NOTE_V` 값을 바꾸면** 다음 로드 때 반영됨(기존 등록분도 갱신). 단어는 `type` 생략(word), 작문은 `type:"sentence"`(자가채점). `lesson`엔 시험 라벨(문자열 "6/22 시험" 등 — `lessonLabel`이 문자열은 그대로 표시).
 - 백업/복원: `exportData()`, `importBackup()`(합치기/중복제외), `renderBackup()`.
@@ -59,7 +59,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 
 ## 7. 컨벤션 & 주의사항
 - **색상**: 저채도 차분한 팔레트(`:root` CSS변수 `--brand:#5f6fa6` 등). 쨍한 원색 금지(사용자 요청).
-- **인쇄 시험지**: 종이에는 **이모지·안내문 없음**(미니멀). `@page{margin:0}`로 브라우저 머리글/바닥글 제거. (정답지는 2026-06-27부터 `P.withKey`로 **별도 마지막 장**에 출력 — 토글로 끌 수 있음.)
+- **인쇄 시험지**: 종이에는 **이모지·안내문 없음**(미니멀). `@page{margin:0}`로 브라우저 머리글/바닥글 제거. (시험지/정답지는 2026-06-27부터 **"시험지 저장"·"정답지 저장" 버튼으로 따로 PDF 출력** — `printOnly`. 미리보기엔 둘 다 표시.)
 - **표기**: 교재 따라 "**cám ơn**"(O), "cảm ơn"(X).
 - **localStorage 키**(접두사 `gybm_wordnote_v1`): `_notebook _custom _mode _dir _count _selMode _skill _seedv _wrong`. 브라우저/기기마다 따로 저장 → **백업/복원** 필요(홈 맨 아래 작은 회색 링크로 축소함, 사용자 요청).
 - **단원 선택(`state.lessons`)은 LS 저장 안 함**: 앱 시작 시 1회만 전체선택(시작부 `lessonsList().forEach(add)`), 이후 '전체 해제'가 유지됨(`renderSetup`/`goHome`은 자동 전체선택 안 함 — 예전엔 여기서 자동선택해 '전체 해제'가 무효화되던 버그였음). 시험지(`genPaper`)는 범위 0개여도 alert로 튕기지 않고 `renderPaper`에서 "범위 골라주세요" 안내(`1f36d1f`, ⚠️ preview 권한오류로 미검증).
@@ -73,7 +73,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 사용자는 비개발자 → 기술은 쉬운 비유로 설명. 한국어로 소통.
 
 ## 9. 현재 상태 & 미해결 (2026-06-27 세션)
-- **2026-06-27 추가 세션**: 시험지 **정답지**(`P.withKey`, 별도 마지막 장, 기본 ON) + **A4 한 장에 맞춤**(`P.onePage` 압축, **기본 ON** → 시험지1+정답지1=2장) 추가. Chrome 헤드리스 print-to-pdf로 페이지수 실측 검증(섹션3 참고). 사용자 확인: 토글 OFF면 시험지가 단어1장+문장1장으로 쪼개져 3장이 나오던 것이 원인이었음.
+- **2026-06-27 추가 세션**: 시험지 **정답지**(문제 순서대로, 정답 초록) + **A4 한 장에 맞춤**(`P.onePage` 압축, **기본 ON** → 시험지1장·정답지1장) + **시험지/정답지 따로 저장**(`printOnly`, 인쇄 버튼 2개 — `P.withKey` 토글은 이걸로 대체·제거) + **시험지 문장 "전체"=단원 합 122개 버그수정**(`allSentences`). 모두 Chrome 헤드리스 print-to-pdf로 페이지수·내용 실측 검증(섹션3 참고).
 - **이전 세션 큰 작업(커밋순)**: 4영역 학습(`ccf0e37`) → 오답노트 시드(6/22~25 시험 오답) → 숫자채점·오답방향 → 시험지 우선출제+13단원 단어 → 단원별 문장시험(`SENT_RAW`)+시험지 문장범위 → 오답 직접입력 → 성조채점+양방향+**SEED 비활성**(`32610fa`) → 6/25 학습단어 → 전체해제 버그수정+양방향표시 → 1·3단원 문장 → 백업버튼 축소 → 시험지 빈범위 처리.
 - **⚠️ 동기 공유 워크플로(중요)**: 사용자가 앱을 GYBM 동기들과 Pages URL로 공유 중. 그래서 `seedNote()`를 껐음(새 사용자=동기는 빈 오답노트). **그 결과, 사용자 본인의 시험 오답을 코드(`SEED_NOTE`)에 넣으면 동기에게도 떠서 안 됨.** → 사용자 오답은 **백업 JSON으로 만들어 주고** 사용자가 폰 백업/복원으로 가져오거나(예: 6/27 오답은 JSON으로 제공함), **'➕ 오답 직접 추가'**로 입력. **코드에 넣는 건 '모두에게 공유되는 학습자료'(13단원 단어·`SENT_RAW` 문장)만.** ← 이 구분 꼭 지킬 것.
 - **⚠️ 미검증**: 마지막 커밋(시험지 빈범위 처리)은 **preview 서버가 권한 오류(`PermissionError`)로 안 떠 화면 검증 못 함**. 사용자 폰 확인 대기. (평소엔 preview 잘 됐는데 세션 끝에 막힘 — 새 세션에서 재시도해볼 것.)
