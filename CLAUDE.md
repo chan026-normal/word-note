@@ -27,7 +27,8 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 ```
 - **⚠️ 중요**: 코드에서 뜻(meaning) 필드 이름은 **`en`** 이지만 **실제로는 한국어**가 들어있음(원래 영어였다가 한국어로 교체한 흔적). `vn`=베트남어, `en`=한국어 뜻.
 - 단어 **532개**(Lesson 1~12 = 496개 + **13단원 "오늘 배운 ⭐" 36개**, 사용자가 그날 배운 단어 모음). 단원 추가는 RAW에 같은 형식. RAW 키는 숫자여야 함(`buildWords`가 `Number(L)`). 13단원 라벨은 `LESSON_NAMES`로 "오늘 배운 ⭐" 표시.
-- **문장 데이터 2종(별개!)**: ① `SENTENCES`/`SENTS` — 단원 구분 없는 53개, **실전시험·시험지 2부**용. ② `SENT_RAW`={단원번호:문장} + `SENT_BY_LESSON`/`sentLessons()` — **✍️ 문장 시험·시험지 문장범위**용, 현재 **1단원 35 + 2단원 46 + 3단원 41개**. 교재 사진→문장 추출, 한국어는 직접 번역. (섹션5 참고)
+- **문장 데이터 2종(별개!)**: ① `SENTENCES`/`SENTS` — 단원 구분 없는 53개, **실전시험(`startExam`)**용. ② `SENT_RAW`={단원번호:문장} + `SENT_BY_LESSON`/`sentLessons()` — **✍️ 문장 시험·시험지 문장범위**용, 현재 **1단원 35 + 2단원 46 + 3단원 41 = 122개**. 교재 사진→문장 추출, 한국어는 직접 번역. (섹션5 참고)
+  - **⚠️ 시험지 "전체"=`allSentences()`(=②의 단원 합집합 122개), `SENTS`(①53개) 아님**(2026-06-27 수정). 예전엔 "전체"가 옛 SENTS 53개라 단원 문장이 하나도 안 나오는 버그였음(사용자 발견). `allSentences = () => sentLessons().flatMap(l=>SENT_BY_LESSON[l])` 헬퍼로 단원 추가 시 자동 반영. 실전시험은 여전히 SENTS 사용.
 - 사용자 진도: 단어 L1~12 + 그날 학습 단어(13단원), 문장은 **1·2·3단원** 넣음. 새 단원 문장은 교재 사진 받아 `SENT_RAW`에 번호 키로 추가.
 
 ## 5. 주요 기능 & 코드 위치 (함수명)
@@ -41,7 +42,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 채점: `norm()`, `acceptable()`, `isCorrectTyped()` — 대소문자·`to`/관사·괄호·슬래시·콤마 복수정답 관대 처리. **답에 든 숫자만 입력해도 정답**(예: "숫자 15, 열다섯"→"15"). **⚠️ 베트남어 답(`en2vn` 단어)은 성조·đ까지 채점**(`checkVnTyped`/`normTone`/`acceptableTone`, 2026-06-25): 성조까지 맞아야 정답, 철자만 맞고 성조 틀리면 `Q.toneOnly`→"⚠️ 성조가 틀려요(철자는 맞아요)" 안내(성조 학습 위해). **문장은 자가채점**(reveal→맞음/틀림).
 - 시험지(인쇄): `genPaper()`, `renderPaper()`, state `P`(format: `wordsent`=단어40+문장10 / `words`=단어만). 중복 단어 자동 제거. `window.print()`. @media print로 컨트롤 숨김.
   - **우선출제**(`P.priority` 토글, 시험지 화면의 "📌 오늘 배운 ⭐ 단어 먼저 출제"): 켜면 '오늘 배운 단어'(`isReviewWord` = 13단원 ∪ `REVIEW_EXTRA` 기존단어 norm매칭)를 선택 범위에 없어도 포함하고 시험지 앞쪽에 배치. 새 시험 단어 묶음을 우선시킬 땐 13단원에 추가하거나 `REVIEW_EXTRA`에 vn 추가.
-  - **문장 범위**(`P.sentLesson`, wordsent 2부 문장): "전체"(`SENTS` 53개) 또는 단원별(`SENT_BY_LESSON[n]`) 선택. `paperSentLesson` 액션, 시험지 화면 "문장 범위" 칩. `genPaper`에서 `sentPool` 분기.
+  - **문장 범위**(`P.sentLesson`, wordsent 2부 문장): "전체"(`allSentences()` = 모든 단원 문장 합 122개, 2026-06-27 수정 — 옛 `SENTS`53 아님) 또는 단원별(`SENT_BY_LESSON[n]`) 선택. `paperSentLesson` 액션, 시험지 화면 "문장 범위" 칩. `genPaper`에서 `sentPool` 분기.
   - **정답지**(`P.withKey` 토글 "📝 정답지 같이 인쇄", 기본 ON, 2026-06-27): `renderPaper`가 시험지 `.paper` 뒤에 `.paper.pkey` 정답지 블록 추가(문제 순서 그대로 `프롬프트 → 정답`, 정답은 `.pkq i` 초록 강조). `@media print`에서 `.pkey{break-before:page}`로 **새 페이지(맨 마지막 장)**. `paperKey` 액션은 `renderPaper()`만 호출(재섞기 X). 학생용은 끄기. CSS는 `.pkeygrid/.pkq`.
   - **A4 한 장에 맞춤**(`P.onePage` 토글 "📄 A4 한 장에 맞춤", **기본 ON**, 2026-06-27): 켜면 두 `.paper`에 `onepage` 클래스 → `.paper.onepage *` 압축 CSS(폰트·줄간격·여백 축소)로 단어40+문장10이 **A4 1장**에 들어감(정답지까지 합쳐 총 2장). `paperOne` 액션(`renderPaper()`만). 압축값은 실제 인쇄 PDF로 맞춤(문장 10번째까지 1장 보장). 끄면 글씨 큰 3장.
 - 오답 노트: `loadNote/saveNote/noteWrong/noteRight/noteAdd`(키=`lc(vn)||lc(en)`), `renderNote()`. 오답 자동수집, 별표(`starWord`) 직접추가, 연속 `GRAD(=2)`번 정답 시 졸업(제거). `renderNote`에 **시험 방향**(베→한/한→베/랜덤, `noteDir`→`state.dir`) 선택. `startNote`는 듣기/말하기 모드 진입 시 주관식(`type`)으로 폴백. **오답 직접 추가**(2026-06-25): `renderNote` 상단 폼(베트남어+뜻 입력) → `addNoteWord`/`addNoteSent` 액션 → `addNoteManual("word"|"sentence")` → `noteAdd`(lesson="내 오답", `noteHas` 중복체크). 누구나 종이 시험 오답을 앱에서 직접 입력(동기 공유 대비).
