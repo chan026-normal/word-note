@@ -1939,7 +1939,6 @@ function rangeTitle(){
 }
 function genPaper(bump){
   const rawPool = poolSelected();
-  if(!rawPool.length){ alert("먼저 ① 에서 공부할 범위를 선택해주세요."); goHome(); return; }
   const lc = s => s.trim().toLowerCase();
   // 0) 우선출제 ON: '오늘 배운 단어'를 선택 범위에 없어도 함께 포함
   let basePool = rawPool.slice();
@@ -1995,7 +1994,9 @@ function renderPaper(){
   const sentList = sQs.map((q,i)=>
     `<div class="psq"><span class="pqn">${i+1}.</span><span class="psp">${esc(q.prompt)}</span><div class="psline"></div></div>`
   ).join("");
-  const paperBody = isWS
+  const paperBody = (wQs.length===0)
+    ? `<div class="center muted" style="padding:30px 16px">위 <b>①</b> 에서 <b>공부할 범위(단원)</b>를 한 개 이상 골라주세요.<br>그러면 시험지가 만들어져요.</div>`
+    : isWS
     ? `<div class="ppart">1부. 단어 (${wQs.length}문제)</div>
        <div class="pgrid">${wordGrid}</div>
        <div class="ppart">2부. 문장 번역 (${sQs.length}문제)</div>
