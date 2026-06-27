@@ -201,6 +201,10 @@
     .pq{break-inside:avoid}
     .pkey{ break-before:page; page-break-before:always; margin-top:0 }   /* 정답지는 새 페이지에 */
     .paper.onepage{ padding:7mm 11mm }   /* 한 장에 맞춤: 인쇄 여백도 축소 */
+    /* 따로 인쇄: 한쪽만 보이게 */
+    body.ponly-paper .pkey{ display:none !important }
+    body.ponly-key .paper:not(.pkey){ display:none !important }
+    body.ponly-key .pkey{ break-before:auto !important; page-break-before:auto !important; margin-top:0 !important }  /* 정답지만 인쇄 시 빈 첫 장 방지 */
   }
   /* A4 한 장에 맞춤 — 글씨·간격 압축 모드 */
   .paper.onepage .ptitle{font-size:15px}
@@ -1950,11 +1954,20 @@ function delWord(i){
 const REVIEW_EXTRA = ["bận","đói","buồn ngủ","khác","nghĩ","về","tuy nhiên","nhưng","nhau","biết","ít","nhiều","sữa","chợ","chơi","cuối tuần","đến","trường","đại học","khoa học","xã hội","nhân văn","thành phố","Tây Ban Nha","đá","hàng ngày"];
 const REVIEW_EXTRA_N = new Set(REVIEW_EXTRA.map(norm));
 const isReviewWord = w => w.lesson===13 || REVIEW_EXTRA_N.has(norm(w.vn));
-const P = { dir:"random", count:"all", format:"wordsent", version:0, wordQs:[], sentQs:[], priority:false, sentLesson:"all", withKey:true, onePage:true };
+const P = { dir:"random", count:"all", format:"wordsent", version:0, wordQs:[], sentQs:[], priority:false, sentLesson:"all", onePage:true };
 function rangeTitle(){
   if(state.selMode==="range"){ const [a,b]=rangeBounds(); return `${lessonLabel(WORDS[a].lesson)} ${WORDS[a].num}번 ~ ${lessonLabel(WORDS[b].lesson)} ${WORDS[b].num}번`; }
   const ls=[...state.lessons].filter(l=>l!=="custom").sort((a,b)=>a-b);
   return ls.length ? ls.map(l=>"L"+l).join(", ")+(state.lessons.has("custom")?", 내 단어":"") : "선택 범위";
+}
+// 시험지 / 정답지 따로 인쇄: body에 클래스 잠깐 붙여 한쪽만 보이게 한 뒤 print
+function printOnly(which){
+  const cls = which==="key" ? "ponly-key" : "ponly-paper";
+  document.body.classList.add(cls);
+  const cleanup = ()=>{ document.body.classList.remove(cls); window.removeEventListener("afterprint", cleanup); };
+  window.addEventListener("afterprint", cleanup);
+  window.print();
+  setTimeout(cleanup, 1500);   // afterprint 미발화 브라우저 대비 백업
 }
 function genPaper(bump){
   const rawPool = poolSelected();
@@ -2016,7 +2029,7 @@ function renderPaper(){
   // 정답지 (별도 페이지) — 시험지 문제 순서 그대로
   const keyWords = wQs.map((q,i)=>`<div class="pkq"><b>${i+1}.</b> ${esc(q.prompt)} → <i>${esc(q.answer)}</i></div>`).join("");
   const keySents = sQs.map((q,i)=>`<div class="pkq" style="grid-column:1/-1"><b>${i+1}.</b> ${esc(q.prompt)} → <i>${esc(q.answer)}</i></div>`).join("");
-  const keyBlock = (P.withKey && wQs.length>0)
+  const keyBlock = (wQs.length>0)
     ? `<div class="paper pkey${P.onePage?" onepage":""}">
          <div class="ptitle">정답지</div>
          <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 번역 10":""}</div>
@@ -2062,14 +2075,14 @@ function renderPaper(){
         <div class="seg">
           ${["all",20,30,50].map(c=>`<button class="${String(P.count)===String(c)?"on":""}" data-action="paperCount" data-v="${c}">${c==="all"?"범위 전체":c+"개"}</button>`).join("")}
         </div>`:""}
-        <div class="row" style="margin-top:14px">
-          <button class="chip ${P.withKey?"on":""}" data-action="paperKey">📝 정답지 같이 인쇄${P.withKey?" ✓":""}</button>
-          <button class="chip ${P.onePage?"on":""}" data-action="paperOne">📄 A4 한 장에 맞춤${P.onePage?" ✓":""}</button>
-        </div>
-        <div class="muted tiny" style="margin-top:6px">정답지는 <b>마지막 페이지</b>에 따로 인쇄돼요(학생에게 줄 땐 꺼두세요). <b>한 장에 맞춤</b>은 글씨·여백을 줄여 시험지를 A4 한 장에 담아요.</div>
+        <button class="chip ${P.onePage?"on":""}" style="margin-top:14px" data-action="paperOne">📄 A4 한 장에 맞춤${P.onePage?" ✓":""}</button>
+        <div class="muted tiny" style="margin-top:6px"><b>한 장에 맞춤</b>은 글씨·여백을 줄여 시험지를 A4 한 장에 담아요. 아래 미리보기엔 시험지와 정답지가 함께 보이고, 인쇄는 아래 버튼으로 <b>따로</b> 저장돼요.</div>
         <div class="btn2" style="margin-top:14px">
+          <button class="btn accent" data-action="printPaperOnly">🖨️ 시험지 저장</button>
+          <button class="btn accent" data-action="printKeyOnly">🖨️ 정답지 저장</button>
+        </div>
+        <div class="btn2" style="margin-top:8px">
           <button class="btn soft" data-action="regenPaper">🔀 다시 섞기</button>
-          <button class="btn accent" data-action="printPaper">🖨️ 인쇄 / PDF</button>
         </div>
         <div class="muted tiny" style="margin-top:10px">💡 인쇄 창에서 대상을 <b>'PDF로 저장'</b>으로 바꾸면 파일로 보관·공유돼요. 날짜·페이지번호가 보이면 인쇄 창에서 <b>'머리글 및 바닥글'</b>(Safari는 '머리말/꼬리말') 체크를 꺼주세요.${isWS?" 문장은 기존 단어로 만든 예문이에요.":" 여러 명이 풀 땐 <b>다시 섞기</b>로 문제 순서를 바꿔 나눠줄 수 있어요."}</div>
       </div>
@@ -2109,11 +2122,11 @@ const actions = {
   paperCount:(el)=>{ P.count=el.dataset.v==="all"?"all":Number(el.dataset.v); genPaper(false); },
   paperFormat:(el)=>{ P.format=el.dataset.v; genPaper(false); },
   paperPriority:()=>{ P.priority=!P.priority; genPaper(false); },
-  paperKey:()=>{ P.withKey=!P.withKey; renderPaper(); },   // 정답지 토글(문제 재섞기 없이 표시만)
   paperOne:()=>{ P.onePage=!P.onePage; renderPaper(); },   // A4 한 장 압축 토글(표시만)
   paperSentLesson:(el)=>{ P.sentLesson = el.dataset.l==="all"?"all":Number(el.dataset.l); genPaper(false); },
   regenPaper:()=>genPaper(true),
-  printPaper:()=>window.print(),
+  printPaperOnly:()=>printOnly("paper"),   // 시험지만 인쇄/저장(정답지 숨김)
+  printKeyOnly:()=>printOnly("key"),       // 정답지만 인쇄/저장(시험지 숨김)
   mode:(el)=>{ state.mode=el.dataset.v; lsSet("_mode",state.mode); renderHome(); },
   dir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderHome(); },
   count:(el)=>{ state.count=el.dataset.v==="all"?"all":Number(el.dataset.v); lsSet("_count",state.count); refresh(); },
