@@ -19,6 +19,7 @@
 - 파일명이 한글이라 URL은 인코딩 필요: `preview_eval`로 `location.href = location.origin + '/' + encodeURIComponent('단어시험.html')`.
 - 검증은 `preview_eval`로 함수 직접 호출(예: `WORDS.length`, `start()`, `loadNote()`) + `preview_screenshot`.
 - **⚠️ preview 서버가 샌드박스 권한오류로 못 뜰 때(2026-06-27 지속)**: 미리보기 프로세스가 `word_note`(심지어 `prj_code`)를 못 읽어 404. 그땐 **인쇄/PDF 레이아웃은 Chrome 헤드리스로 검증** 가능(Bash는 샌드박스 아님): ①`단어시험.html`을 scratchpad에 복사하고 끝에 `<script>setTimeout(()=>{P.onePage=true;P.withKey=true;genPaper(true);},400)</script>` 주입 ②`"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --no-pdf-header-footer --print-to-pdf=out.pdf --virtual-time-budget=3000 file://.../test.html` ③PDF 페이지수 확인+Swift(PDFKit)로 페이지를 PNG 렌더해 Read로 눈으로 확인(`mdls -name kMDItemNumberOfPages`도 가능). 시험지 페이지수·압축 맞춤은 이 방식으로 실측했음.
+  - **앱 화면 스샷**(인쇄 아닌 일반 화면 검증): 같은 복사본 끝에 `<script>setTimeout(()=>{actions.goList()/*등 액션 호출*/},400)</script>` 주입 후 `chrome --headless=new --screenshot=out.png --window-size=430,1500 --force-device-scale-factor=2 file://...` → PNG를 Read. 아이콘 교체는 이 방식으로 7화면 검증함.
 
 ## 4. 데이터 구조
 ```js
@@ -58,6 +59,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - **방향**: 홈엔 방향 버튼 없음(영역 카드). 방향은 `renderSetup`의 방향 세그(`setupDir`)·오답노트(`noteDir`)·문장시험(`sentDir`)에서. 영역별 기본은 `SKILLS[].dir`. `DIRLABEL`, `promptLang`/`ansLang`(vi-VN/ko-KR).
 
 ## 7. 컨벤션 & 주의사항
+- **아이콘(이모지 금지, 2026-06-27)**: UI 그림 이모지는 **인라인 SVG 라인 아이콘**으로 교체함. `<body>` 첫머리 **`<svg><defs><symbol id="i-*">` 스프라이트**(home/book/note/pencil/cards/volume/plus/check/x/printer/star/eye/eye-off/headphones/mic/save/keyboard/alert/repeat/bulb/shuffle/pin/target/inbox/clipboard/folder/search/trophy/thumb) + CSS `.ic{width:1em;height:1em;stroke:currentColor;fill:none…}`. 사용: `<svg class='ic' viewBox='0 0 24 24'><use href='#i-NAME'/></svg>`(크기는 부모 font-size=1em). **새 UI에도 이모지 대신 이 아이콘 쓸 것**(없으면 `<symbol>` 추가). ⚠️ **속성값(placeholder/title/value)·`<option>`·`alert()`엔 SVG 못 넣음 → 거기선 문자**. **유지(문자)**: 방향 화살표 `→ ← ↔`, 언어 국기 `🇰🇷 🇻🇳`, 별표 토글 `☆ ★`(빈/채움 구분 위해). 이모지 컬러별 `⭐→★`.
 - **색상**: 저채도 차분한 팔레트(`:root` CSS변수 `--brand:#5f6fa6` 등). 쨍한 원색 금지(사용자 요청).
 - **인쇄 시험지**: 종이에는 **이모지·안내문 없음**(미니멀). `@page{margin:0}`로 브라우저 머리글/바닥글 제거. (시험지/정답지는 2026-06-27부터 **"시험지 저장"·"정답지 저장" 버튼으로 따로 PDF 출력** — `printOnly`. 미리보기엔 둘 다 표시.)
 - **표기**: 교재 따라 "**cám ơn**"(O), "cảm ơn"(X).
@@ -73,6 +75,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 사용자는 비개발자 → 기술은 쉬운 비유로 설명. 한국어로 소통.
 
 ## 9. 현재 상태 & 미해결 (2026-06-27 세션)
+- **2026-06-27 추가 세션 ②**: **UI 이모지 → 인라인 SVG 라인 아이콘 전면 교체**(87+곳, `<symbol>` 스프라이트 + `.ic`). 화살표·국기·☆★는 문자 유지(섹션7). Chrome 헤드리스 `--screenshot`으로 홈·설정·시험지·단어장·오답노트·말하기·퀴즈 7화면 검증. 검색창 placeholder는 속성이라 아이콘 빼고 텍스트로.
 - **2026-06-27 추가 세션**: 시험지 **정답지**(문제 순서대로, 정답 초록) + **A4 한 장에 맞춤**(`P.onePage` 압축, **기본 ON** → 시험지1장·정답지1장) + **시험지/정답지 따로 저장**(`printOnly`, 인쇄 버튼 2개 — `P.withKey` 토글은 이걸로 대체·제거) + **시험지 문장 "전체"=단원 합 122개 버그수정**(`allSentences`). 모두 Chrome 헤드리스 print-to-pdf로 페이지수·내용 실측 검증(섹션3 참고).
 - **이전 세션 큰 작업(커밋순)**: 4영역 학습(`ccf0e37`) → 오답노트 시드(6/22~25 시험 오답) → 숫자채점·오답방향 → 시험지 우선출제+13단원 단어 → 단원별 문장시험(`SENT_RAW`)+시험지 문장범위 → 오답 직접입력 → 성조채점+양방향+**SEED 비활성**(`32610fa`) → 6/25 학습단어 → 전체해제 버그수정+양방향표시 → 1·3단원 문장 → 백업버튼 축소 → 시험지 빈범위 처리.
 - **⚠️ 동기 공유 워크플로(중요)**: 사용자가 앱을 GYBM 동기들과 Pages URL로 공유 중. 그래서 `seedNote()`를 껐음(새 사용자=동기는 빈 오답노트). **그 결과, 사용자 본인의 시험 오답을 코드(`SEED_NOTE`)에 넣으면 동기에게도 떠서 안 됨.** → 사용자 오답은 **백업 JSON으로 만들어 주고** 사용자가 폰 백업/복원으로 가져오거나(예: 6/27 오답은 JSON으로 제공함), **'➕ 오답 직접 추가'**로 입력. **코드에 넣는 건 '모두에게 공유되는 학습자료'(13단원 단어·`SENT_RAW` 문장)만.** ← 이 구분 꼭 지킬 것.
