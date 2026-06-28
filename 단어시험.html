@@ -186,18 +186,20 @@
   .psp{font-weight:700; font-size:14.5px; color:#111}
   .psline{border-bottom:1px solid #aaa; height:26px; margin-top:7px}
   .pkeygrid{display:grid; grid-template-columns:1fr 1fr; gap:5px 20px; margin-top:8px}
+  /* 2열일 때 세로(열 방향) 채우기: 왼쪽 1~N 내려간 뒤 오른쪽. --prows = ceil(문항수/2) */
+  .pkeygrid.colflow{grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)}
   .pkq{font-size:13px; color:#111; break-inside:avoid}
   .pkq b{color:#777; font-weight:700}
   .pkq i{font-style:normal; color:#1a7a4f; font-weight:700}   /* 정답 강조 */
   .pkey{ margin-top:14px }
-  @media (min-width:560px){ .pgrid{grid-template-columns:1fr 1fr} }
+  @media (min-width:560px){ .pgrid{grid-template-columns:1fr 1fr; grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)} }
   @page{ margin:0; }   /* 브라우저 자동 머리글·바닥글(날짜·페이지번호·주소) 제거 */
   @media print{
     .topbar,.foot,.noprint{display:none !important}
     body{background:#fff; margin:0; padding:0}
     .wrap{max-width:none; padding:0}
     .paper{border:none; border-radius:0; margin:0; padding:16mm 14mm}  /* 여백은 직접 부여 */
-    .pgrid{grid-template-columns:1fr 1fr}
+    .pgrid{grid-template-columns:1fr 1fr; grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)}
     .pq{break-inside:avoid}
     .pkey{ break-before:page; page-break-before:always; margin-top:0 }   /* 정답지는 새 페이지에 */
     .paper.onepage{ padding:7mm 11mm }   /* 한 장에 맞춤: 인쇄 여백도 축소 */
@@ -2068,7 +2070,7 @@ function renderPaper(){
          <div class="ptitle">정답지</div>
          <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 번역 10":""}</div>
          ${isWS?`<div class="ppart">1부. 단어 (${wQs.length})</div>`:""}
-         <div class="pkeygrid">${keyWords}</div>
+         <div class="pkeygrid colflow" style="--prows:${Math.ceil(wQs.length/2)}">${keyWords}</div>
          ${isWS?`<div class="ppart">2부. 문장 번역 (${sQs.length})</div><div class="pkeygrid">${keySents}</div>`:""}
        </div>`
     : "";
@@ -2076,10 +2078,10 @@ function renderPaper(){
     ? `<div class="center muted" style="padding:30px 16px">위 <b>①</b> 에서 <b>공부할 범위(단원)</b>를 한 개 이상 골라주세요.<br>그러면 시험지가 만들어져요.</div>`
     : isWS
     ? `<div class="ppart">1부. 단어 (${wQs.length}문제)</div>
-       <div class="pgrid">${wordGrid}</div>
+       <div class="pgrid" style="--prows:${Math.ceil(wQs.length/2)}">${wordGrid}</div>
        <div class="ppart">2부. 문장 번역 (${sQs.length}문제)</div>
        <div class="pslist">${sentList}</div>`
-    : `<div class="pgrid">${wordGrid}</div>`;
+    : `<div class="pgrid" style="--prows:${Math.ceil(wQs.length/2)}">${wordGrid}</div>`;
 
   set(`
     <div class="noprint">
