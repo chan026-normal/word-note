@@ -187,7 +187,7 @@
   .psq .pqn{display:inline-block}
   .psp{font-weight:700; font-size:14.5px; color:#111}
   .psline{border-bottom:1px solid #aaa; height:26px; margin-top:7px}
-  .psline.answ{height:auto; min-height:22px; color:#1a7a4f; font-weight:700; padding-bottom:2px; line-height:1.4}
+  .psline.answ{height:auto; min-height:22px; color:#1a7a4f; font-weight:700; font-size:13px; padding-bottom:2px; line-height:1.4}
   .pkeygrid{display:grid; grid-template-columns:1fr 1fr; gap:5px 20px; margin-top:8px}
   /* 2열일 때 세로(열 방향) 채우기: 왼쪽 1~N 내려간 뒤 오른쪽. --prows = ceil(문항수/2) */
   .pkeygrid.colflow{grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)}
@@ -226,7 +226,7 @@
   .paper.onepage .pkq{font-size:11px}
   /* 정답지(밑줄에 정답) 압축: 채워진 줄 높이·줄간격 더 좁힘 */
   .paper.onepage .pqline.answ{line-height:1.15; padding-left:6px}
-  .paper.onepage .psline.answ{min-height:0; padding-bottom:1px; line-height:1.2; margin-top:1px}
+  .paper.onepage .psline.answ{min-height:0; font-size:11px; padding-bottom:1px; line-height:1.2; margin-top:1px}
   /* 인라인 SVG 라인 아이콘 (이모지 대체). 크기는 부모 font-size(1em)에 따름 */
   .ic{width:1em; height:1em; display:inline-block; vertical-align:-.14em; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:none}
   .skillcard .ic{stroke-width:1.7}
