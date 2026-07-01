@@ -75,7 +75,8 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 워크플로: **작업 전 `git pull`**(사용자가 폰 claude.ai/code로 먼저 고쳤을 수 있음), 작업 후 `commit + push`. 커밋 메시지 끝에 `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
 - 사용자는 비개발자 → 기술은 쉬운 비유로 설명. 한국어로 소통.
 
-## 9. 현재 상태 & 미해결 (2026-06-27 세션)
+## 9. 현재 상태 & 미해결 (2026-07-01 세션)
+- **2026-07-01 (Cowork 작업)**: ①단어장 '내 단어' 칩을 '전체' 뒤로+개수, 전체보기에서 내 단어 맨 위 고정·accent 구분(`.chip.mine`/`.lz.mine`, `--accentsoft`/`--warn`), '내 단어'만 볼 때 추가·관리 힌트. ②**단어 추가 자동완성**: 한쪽만 입력→나머지 채움. 교재(`WORDS` 532)에 있으면 오프라인 즉시, 없으면 MyMemory 무료 API(vi↔ko) 번역+'확인 필요' 강조(`lookupLocal`/`translateOnline`/`doAutoFill`, `autoFill` 액션, blur/Enter/버튼 트리거). ③추가 후 '추가됐어요' 메시지 자동 페이드(`setAddStatus` autoClear+`.addstatus`). ④쓰기(주관식) Enter 버그: 입력창 Enter `preventDefault`/`stopPropagation` → 첫 Enter는 채점만, 다음은 두번째 Enter/'다음'. (Cowork에서 편집, push는 로컬에서)
 - **2026-06-27 추가 세션 ④**: 시험지 문구 다듬기 — ①"문장 번역"→"문장" ②범위 표기 `L1,L2`→`1과,2과`(`rangeTitle` `l+"과"`, 13단원은 라벨) ③제목 "베트남어 시험 (단어+문장)"→"베트남어 시험" ④**정답지를 시험지와 동일 밑줄 레이아웃**으로 개편(정답을 줄에 초록 채움). 2장 유지(Chrome PDF 검증).
 - **2026-06-27 추가 세션 ③**: 시험지 단어 번호 **세로(열 방향) 정렬**(왼1~N→오른N+1~, `grid-auto-flow:column`+`--prows`). 시험지·정답지 모두. Chrome 헤드리스 PDF로 1~20/21~40 확인.
 - **2026-06-27 추가 세션 ②**: **UI 이모지 → 인라인 SVG 라인 아이콘 전면 교체**(87+곳, `<symbol>` 스프라이트 + `.ic`). 화살표·국기·☆★는 문자 유지(섹션7). Chrome 헤드리스 `--screenshot`으로 홈·설정·시험지·단어장·오답노트·말하기·퀴즈 7화면 검증. 검색창 placeholder는 속성이라 아이콘 빼고 텍스트로.
