@@ -9,14 +9,14 @@
     --bg:#f4f6fb; --card:#ffffff; --ink:#1f2430; --muted:#6b7280;
     --line:#e6e9f0; --brand:#5f6fa6; --brand2:#7482b3; --brandsoft:#eceef6;
     --good:#3f885d; --goodsoft:#eaf3ed; --bad:#bd574f; --badsoft:#f6edeb;
-    --accent:#418379; --shadow:0 6px 22px rgba(31,36,48,.07);
+    --accent:#418379; --accentsoft:#e6f0ee; --warn:#9a6a00; --warnsoft:#fff6e0; --shadow:0 6px 22px rgba(31,36,48,.07);
   }
   @media (prefers-color-scheme: dark){
     :root{
       --bg:#0f1320; --card:#191f30; --ink:#eef1f8; --muted:#9aa3b5;
       --line:#2a3145; --brand:#707bb0; --brand2:#7d88bb; --brandsoft:#272e46;
       --good:#56ad7d; --goodsoft:#17301e; --bad:#d77d75; --badsoft:#352020;
-      --accent:#4f9c90; --shadow:0 6px 22px rgba(0,0,0,.35);
+      --accent:#4f9c90; --accentsoft:#173430; --warn:#e3b85a; --warnsoft:#322a12; --shadow:0 6px 22px rgba(0,0,0,.35);
     }
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -48,6 +48,8 @@
   .chip.on{background:var(--brandsoft); border-color:var(--brand); color:var(--brand)}
   .chip small{color:var(--muted); font-weight:500}
   .chip.on small{color:var(--brand)}
+  .chip.mine{border-color:var(--accent); color:var(--accent)}
+  .chip.mine.on{background:var(--accent); border-color:var(--accent); color:#fff}
   .seg{display:flex; gap:8px; flex-wrap:wrap}
   .seg button{
     flex:1; min-width:96px; border:1.5px solid var(--line); background:var(--card);
@@ -151,6 +153,13 @@
   .wen.hide{filter:blur(6px); transition:.15s}
   .wrow:hover .wen.hide{filter:none}
   .lz{font-size:11px;color:var(--brand);background:var(--brandsoft);padding:2px 7px;border-radius:6px;font-weight:700}
+  .lz.mine{color:var(--accent);background:var(--accentsoft)}
+  .addstatus{font-size:12.5px; font-weight:700; margin:8px 0 0; min-height:17px; display:flex; align-items:center; gap:5px; transition:opacity .25s ease}
+  .addstatus.fading{opacity:0}
+  .addstatus.ok{color:var(--good)}
+  .addstatus.warn{color:var(--warn)}
+  .addstatus.busy{color:var(--muted)}
+  .search.needcheck{border-color:var(--warn); background:var(--warnsoft)}
   .del{border:none;background:var(--badsoft);color:var(--bad);border-radius:9px;width:30px;height:30px;cursor:pointer;font-weight:800}
   .star{border:none;background:none;cursor:pointer;font-size:20px;line-height:1;color:var(--muted);padding:2px 4px;flex:0 0 auto}
   .star.on{color:#e2a900}
@@ -1507,7 +1516,7 @@ function renderQuiz(){
 
   if(kind==="word" && !Q.answered){
     const inp = document.getElementById("ansInput");
-    if(inp){ inp.focus(); inp.addEventListener("keydown",e=>{ if(e.key==="Enter") checkTyped(); }); }
+    if(inp){ inp.focus(); inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); e.stopPropagation(); checkTyped(); } }); }
   }
   if(isListen && !Q.answered){ setTimeout(()=>speak(q.prompt, promptLang), 300); }
   if(Q.answered){ document.addEventListener("keydown", onAdvance); }
@@ -1925,22 +1934,37 @@ const L = { lesson:"all", q:"", hide:false };
 function goList(){ renderList(); }
 function renderList(){
   const lessons = lessonsList();
-  const filt = WORDS.filter(w=>{
+  const customN = WORDS.filter(w=>w.lesson==="custom").length;
+  let filt = WORDS.filter(w=>{
     if(L.lesson!=="all" && String(w.lesson)!==String(L.lesson)) return false;
     if(L.q){ const k=norm(L.q); if(!norm(w.vn).includes(k) && !norm(w.en).includes(k)) return false; }
     return true;
   });
-  const chips = ['all',...lessons].map(l=>`<button class="chip ${String(L.lesson)===String(l)?"on":""}" data-action="listFilter" data-l="${l}">${l==="all"?"전체":lessonLabel(l)}</button>`).join("");
+  // '내 단어'는 전체 보기에서도 맨 위로 올려 묻히지 않게
+  if(L.lesson==="all" && customN){
+    const cu=filt.filter(w=>w.lesson==="custom"), rest=filt.filter(w=>w.lesson!=="custom");
+    filt=[...cu,...rest];
+  }
+  // 칩 순서: 전체 → 내 단어(있을 때) → 각 단원
+  const order = ['all', ...(customN?["custom"]:[]), ...lessons.filter(l=>l!=="custom")];
+  const chips = order.map(l=>{
+    const on=String(L.lesson)===String(l);
+    const label = l==="all" ? "전체" : (l==="custom" ? `내 단어 (${customN})` : lessonLabel(l));
+    return `<button class="chip ${on?"on":""}${l==="custom"?" mine":""}" data-action="listFilter" data-l="${l}">${label}</button>`;
+  }).join("");
+  const mineHint = (L.lesson==="custom")
+    ? `<div class="muted tiny" style="margin:2px 0 8px">직접 추가한 단어예요. <button class="link" data-action="goAdd" style="font-weight:700">+ 단어 추가·관리</button></div>` : "";
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 단어장 · ${filt.length}개</h2>
       <input class="search" id="searchBox" placeholder="단어 / 뜻 검색 (베트남어·한국어 모두)" value="${esc(L.q)}">
       <div class="row" style="margin-bottom:6px">${chips}</div>
+      ${mineHint}
       <button class="chip ${L.hide?"on":""}" data-action="toggleHide">${L.hide?"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye-off'/></svg> 뜻 가림 (마우스 올리면 보임)":"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg> 뜻 보임"}</button>
       <div class="wlist" style="margin-top:8px">
         ${filt.length? filt.map(w=>`<div class="wrow">
-          <span class="lz">${lessonLabel(w.lesson)}</span>
+          <span class="lz${w.lesson==="custom"?" mine":""}">${lessonLabel(w.lesson)}</span>
           <span class="wvn">${esc(w.vn)} ${spkBtn(w.vn,"vi-VN",true)}</span>
           <span class="wen ${L.hide?"hide":""}">${esc(w.en)}</span>
           <button class="star ${noteHas(w)?"on":""}" data-action="starWord" data-id="${w.id}" title="오답 노트에 추가/제거">${noteHas(w)?"★":"☆"}</button>
@@ -1953,6 +1977,82 @@ function renderList(){
 }
 
 /* ---------- 단어 추가 ---------- */
+/* 자동완성: ① 교재(WORDS 532개)에서 먼저 찾고(인터넷 X·정확) ② 없으면 인터넷 번역(MyMemory, 확인 필요) */
+let addBusy = false;
+function lookupLocal(dir, text){
+  if(dir==="vn2ko"){
+    const t=text.toLowerCase().trim();
+    const w = WORDS.find(x=>x.vn.toLowerCase().trim()===t) || WORDS.find(x=>norm(x.vn)===norm(text));
+    return w ? w.en : null;
+  } else {
+    const t=text.toLowerCase().trim();
+    const w = WORDS.find(x=>x.en.toLowerCase().trim()===t)
+           || WORDS.find(x=>x.en.split(/[,;/]/).map(s=>s.trim().toLowerCase()).includes(t))
+           || WORDS.find(x=>norm(x.en)===norm(text));
+    return w ? w.vn : null;
+  }
+}
+async function translateOnline(text, pair){
+  const url="https://api.mymemory.translated.net/get?q="+encodeURIComponent(text)+"&langpair="+encodeURIComponent(pair);
+  const r=await fetch(url);
+  const j=await r.json();
+  let t=j && j.responseData && j.responseData.translatedText;
+  if(!t) return null;
+  if(/MYMEMORY WARNING|PLEASE SELECT|INVALID|NO QUERY|QUERY LENGTH LIMIT/i.test(t)) return null;
+  return String(t).trim();
+}
+let addStatusTimer=null;
+function setAddStatus(html, cls, autoClearMs){
+  const s=document.getElementById("addStatus");
+  if(!s) return;
+  if(addStatusTimer){ clearTimeout(addStatusTimer); addStatusTimer=null; }
+  s.className="addstatus "+(cls||"");
+  s.innerHTML=html||"";
+  if(autoClearMs){
+    addStatusTimer=setTimeout(()=>{
+      const cur=document.getElementById("addStatus");
+      if(cur){ cur.classList.add("fading"); }
+      setTimeout(()=>{ const c2=document.getElementById("addStatus"); if(c2){ c2.className="addstatus"; c2.innerHTML=""; } }, 260);
+      addStatusTimer=null;
+    }, autoClearMs);
+  }
+}
+const _icCheck="<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg>";
+const _icAlert="<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg>";
+async function doAutoFill(){
+  if(addBusy) return;
+  const vnEl=document.getElementById("inVn"), enEl=document.getElementById("inEn");
+  if(!vnEl||!enEl) return;
+  const vn=vnEl.value.trim(), en=enEl.value.trim();
+  let dir;
+  if(vn && !en) dir="vn2ko";
+  else if(en && !vn) dir="ko2vn";
+  else if(!vn && !en){ setAddStatus("먼저 베트남어나 한국어를 한쪽에 입력하세요.","warn"); return; }
+  else { setAddStatus("",""); return; }   // 둘 다 채워져 있으면 할 일 없음
+  const src = dir==="vn2ko" ? vn : en;
+  const dstEl = dir==="vn2ko" ? enEl : vnEl;
+  // ① 교재에서 찾기
+  const local = lookupLocal(dir, src);
+  if(local){
+    dstEl.value = local; dstEl.classList.remove("needcheck");
+    setAddStatus(_icCheck+" 교재에서 찾았어요","ok");
+    return;
+  }
+  // ② 인터넷 번역
+  addBusy=true; setAddStatus("번역하는 중…","busy");
+  try{
+    const t = await translateOnline(src, dir==="vn2ko" ? "vi|ko" : "ko|vi");
+    if(dstEl.value.trim()){ setAddStatus("",""); return; }   // 그 사이 직접 입력했으면 안 덮음
+    if(t){
+      dstEl.value=t; dstEl.classList.add("needcheck");
+      setAddStatus(_icAlert+" 자동 번역이에요 — 맞는지 꼭 확인하세요","warn");
+    } else {
+      setAddStatus("자동완성을 못 찾았어요. 직접 입력해 주세요.","warn");
+    }
+  } catch(e){
+    setAddStatus("인터넷이 없어 자동 번역을 못 했어요. 직접 입력해 주세요.","warn");
+  } finally { addBusy=false; }
+}
 function goAdd(){ renderAdd(); }
 function renderAdd(){
   const custom = lsGet("_custom", []);
@@ -1960,11 +2060,16 @@ function renderAdd(){
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-plus'/></svg> 내 단어 추가</h2>
+      <div class="muted tiny" style="margin:-4px 0 12px">베트남어나 한국어 <b>한쪽만</b> 넣으면 나머지 뜻을 자동으로 채워줘요. (교재에 있으면 인터넷 없이 바로, 없으면 인터넷 번역으로 — 이땐 확인 필요)</div>
       <label class="fld">베트남어 (또는 외울 단어)</label>
       <input class="search" id="inVn" placeholder="예: cảm ơn" autocomplete="off">
       <label class="fld">한국어 뜻</label>
       <input class="search" id="inEn" placeholder="예: 고맙다, 감사하다" autocomplete="off">
-      <button class="btn" style="margin-top:12px" data-action="addWord">추가하기</button>
+      <div id="addStatus" class="addstatus"></div>
+      <div style="display:flex; gap:8px; margin-top:10px">
+        <button class="btn ghost" style="flex:1" data-action="autoFill"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg> 자동완성</button>
+        <button class="btn" style="flex:1" data-action="addWord">추가하기</button>
+      </div>
       <div class="muted tiny" style="margin-top:10px">추가한 단어는 이 브라우저에 저장돼요. 단어장·시험에 '내 단어'로 함께 나와요.</div>
     </div>
     <div class="card">
@@ -1978,6 +2083,20 @@ function renderAdd(){
       </div>
     </div>
   `);
+  const vnEl=document.getElementById("inVn"), enEl=document.getElementById("inEn");
+  if(vnEl && enEl){
+    // 한쪽만 입력하고 칸을 벗어나면(다른 칸이 비어 있을 때) 자동완성
+    vnEl.addEventListener("blur", ()=>{ if(vnEl.value.trim() && !enEl.value.trim()) doAutoFill(); });
+    enEl.addEventListener("blur", ()=>{ if(enEl.value.trim() && !vnEl.value.trim()) doAutoFill(); });
+    // Enter: 둘 다 있으면 추가, 한쪽만 있으면 자동완성
+    const onEnter=(e)=>{ if(e.key==="Enter"){ e.preventDefault();
+      if(vnEl.value.trim() && enEl.value.trim()) addWord(); else doAutoFill(); } };
+    vnEl.addEventListener("keydown", onEnter);
+    enEl.addEventListener("keydown", onEnter);
+    // 직접 고치면 '확인 필요' 강조 해제
+    vnEl.addEventListener("input", ()=>vnEl.classList.remove("needcheck"));
+    enEl.addEventListener("input", ()=>enEl.classList.remove("needcheck"));
+  }
 }
 function addWord(){
   const vn=(document.getElementById("inVn").value||"").trim();
@@ -1985,6 +2104,7 @@ function addWord(){
   if(!vn||!en){ alert("단어와 뜻을 모두 입력해주세요."); return; }
   const custom = lsGet("_custom", []); custom.push({vn,en}); lsSet("_custom", custom);
   buildWords(); renderAdd();
+  setAddStatus(_icCheck+" 추가됐어요", "ok", 1600);   // 잠깐 보였다 부드럽게 사라짐
 }
 function delWord(i){
   const custom = lsGet("_custom", []); custom.splice(Number(i),1); lsSet("_custom", custom);
@@ -2178,7 +2298,7 @@ const actions = {
   count:(el)=>{ state.count=el.dataset.v==="all"?"all":Number(el.dataset.v); lsSet("_count",state.count); refresh(); },
   listFilter:(el)=>{ L.lesson=el.dataset.l==="all"?"all":(el.dataset.l==="custom"?"custom":Number(el.dataset.l)); renderList(); },
   toggleHide:()=>{ L.hide=!L.hide; renderList(); },
-  addWord, delWord:(el)=>delWord(el.dataset.i),
+  addWord, autoFill:doAutoFill, delWord:(el)=>delWord(el.dataset.i),
   goNote, startNote, goSent, startSent, goBackup, goTelex, copyExport, downloadExport,
   sentLesson:(el)=>{ state.sentLesson=Number(el.dataset.l); renderSentSetup(); },
   sentDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderSentSetup(); },
