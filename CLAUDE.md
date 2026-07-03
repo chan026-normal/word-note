@@ -64,7 +64,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - **색상**: 저채도 차분한 팔레트(`:root` CSS변수 `--brand:#5f6fa6` 등). 쨍한 원색 금지(사용자 요청).
 - **인쇄 시험지**: 종이에는 **이모지·안내문 없음**(미니멀). `@page{margin:0}`로 브라우저 머리글/바닥글 제거. (시험지/정답지는 2026-06-27부터 **"시험지 저장"·"정답지 저장" 버튼으로 따로 PDF 출력** — `printOnly`. 미리보기엔 둘 다 표시.)
 - **표기**: 교재 따라 "**cám ơn**"(O), "cảm ơn"(X).
-- **localStorage 키**(접두사 `gybm_wordnote_v1`): `_notebook _custom _mode _dir _count _selMode _skill _seedv _wrong`. 브라우저/기기마다 따로 저장 → **백업/복원** 필요(홈 맨 아래 작은 회색 링크로 축소함, 사용자 요청).
+- **localStorage 키**(접두사 `gybm_wordnote_v1`): `_notebook _custom _mode _dir _count _selMode _skill _seedv _wrong _zoom`. 브라우저/기기마다 따로 저장 → **백업/복원** 필요(홈 맨 아래 작은 회색 링크로 축소함, 사용자 요청). (`_zoom`=화면 확대 배율 0.8~2.0, 헤더 −/100%/+ 버튼.)
 - **단원 선택(`state.lessons`)은 LS 저장 안 함**: 앱 시작 시 1회만 전체선택(시작부 `lessonsList().forEach(add)`), 이후 '전체 해제'가 유지됨(`renderSetup`/`goHome`은 자동 전체선택 안 함 — 예전엔 여기서 자동선택해 '전체 해제'가 무효화되던 버그였음). 시험지(`genPaper`)는 범위 0개여도 alert로 튕기지 않고 `renderPaper`에서 "범위 골라주세요" 안내(`1f36d1f`, ⚠️ preview 권한오류로 미검증).
 - 홈은 **4영역(읽기·듣기·쓰기·말하기)** 중심. **4영역 모두 양방향**(베↔한, `renderSetup`에서 방향 선택). 홈 카드 방향 태그는 읽기·쓰기 **둘 다 "베 ↔ 한"으로 통일**(사용자 요청). 읽기/쓰기는 둘 다 주관식(type)이라 사실상 방향만 다른 비슷한 기능. 실전시험·플래시카드는 하단 보조. 객관식 모드 제거됨(죽은 코드 잔존).
 
@@ -75,7 +75,8 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 워크플로: **작업 전 `git pull`**(사용자가 폰 claude.ai/code로 먼저 고쳤을 수 있음), 작업 후 `commit + push`. 커밋 메시지 끝에 `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
 - 사용자는 비개발자 → 기술은 쉬운 비유로 설명. 한국어로 소통.
 
-## 9. 현재 상태 & 미해결 (2026-07-01 세션)
+## 9. 현재 상태 & 미해결 (2026-07-03 세션)
+- **2026-07-03 (Cowork 작업)**: ⑤**단어장 Word(.doc) 저장** — 지금 보이는 목록(단원/검색/내 단어)을 Word 문서로 내려받기(`wordDocHtml`/`exportWordDoc`, '단어장 보기'에 'Word로 저장' 버튼, `exportWord` 액션). 화면·저장 공용 필터로 `curListWords`/`curListLabel` 추출해 `renderList` 정리. ⑥**쓰기(한→베) 동의어 정답 인정** — 같은 한국어 뜻을 가진 다른 베트남어도 정답 처리(성조 채점 유지). `checkVnAny` 추가, `checkTyped`의 `en2vn` 분기를 `checkVnTyped`→`checkVnAny`로 교체(예: 뜻 "매우, 아주" → `rất`·`lắm` 모두 정답, 헤드리스로 확인). ⑦**화면 확대** — 헤더에 −/100%/+ 버튼, `#view`에 `zoom` 적용(0.8~2.0, LS `_zoom`), 직접 리스너 `bindZoom`, 인쇄 시 리셋(`@media print .wrap{zoom:1!important}`), 좁은 화면(≤430px)에선 `.sub` 숨김. (JS 문법·부팅·기능 헤드리스 검증 후 로컬 커밋/push.)
 - **2026-07-01 (Cowork 작업)**: ①단어장 '내 단어' 칩을 '전체' 뒤로+개수, 전체보기에서 내 단어 맨 위 고정·accent 구분(`.chip.mine`/`.lz.mine`, `--accentsoft`/`--warn`), '내 단어'만 볼 때 추가·관리 힌트. ②**단어 추가 자동완성**: 한쪽만 입력→나머지 채움. 교재(`WORDS` 532)에 있으면 오프라인 즉시, 없으면 MyMemory 무료 API(vi↔ko) 번역+'확인 필요' 강조(`lookupLocal`/`translateOnline`/`doAutoFill`, `autoFill` 액션, blur/Enter/버튼 트리거). ③추가 후 '추가됐어요' 메시지 자동 페이드(`setAddStatus` autoClear+`.addstatus`). ④쓰기(주관식) Enter 버그: 입력창 Enter `preventDefault`/`stopPropagation` → 첫 Enter는 채점만, 다음은 두번째 Enter/'다음'. (Cowork에서 편집, push는 로컬에서)
 - **2026-06-27 추가 세션 ④**: 시험지 문구 다듬기 — ①"문장 번역"→"문장" ②범위 표기 `L1,L2`→`1과,2과`(`rangeTitle` `l+"과"`, 13단원은 라벨) ③제목 "베트남어 시험 (단어+문장)"→"베트남어 시험" ④**정답지를 시험지와 동일 밑줄 레이아웃**으로 개편(정답을 줄에 초록 채움). 2장 유지(Chrome PDF 검증).
 - **2026-06-27 추가 세션 ③**: 시험지 단어 번호 **세로(열 방향) 정렬**(왼1~N→오른N+1~, `grid-auto-flow:column`+`--prows`). 시험지·정답지 모두. Chrome 헤드리스 PDF로 1~20/21~40 확인.
