@@ -831,6 +831,508 @@ chưa biết|아직 모른다
 tức là|즉, 다시 말해
 đã|~했다 (과거·완료)`
 };
+const ENG_RAW = {
+1:`anh|you
+bà|you, Mrs.
+bạn|you, friend
+cám ơn|thank you, to thank
+chào|hello, to greet
+chị|you
+cô|you, female teacher
+còn|and, but
+của|of
+cũng|also
+đây|here, this
+em|I, you
+gặp|to meet
+gì|what
+giới thiệu|to introduce
+hỏi|to ask
+hôm nay|today
+khỏe|to be fine, healthy
+không|no, not
+là|to be
+mệt|tired
+ông|you, sir
+rất|very
+tên|name
+thầy|male teacher, you
+tôi|I, me
+tự|self
+và|and
+với|with
+vui|happy
+xin lỗi|excuse-me, to apologize`,
+2:`ai|who
+Anh|England
+anh ấy|he, him
+bà ấy|she, her
+bạn|friend
+biết|to know
+các|quantifier, pluralizer
+chị ấy|she, her
+có lẽ|maybe, perhaps
+cô ấy|she, her
+Đài Loan|Taiwan
+đi|to go
+đó|that
+Đức|German
+em ấy|he, she
+giáo viên|teacher
+Hàn Quốc|South Korea
+họ|they, them
+khác|other, another
+kia|over there
+muốn|to want
+Mỹ|America
+nào|which
+người|person
+Nhật|Japan
+nói|to say, to tell
+nước|country
+nước ngoài|foreign country
+ông ấy|he, him
+phải|correct, yes
+phải không|Right?
+Pháp|France
+quốc tịch|nationality
+sinh viên|student
+Thái Lan|Thailand
+Trung Quốc|China
+Úc|Australia
+vâng|yes/polite speech`,
+3:`bài|lesson
+chăm chỉ|hard working, diligent
+chúng tôi|we, us
+có|to have
+dạy|to teach
+dễ|easy
+đại học|university
+đăng ký|to register
+đâu|where
+để|in order to, to
+đến|to come, to arrive
+đi học|to go to school
+đông|crowded, many
+đúng|correct
+học|to study
+học viên|learner
+khó|difficult
+khoa|department
+khoa học|science
+lớp|class
+mấy|how many
+năm|year
+nhân văn|humanity
+nhiều|plenty of, many
+nhưng|but
+nổi tiếng|famous
+ở|at, in
+ở đó|there
+số|number
+tháng|month
+thành phố|city
+thích|to like
+thú vị|interesting, fun
+thư ký|secretary
+tiếng|language
+tiếng Việt|Vietnamese language
+trong|in
+trước đây|before
+trường|school
+xã hội|social, society`,
+4:`bác sĩ|doctor
+bao nhiêu|how many
+bắt đầu|to start, to begin
+bận|busy
+bệnh viện|hospital
+buổi chiều/chiều|afternoon
+buổi sáng/sáng|morning
+buổi tối/tối|evening
+công việc|work
+công ty|company
+cơ quan|office
+dạo này|these days, lately
+đi làm|to go to work
+giờ/tiếng|hour
+hay|or
+hiện nay|nowadays
+kế toán|accountant
+khoảng|about
+lái xe|to drive
+làm/làm việc|to work
+lắm|very
+luật sư|lawyer
+máy tính|computer
+nấu ăn|to cook
+nội trợ|housewife
+ngày|day
+ngân hàng|bank
+nghề|occupation, profession
+nhà|house
+nhà hàng|restaurant
+nhầm|to mistake, wrong
+nhân viên|employee, staff
+ở|at, in
+phòng|room
+quán cà phê|coffee shop
+quận|district
+siêu thị|supermarket
+sống|to live
+tài xế|driver
+tuần|week
+trưa|noon
+từ|from
+vào|to enter, on
+vất vả|hard`,
+5:`ăn|to eat
+bằng|by
+bây giờ|now
+bia|beer
+bưu điện|post office
+chợ|market
+chúng ta|we, us
+có thể|to be able to
+cuối tuần|weekend
+du khách/khách|visitor
+đài truyền hình|television station
+đặc biệt|special
+đầu tư|to invest
+đẹp|beautiful
+đi dạo|to take a walk
+địa chỉ|address
+đường|street, road
+ga|station
+gần|near
+gia đình|family
+giá|price
+giảm giá|discount
+giỏi|good
+khen|to compliment
+lịch sử|history
+mắc|expensive
+món ăn|dish
+mời|to invite
+mua|to buy
+ngon|delicious
+ngồi|to sit
+Nhà thờ Đức Bà|Notre Dame Cathedral
+nhà sách|bookstore
+nói chuyện|to talk
+nơi|place
+phòng học|classroom
+phố đi bộ|walking street
+phường|ward
+say|drunk
+tham quan|to visit
+tắc xi|taxi
+tối nay|this evening
+tươi|fresh
+uống|to drink
+xa|far
+xe buýt|bus`,
+6:`áo dài|Vietnamese aodai
+bảo tàng|museum
+cà phê|coffee
+chỉ|only, just
+cũ|old
+cùng|same, together
+du lịch|to travel
+đi một vòng|to go around
+đá|ice
+đưa|to take sb to
+giám đốc|director
+giảng viên|instructor
+hiểu|to understand
+khác|other, different
+lịch sử|history
+lý do|reason
+mất|to take
+mong|to expect, to hope
+mở cửa|to open
+ngay|immediately
+nghề nghiệp|occupation, profession
+nhận|to receive
+nhớ|to remember
+như trước|like before
+phát âm|to pronounce
+quán ăn|small restaurant
+rảnh|free time
+sân bay|airport
+sữa|milk
+tất cả|all
+thăm|to visit
+thấy|to think, to feel
+thời gian|time
+thư|letter
+trả lời|to answer
+trễ|late
+trung tâm|centre
+văn phòng|office
+viết|to write
+với|with
+xem|to watch`,
+7:`ăn sáng|to have breakfast
+ăn tối|to have dinner
+ăn trưa|to have lunch
+bài hát|a song
+bài tập|assignment
+bàn ăn|dining-table
+bạn bè|friends
+bạn cùng lớp|classmate
+buồn ngủ|sleepy
+bữa (ăn) sáng|breakfast
+căng tin|cafeteria
+chờ|to wait
+chuẩn bị|to prepare
+đánh răng|to brush teeth
+đêm|night
+đi chơi|to go out
+đi ngủ|to go to sleep
+đi ra ngoài|to go outside
+điện thoại|telephone
+hơi|a little, a bit
+lâu|long time
+lên mạng|to surf internet
+lúc|when
+mang|to bring
+một mình|alone
+nghe|to listen, to hear
+nghỉ hưu|to retire
+nhạc|music
+nhỏ|small
+no|full
+ở nhà|at home
+phim|movie
+qua|through, by
+sử dụng|to use
+sáng nay|this morning
+sau khi|after
+thỉnh thoảng|sometimes
+thường|usually
+thức khuya|to stay up late
+tivi|television
+tin tức|news
+tiệm ăn|small restaurant
+trên|on
+trước khi|before
+xong|to finish`,
+8:`bà ngoại|grandmother
+bao lâu|how long
+bên cạnh|next to
+đầu tiên|first time
+đơn|application, form
+giải thích|to explain
+hội thoại|dialogue
+ít|rare, few
+khi|when
+kém|bad
+kinh nghiệm|experience
+lo/lo lắng|to worry
+lỗi|mistake
+luyện|to practice
+mẹ|mother
+một chút|a little bit, a moment
+năm sau|next year
+Nga|Russia
+ngại|afraid
+ngạc nhiên|to surprise
+nghĩa|meaning
+nhỏ tuổi|young
+nhau|each other, together
+nói|to speak
+ở đây|here
+phiên dịch|interpreter
+quen|to be familiar
+rẻ|cheap
+rửa mặt|to wash face
+sai|incorrect
+tác giả|writer, author
+tại|at, in
+tập thể dục|to do/take exercise
+Tây Ban Nha|Spain
+thử|to try
+tuổi|age
+từ|word
+từ từ|gradually
+tự tin|self confidence
+từng|used to
+vắng khách|empty
+Ý|Italia
+ý kiến|opinion`,
+9:`ba mẹ/bố mẹ|parents
+bao giờ|when
+bình thường|normal
+cảm thấy/thấy|to feel
+chủ nhật|sunday
+chúc mừng|to congratulate
+cuối tuần|weekend
+dọn dẹp|to clean
+đặt|to book
+đầu (tuần)|at the beginning (week)
+đi công tác|to go on a business trip
+định|to intend
+gần|nearly, about
+gọi điện thoại|to call
+hẹn|to make an appointment
+khách hàng|customer
+khó tính|hard to please
+lúc đó|at that time
+máy bay|airplane
+muộn/trễ|late
+mời|to invite
+này|this
+nhanh|fast, quickly
+nhớ|to remember
+rảnh|free time
+sau|next
+sinh|to be born
+sinh nhật|birthday
+tháng 6|june
+tháng 8|august
+thứ ba|tuesday
+thứ bảy|saturday
+thứ hai|monday
+thứ năm|thursday
+thứ sáu|friday
+trở lại|to return, to go back
+trước|last, ago
+tuần này|this week
+tuần sau|next week
+tuần trước|last week
+từ|since, from
+vào|on, in
+vé|ticket
+vui/vui vẻ|happy
+xe lửa|train`,
+10:`anh/anh trai|older brother
+anh cả|oldest brother
+bà ngoại|grandmother
+bạn thân|best friend
+chị/chị gái|older sister
+chị cả|oldest sister
+chồng|husband
+cả|oldest
+con|child, children
+con một|only child
+con gái|daughter
+con trai|son
+còn|still, and
+công viên|park
+cùng|together, same
+cùng tuổi|same age
+đặc biệt|special
+đi bộ|to walk
+đói|hungry
+đón|to pick up
+độc thân|unmarried
+em gái|younger sister
+em trai|younger brother
+gia đình|family
+giúp|to help
+họ hàng|relatives
+hoa|flower
+học sinh|student, pupil
+kết hôn/lập gia đình|to marry
+lớn hơn|older
+mất|to pass away, to die
+mọi người|everybody
+nấu/nấu ăn|to cook
+ngày nghỉ|day off
+nhỏ hơn|younger
+ông bà|grandparents
+quê|hometown
+tặng|to give, to offer
+thành viên|member
+thứ hai|second
+tranh|painting
+út|youngest
+vẫn|still
+vẽ|to draw
+về hưu/nghỉ hưu|to retire
+vợ|wife`,
+11:`bằng|by
+bất tiện|inconvenient
+bến xe|station
+cẩn thận|careful
+chậm|slowly
+chở|to give sb a ride
+đến|to arrive, to come
+đối với|for
+đúng giờ|on time, punctual
+đường phố|streets
+ga|station
+ghế|chair
+giao thông|traffic
+hàng ngày|every day
+hư|broken, out of work
+kẹt xe|traffic jam
+khứ hồi|two-way
+lên (xe buýt)|to get on (the bus)
+một chiều|one-way
+mưa|rain
+ngại|afraid
+nguy hiểm|dangerous
+người lái xe|driver
+người ta|they, people
+phần trăm|percent
+phức tạp|complicated
+phương tiện|means
+quen|to be familiar
+thân thiện|friendly
+thuê|to rent
+tiện/tiện lợi|convenient
+trạm (xe buýt)|(bus) stop
+tuy nhiên|however
+tự do|freedom
+vì vậy|therefore
+xe buýt|bus
+xe đạp|bicycle
+xe đạp điện|electric bicycle
+xe điện|electric train
+xe điện ngầm|subway
+xe máy|motorbike
+xe khách|coach bus
+xe ôm|motorbike taxi`,
+12:`bao xa|how far
+bữa sáng|breakfast
+câu|sentence
+cây số|kilometer
+chắc hẳn|must be
+chơi|to play
+có thể|may, to be able to
+công việc|work, job
+cũ|old
+cuối (năm)|end of (year)
+đầu tiên|first time
+dịp|occasion
+dừng|to stop
+hình|picture
+hơn|more than, older
+khả năng|ability
+lần|time
+năm trước|last year
+nghĩ|to think
+nghỉ hè|summer vacation
+(dọn dẹp) nhà cửa|(to clean) house
+(nghĩ) rằng|(think) that
+sáng sớm|early morning
+sinh hoạt|activity
+sử dụng|to use
+thời gian|time
+thư viện|library
+trái cây|fruit
+trước khi|before
+vắng|empty
+về|about
+vừa rồi|last, recent
+xe cộ|vehicle
+yên tĩnh|quiet`,
+};
+/* 교재 영어 뜻(원본 a3f3653). 시험지 '뜻→베트남어' 문제 프롬프트용. 단원+단어로 매칭. */
+const ENG_MAP = {};
+Object.keys(ENG_RAW).forEach(L=>{ ENG_RAW[L].trim().split("\n").forEach(line=>{ const i=line.indexOf("|"); if(i>0) ENG_MAP[L+"||"+norm(line.slice(0,i).trim())] = line.slice(i+1).trim(); }); });
+
 
 /* 예문(문장) — 교재 Lesson 1~2 기반 베트남어 문장 + 한국어 뜻 (인사·소개·이름·국적·3인칭). 진도 나가면 한 줄에 "베트남어|한국어" 형식으로 추가하면 됩니다. */
 const SENTENCES = `Chào chị.|안녕하세요. (손위 여성에게)
@@ -1205,7 +1707,7 @@ function buildWords(){
       line = line.trim(); if(!line) return;
       const i = line.indexOf("|"); if(i<0) return;
       const vn = line.slice(0,i).trim(), en = line.slice(i+1).trim();
-      if(vn && en) WORDS.push({id:id++, lesson:Number(L), vn, en});
+      if(vn && en) WORDS.push({id:id++, lesson:Number(L), vn, en, eng: ENG_MAP[L+"||"+norm(vn)] || ""});
     });
   });
   lsGet("_custom", []).forEach(c=>{
@@ -2298,10 +2800,11 @@ function genPaper(bump){
   const qs = [];
   for(const w of pool){
     let d = P.dir==="random" ? (Math.random()<.5?"vn2en":"en2vn") : P.dir;
-    let prompt = d==="vn2en" ? w.vn : w.en;
+    const meaning = w.eng || w.en;   // 시험지 '뜻→베트남어'(en2vn)는 교재 영어 뜻(없으면 한국어). '베→뜻'(vn2en)은 한국어 유지
+    let prompt = d==="vn2en" ? w.vn : meaning;
     if(seenPrompt.has(lc(prompt))){
       const d2 = d==="vn2en" ? "en2vn" : "vn2en";
-      const p2 = d2==="vn2en" ? w.vn : w.en;
+      const p2 = d2==="vn2en" ? w.vn : meaning;
       if(P.dir==="random" && !seenPrompt.has(lc(p2))){ d=d2; prompt=p2; }  // 반대 방향으로 회피
       else continue;                                                        // 그래도 겹치면 제외
     }
@@ -2474,7 +2977,7 @@ view.addEventListener("click", e=>{
    ========================================================= */
 buildWords();
 seedNote();
-lessonsList().filter(l=>l!=="custom").forEach(l=>state.lessons.add(l));   // 앱 시작 시 1회만 전체 선택(이후 '전체 해제'가 유지되도록)
+// 앱 시작 시 단원은 '전체 해제' 상태(아무 것도 선택 안 됨) — 시험지·홈 모두. 사용자가 필요한 단원만 골라 씀(사용자 요청 2026-07-03)
 state.rStart = 0; state.rEnd = WORDS.length-1;
 goHome();
 bindZoom(); applyZoom();
