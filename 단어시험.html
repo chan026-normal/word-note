@@ -843,7 +843,49 @@ phố|거리, 시가
 chưa|아직 ~않다
 chưa biết|아직 모른다
 tức là|즉, 다시 말해
-đã|~했다 (과거·완료)`
+đã|~했다 (과거·완료)`,
+14:`công an|공안, 경찰
+cảnh sát|경찰
+y tá|간호사
+kỹ sư|엔지니어, 기술자
+nông dân|농부
+đầu bếp|요리사, 셰프
+công nhân|(공장) 노동자, 근로자
+nhân viên văn phòng|사무직 직원
+lính cứu hỏa|소방관
+trường đại học|대학교
+buổi sáng|아침
+buổi trưa|점심때, 정오
+buổi chiều|오후
+buổi tối|저녁
+ban đêm|밤에, 야간
+nửa đêm|자정, 한밤중
+giây|초
+phút|분
+giờ|시간
+quý|분기(3개월)
+thập kỷ|10년
+thế kỷ|세기(100년)
+thiên niên kỷ|천 년
+rưỡi|반(30분)
+rỗi|한가하다
+chán|지루하다, 재미없다
+lười biếng|게으르다
+ghét|싫어하다
+nhàn hạ|편안하다, 여유롭다
+thức dậy|일어나다, 기상하다
+tắm|샤워하다, 씻다
+thay quần áo|옷을 갈아입다
+làm việc|일하다
+gặp bạn|친구를 만나다
+đi mua sắm|쇼핑하러 가다
+nghỉ ngơi|쉬다, 휴식하다
+gà rán|프라이드치킨
+măng cụt|망고스틴
+khá tốt|꽤 잘한다
+không tốt lắm|그다지 잘하지 못한다
+một ít|조금 (안다)
+không biết|모른다`
 };
 const ENG_RAW = {
 1:`anh|you
@@ -1736,7 +1778,7 @@ function lessonsList(){
   if(WORDS.some(w=>w.lesson==="custom")) nums.push("custom");
   return nums;
 }
-const LESSON_NAMES = { 13: "오늘 배운 ★" };
+const LESSON_NAMES = { 13: "오늘 배운 ★", 14: "7/2 복습" };
 const lessonLabel = l => l==="custom" ? "내 단어" : (typeof l==="number" ? (LESSON_NAMES[l] || ("Lesson "+l)) : l);
 
 /* =========================================================
