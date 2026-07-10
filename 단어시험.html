@@ -2143,11 +2143,27 @@ function checkVnAny(promptKo, expectedVn, input){
 }
 function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+/* ---------- 발음(TTS) 음성·속도 ---------- */
+let VOICES = [];
+function loadVoices(){ try{ VOICES = (window.speechSynthesis && speechSynthesis.getVoices()) || []; }catch(e){ VOICES = []; } }
+function viVoices(){ return VOICES.filter(v => (v.lang||"").toLowerCase().replace("_","-").startsWith("vi")); }
+function ttsRate(){ const r = Number(lsGet("_rate", 0.9)); return (r>=0.5 && r<=2) ? r : 0.9; }
+/* 베트남어일 때만 사용자가 고른 음성(없으면 '향상된' 우선) 적용. 한국어 등은 OS 기본 음성 사용 */
+function pickedVoice(lang){
+  if(!(lang||"").toLowerCase().startsWith("vi")) return null;
+  const vs = viVoices(); if(!vs.length) return null;
+  const uri = lsGet("_voiceURI","");
+  if(uri){ const f = vs.find(v=>v.voiceURI===uri); if(f) return f; }
+  return vs.find(v=>/enhanced|premium|neural|natural|nâng cao/i.test(v.name)) || vs[0];
+}
+if(window.speechSynthesis){ loadVoices(); try{ speechSynthesis.onvoiceschanged = loadVoices; }catch(e){} }
 function speak(text, lang){
   try{
     if(!window.speechSynthesis) return;
+    if(!VOICES.length) loadVoices();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang || "en-US"; u.rate = .9;
+    u.lang = lang || "en-US"; u.rate = ttsRate();
+    const v = pickedVoice(lang); if(v){ u.voice = v; u.lang = v.lang; }
     speechSynthesis.cancel(); speechSynthesis.speak(u);
   }catch(e){}
 }
@@ -2288,7 +2304,10 @@ function renderHome(){
       <button class="btn soft" data-action="goList"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 단어장 보기</button>
       <button class="btn soft" data-action="goAdd"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-plus'/></svg> 단어 추가</button>
     </div>
-    <button class="btn line" data-action="goTelex" style="margin-top:10px"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-keyboard'/></svg> 베트남어 타자(Telex)</button>
+    <div class="secrow">
+      <button class="btn line" data-action="goTelex"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-keyboard'/></svg> 베트남어 타자(Telex)</button>
+      <button class="btn line" data-action="goVoice"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 발음(소리) 설정</button>
+    </div>
     <div class="center" style="margin-top:18px">
       <button class="link" data-action="goBackup" style="color:var(--muted);font-size:12.5px;font-weight:600"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> 백업 / 복원 (기기 옮길 때만)</button>
     </div>
@@ -2855,6 +2874,49 @@ function renderBackup(){
 }
 
 /* ---------- 베트남어 타자(Telex) 도움말 ---------- */
+/* ---------- 발음(소리) 설정 화면 ---------- */
+const TTS_SAMPLE = "Tôi có thể nói tiếng Việt.";
+function goVoice(){ loadVoices(); renderVoice(); }
+function renderVoice(){
+  state.screen="voice";
+  const vs = viVoices();
+  const curURI = lsGet("_voiceURI","");
+  const rate = ttsRate();
+  const now = pickedVoice("vi-VN");
+  const voiceRows = vs.length
+    ? vs.map(v=>`<button class="chip ${curURI && v.voiceURI===curURI ? "on":""}" data-action="pickVoice" data-uri="${esc(v.voiceURI)}">${esc(v.name)} <small>${esc(v.lang)}${v.localService===false?" · 온라인":""}</small></button>`).join("")
+    : `<div class="muted tiny">이 기기에 설치된 <b>베트남어 음성</b>을 찾지 못했어요. 아래 안내로 음성을 설치한 뒤 이 화면을 다시 열어주세요. (그 전까지는 기기 기본 음성으로 읽어요)</div>`;
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 발음(소리) 설정</h2>
+      <div class="muted tiny" style="margin-top:-4px">듣기·발음 버튼이 읽어주는 <b>목소리</b>와 <b>속도</b>를 정해요. 기기에 깔린 베트남어 음성을 사용해요.</div>
+    </div>
+    <div class="card">
+      <h2>목소리</h2>
+      <div class="row">
+        <button class="chip ${curURI?"":"on"}" data-action="pickVoice" data-uri="">기본(자동)</button>
+        ${voiceRows}
+      </div>
+      <div class="muted tiny" style="margin-top:8px">지금 읽는 목소리: <b>${now?esc(now.name):"(기기 기본)"}</b></div>
+    </div>
+    <div class="card">
+      <h2>속도</h2>
+      <input type="range" id="rateRange" min="0.6" max="1.3" step="0.05" value="${rate}" style="width:100%;accent-color:var(--brand)">
+      <div class="muted tiny" style="margin-top:6px">느리게 ← <b id="rateLbl">${rate.toFixed(2)}배</b> → 빠르게</div>
+    </div>
+    <button class="btn lg" data-action="testVoice"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 테스트 듣기 — "${esc(TTS_SAMPLE)}"</button>
+    <div class="card" style="margin-top:12px">
+      <h2>발음이 어색하면 (더 좋은 음성 설치)</h2>
+      <div class="muted tiny" style="line-height:1.7">
+        <b>아이폰</b>: 설정 → 손쉬운 사용 → 읽어주기 콘텐츠 → 음성 → 베트남어 → <b>'향상된/프리미엄'</b> 다운로드<br>
+        <b>안드로이드</b>: 설정 → 언어 → 음성 출력(TTS) → Google 음성 선택 + <b>베트남어</b> 데이터 설치
+      </div>
+    </div>
+  `);
+  const rr=document.getElementById("rateRange"), rl=document.getElementById("rateLbl");
+  if(rr){ rr.addEventListener("input", ()=>{ const v=Number(rr.value)||0.9; lsSet("_rate", v); if(rl) rl.textContent=v.toFixed(2)+"배"; }); }
+}
 function goTelex(){ renderTelex(); }
 function renderTelex(){
   state.screen="telex";
@@ -3494,7 +3556,9 @@ const actions = {
   pickAll:()=>{ L.pick=new Set(lessonsList()); renderList(); },
   pickClear:()=>{ L.pick.clear(); renderList(); },
   delWord:(el)=>delWord(el.dataset.i),
-  goNote, startNote, goSent, startSent, goBackup, goTelex, copyExport, downloadExport,
+  goNote, startNote, goSent, startSent, goBackup, goTelex, goVoice, copyExport, downloadExport,
+  pickVoice:(el)=>{ lsSet("_voiceURI", el.dataset.uri||""); renderVoice(); speak(TTS_SAMPLE,"vi-VN"); },
+  testVoice:()=>{ speak(TTS_SAMPLE,"vi-VN"); },
   sentLesson:(el)=>{ state.sentLesson=Number(el.dataset.l); renderSentSetup(); },
   sentDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderSentSetup(); },
   doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },

@@ -52,6 +52,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 백업/복원: `exportData()`, `importBackup()`(합치기/중복제외), `renderBackup()`.
 - Telex 도움말: `renderTelex()`.
 - 기타: `renderHome()`, `renderList()`(단어장), `renderAdd()`(단어추가), `renderFlash()`(플래시카드), `selectionBlockHTML()`(단원/범위 공용), `speak()`(🔊 Web Speech: 베=vi-VN, 한=ko-KR).
+- **발음(소리) 설정**(2026-07-10): `renderVoice`/`goVoice`(홈 하단 '발음(소리) 설정' 버튼). 앱은 자체 발음엔진 없음 — **기기 내장 TTS**(Web Speech)를 씀. 기기 vi 음성 목록(`viVoices`=`VOICES` 중 lang이 vi)에서 **음성 선택**(LS `_voiceURI`, 미선택 시 enhanced/premium/neural/natural 이름 우선=`pickedVoice`)+**속도 조절**(LS `_rate`, 슬라이더 0.6~1.3배=`ttsRate`, 기본 0.9). `speak`가 **베트남어일 때만** 선택 음성 적용(한국어 등은 OS 기본). `loadVoices`+`onvoiceschanged`로 목록 로드. 액션 `pickVoice`(선택 저장+미리듣기)·`testVoice`(샘플 "Tôi có thể nói tiếng Việt." 재생). 하노이/호치민 억양은 기기 음성이 결정(대개 북부 표준).
 - 클릭 처리: 하단 `actions` 맵 + `view.addEventListener("click", ...)` (data-action 위임).
 
 ## 6. 자주 하는 변경
@@ -76,6 +77,8 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - 사용자는 비개발자 → 기술은 쉬운 비유로 설명. 한국어로 소통.
 
 ## 9. 현재 상태 & 미해결 (2026-07-10 세션)
+
+- **2026-07-10 (Cowork — 발음 음성 선택 + 속도 조절)**: 사용자 질문("발음 기반이 뭔지, 하노이/호치민?, có thể의 có가 안 올라감")→설명 후 개선 요청. 앱은 자체 발음 없이 **기기 내장 TTS(vi-VN)** 재생일 뿐(`speak`에 특정 음성·속도 지정 없던 걸 보강). **음성 선택 + 속도 조절** 추가: `speak`가 `pickedVoice`(vi 음성 중 사용자 선택 `_voiceURI`, 없으면 enhanced 우선)+`ttsRate`(`_rate` 0.6~1.3, 기본 0.9) 반영, 베트남어일 때만 음성 적용. 새 화면 `renderVoice`/`goVoice`(홈 '발음(소리) 설정'): vi 음성 목록 칩·속도 슬라이더·"테스트 듣기"·기기별 향상된 음성 설치 안내. 액션 `pickVoice`/`testVoice`, `loadVoices`+`onvoiceschanged`. jsdom(음성 모킹) 검증: viVoices 필터·enhanced 자동우선·speak가 voice/rate 반영·한국어 미적용·pick 저장/복귀·화면/홈버튼·기존 회귀0. (섹션5 발음 항목 참고.) 'có 안 올라감'은 성조는 맞고 기본음성 성조폭·rate 0.9·연접 탓 → 향상된 음성/속도 1.0로 완화 가능.
 
 - **2026-07-10 (Cowork — 듣기를 '베트남어 받아쓰기'로 개편 + 문장 받아쓰기)**: 사용자 요청. 기존 듣기(베트남어 듣고 **한국어 뜻** 입력)를 **소리만 듣고 들은 베트남어를 그대로 쓰기**로 바꿈. 듣기 설정에 **단어/문장 토글**(`state.listenKind`, 문장은 문장단원 칩), **방향 선택 제거**(받아쓰기 고정). 문제=`{dir:'listen',dictation:true,prompt=answer=vn,meaning=en}`(`listenWordQ`/`listenSentQ`/`startListenSent`). 단어채점 `checkVnTyped`(성조까지, 그 단어만; 성조만 틀리면 "철자는 맞음" 안내), 문장채점 `sentMatch` 관대+자가채점. 정답공개 시 **뜻(한국어)** 표시. 오답재시도 `rebuildQ`로 받아쓰기 복원. jsdom 검증: 부팅 무오류·단어/문장 큐(dictation·prompt=answer=vn)·성조 toneOnly·기존 쓰기/읽기 방향 유지·홈 부팅. (섹션5 듣기 항목도 갱신.) ⚠️ 샌드박스 크롬 없어 스샷 미실행 → 실제 화면은 사용자 확인. push는 맥 Claude Code.
 
