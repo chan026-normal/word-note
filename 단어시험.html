@@ -2161,7 +2161,7 @@ const DIRLABEL = { vn2en:"🇻🇳 베트남어 → 🇰🇷 한국어", en2vn:"
 /* 4영역(읽기·듣기·쓰기·말하기) + 보조(실전·플래시) 정의 */
 const SKILLS = {
   read:  {label:"읽기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg>", mode:"read",   dir:"vn2en",  count:true,  tag:"읽기 연습",      cardDesc:"베트남어 읽고<br>뜻 확인",          desc:"베트남어를 소리 내어 읽고, '뜻 보기'로 뜻을 확인해요. (입력 없이 읽는 연습)"},
-  listen:{label:"듣기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg>", mode:"listen", dir:"vn2en",  count:true,  tag:"받아쓰기",     cardDesc:"소리만 듣고<br>맞히기",          desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 소리를 듣고 답을 입력해요. 아래에서 방향을 골라요. (글자는 가려져요)"},
+  listen:{label:"듣기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg>", mode:"listen", dir:"vn2en",  count:true,  tag:"받아쓰기",     cardDesc:"소리 듣고<br>베트남어 쓰기",       desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 베트남어 소리를 듣고 그대로 받아써요. 단어·문장을 고를 수 있어요. (성조까지 정확히!)"},
   write: {label:"쓰기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg>", mode:"type",   dir:"en2vn",  count:true,  tag:"한 ↔ 베",      cardDesc:"뜻 보고<br>베트남어 쓰기",          desc:"한국어 뜻을 보고 베트남어를 직접 입력해요. 아래에서 방향(한→베·베→한)을 골라요. (성조까지 정확히!)"},
   speak: {label:"말하기", emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-mic'/></svg>", mode:"speak",  dir:"vn2en",  count:true,  tag:"따라 말하기",  cardDesc:"듣고 따라 말한 뒤<br>스스로 체크",  desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 듣고 따라 말한 뒤 스스로 체크해요. 아래에서 방향을 골라요."},
   exam:  {label:"실전 시험", emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg>", mode:"exam", dir:"random", count:false, tag:"단어40+문장10", cardDesc:"단어 40 + 문장 10",              desc:"단어 40개 + 문장 10개를 실제 시험처럼 한 번에 풀어요."},
@@ -2203,7 +2203,8 @@ const state = {
   count: lsGet("_count","all"),
   selMode: lsGet("_selMode","lesson"), // lesson(단원별) | range(번호 범위)
   rStart: 0, rEnd: 0,            // 범위 지정 시 전체순서(gi) 기준 시작/끝
-  skill: lsGet("_skill","read")  // read | listen | write | speak | exam | flash (홈에서 고른 영역)
+  skill: lsGet("_skill","read"),  // read | listen | write | speak | exam | flash (홈에서 고른 영역)
+  listenKind: lsGet("_lkind","word")   // 듣기(받아쓰기): word(단어) | sent(문장)
 };
 
 /* ---------- 홈 ---------- */
@@ -2309,7 +2310,9 @@ function goSkill(skill){ state.skill=skill; lsSet("_skill",skill); const sd=(SKI
 function renderSetup(){
   state.screen="setup";
   const s=SKILLS[state.skill];
-  const showDir = state.skill!=="exam" && state.skill!=="read";   // 실전시험·읽기(베→한 고정)만 방향 선택 없음. 쓰기·듣기·말하기는 방향 선택
+  const isListen = state.skill==="listen";
+  const listenSent = isListen && state.listenKind==="sent";   // 듣기: 문장 받아쓰기
+  const showDir = state.skill!=="exam" && state.skill!=="read" && !isListen;   // 실전·읽기·듣기는 방향 선택 없음 (듣기는 베트남어 받아쓰기로 고정)
   const dirSeg = showDir ? `
     <div class="card">
       <h2>방향</h2>
@@ -2319,6 +2322,22 @@ function renderSetup(){
         <button class="${state.dir==="random"?"on":""}" data-action="setupDir" data-v="random">랜덤<span class="desc">섞어서</span></button>
       </div>
     </div>`:"";
+  // 듣기: 단어/문장 받아쓰기 선택
+  const kindSeg = isListen ? `
+    <div class="card">
+      <h2>무엇을 받아쓸까요?</h2>
+      <div class="seg">
+        <button class="${state.listenKind==="word"?"on":""}" data-action="listenKind" data-v="word">단어<span class="desc">단어 듣고 쓰기</span></button>
+        <button class="${state.listenKind==="sent"?"on":""}" data-action="listenKind" data-v="sent">문장<span class="desc">문장 듣고 쓰기</span></button>
+      </div>
+    </div>`:"";
+  // 범위: 문장 받아쓰기면 문장 단원 칩, 아니면 단어 범위 선택
+  const curSent = state.sentLesson || sentLessons()[0];
+  const rangeCard = listenSent
+    ? `<div class="card"><h2>① 단원 (문장)</h2>
+         <div class="row">${sentLessons().map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="listenSentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
+       </div>`
+    : `<div class="card"><h2>① 공부할 범위</h2>${selectionBlockHTML(true)}</div>`;
   const countSeg = s.count ? `
     <div class="card">
       <h2>${showDir?"③":"②"} 문제 수</h2>
@@ -2332,10 +2351,8 @@ function renderSetup(){
       <h2>${s.emoji} ${s.label}</h2>
       <div class="muted tiny" style="margin-top:-4px">${s.desc}</div>
     </div>
-    <div class="card">
-      <h2>① 공부할 범위</h2>
-      ${selectionBlockHTML(true)}
-    </div>
+    ${kindSeg}
+    ${rangeCard}
     ${dirSeg}
     ${countSeg}
     <button class="btn lg" data-action="startSkill">${s.emoji} ${s.label} 시작하기</button>
@@ -2346,6 +2363,17 @@ function startSkill(){
   const s=SKILLS[state.skill];
   state.mode=s.mode;
   if(state.skill==="exam") state.dir="random";   // 실전시험만 랜덤 고정, 나머지는 setup에서 고른 방향 사용
+  // 듣기 = 받아쓰기(소리 듣고 베트남어 그대로 쓰기): 단어 또는 문장
+  if(state.skill==="listen"){
+    if(state.listenKind==="sent"){ startListenSent(); return; }
+    const pool=poolSelected();
+    if(pool.length===0){ alert("먼저 ① 에서 공부할 범위를 한 개 이상 골라주세요."); return; }
+    let q=shuffle(pool);
+    if(state.count!=="all") q=q.slice(0, Math.min(Number(state.count), q.length));
+    Q.queue=q.map(w=>listenWordQ(w));
+    Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null;
+    setupQ(); renderQuiz(); return;
+  }
   const pool=poolSelected();
   if(pool.length===0){ alert("먼저 ① 에서 공부할 범위를 한 개 이상 골라주세요."); return; }
   if(s.mode==="flash"){ startFlash(pool); return; }
@@ -2354,6 +2382,20 @@ function startSkill(){
   let q=shuffle(pool);
   if(state.count!=="all") q=q.slice(0, Math.min(Number(state.count), q.length));
   Q.queue=q.map(w=>makeQ(w, dirOf(state.dir)));
+  Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null;
+  setupQ(); renderQuiz();
+}
+/* 받아쓰기 문제: 소리=베트남어, 답=베트남어, 뜻(en)은 정답 공개 때만 보여줌 */
+function listenWordQ(w){ return { type:"word", word:w, dir:"listen", dictation:true, prompt:w.vn, answer:w.vn, meaning:w.en }; }
+function listenSentQ(x, lbl){ return { type:"sentence", word:{vn:x.vn, en:x.en, lesson:lbl}, dir:"listen", dictation:true, prompt:x.vn, answer:x.vn, meaning:x.en }; }
+function startListenSent(){
+  const l = state.sentLesson || sentLessons()[0];
+  const pool = SENT_BY_LESSON[l]||[];
+  if(!pool.length){ alert("이 단원에 문장이 없어요."); return; }
+  state.mode="listen";
+  let q=shuffle(pool);
+  if(state.count!=="all") q=q.slice(0, Math.min(Number(state.count), q.length));
+  Q.queue=q.map(x=>listenSentQ(x, "L"+l+" 문장"));
   Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null;
   setupQ(); renderQuiz();
 }
@@ -2435,8 +2477,8 @@ function renderQuiz(){
   const isListen = state.mode==="listen";
   const isRead = state.mode==="read";
   const kind = state.mode==="mc" ? "mc" : (isRead ? "read" : (isSent ? "sent" : "word"));
-  const promptLang = q.dir==="vn2en" ? "vi-VN" : "ko-KR";
-  const ansLang = q.dir==="vn2en" ? "ko-KR" : "vi-VN";
+  const promptLang = (q.dir==="vn2en" || q.dictation) ? "vi-VN" : "ko-KR";   // 받아쓰기는 소리=베트남어
+  const ansLang = q.dictation ? "vi-VN" : (q.dir==="vn2en" ? "ko-KR" : "vi-VN");
 
   // 진행 라벨 (실전시험이면 단어/문장 구분)
   let counter = `문제 ${Q.idx+1} / ${n}`;
@@ -2451,7 +2493,7 @@ function renderQuiz(){
   const subText = isRead
     ? (Q.revealed ? "뜻을 확인하세요" : "소리 내어 읽고, 뜻을 떠올려 보세요")
     : isListen
-    ? (Q.answered ? "" : (q.dir==="vn2en" ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 잘 듣고, 한국어 뜻을 입력하세요" : "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 잘 듣고, 베트남어를 입력하세요"))
+    ? (Q.answered ? "" : (isSent ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 잘 듣고, 베트남어 문장을 그대로 적으세요" : "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 잘 듣고, 들은 베트남어를 적으세요"))
     : isSent
     ? (q.dir==="vn2en" ? "이 문장을 한국어로 번역하세요" : "이 문장을 베트남어로 번역하세요")
     : (q.dir==="vn2en" ? "이 단어의 한국어 뜻은?" : "이 뜻의 베트남어 단어는?");
@@ -2476,8 +2518,9 @@ function renderQuiz(){
       ${!Q.answered?`<button class="btn" style="margin-top:12px" data-action="check">확인</button>`:""}`;
     if(Q.answered){
       const head = Q.lastOk ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 정답이에요!" : (Q.toneOnly ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg> 성조가 틀려요 (철자는 맞아요!)" : "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-x'/></svg> 아쉬워요");
+      const meaningLine = (q.dictation && q.meaning) ? `<div class="promptsub" style="margin-top:8px">뜻: <b>${esc(q.meaning)}</b></div>` : "";
       fb = `<div class="feedback ${Q.lastOk?"ok":"no"}">${head}
-        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${nextBtn}`;
+        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${meaningLine}${nextBtn}`;
     }
   } else if(kind==="read"){   // 읽기: 입력 없이 읽고 '뜻 보기'로 확인
     if(!Q.revealed){
@@ -2492,11 +2535,13 @@ function renderQuiz(){
         </div>`;
     }
   } else { // 문장 번역 (타자 입력 → 자동채점 + 자가채점 보완)
-    const modelBlock = `<div class="feedback ok"><span style="font-weight:700">모범 번역</span>
-        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>`;
+    const modelLabel = q.dictation ? "정답 문장" : "모범 번역";
+    const sentMeaning = (q.dictation && q.meaning) ? `<div class="promptsub" style="margin-top:6px">뜻: <b>${esc(q.meaning)}</b></div>` : "";
+    const modelBlock = `<div class="feedback ok"><span style="font-weight:700">${modelLabel}</span>
+        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${sentMeaning}`;
     const myBlock = Q.typed ? `<div class="mycmp"><b>내 답</b>${esc(Q.typed)}</div>` : "";
     if(!Q.revealed && !Q.answered){
-      body = `<textarea class="answer" id="sentInput" rows="2" placeholder="${q.dir==="vn2en"?"한국어 번역을 입력하세요":"베트남어 번역을 입력하세요"}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">${esc(Q.typed||"")}</textarea>
+      body = `<textarea class="answer" id="sentInput" rows="2" placeholder="${q.dictation?"들은 베트남어 문장을 그대로 적으세요":(q.dir==="vn2en"?"한국어 번역을 입력하세요":"베트남어 번역을 입력하세요")}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">${esc(Q.typed||"")}</textarea>
         <div class="btn2" style="margin-top:12px"><button class="btn soft" data-action="revealSent"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg> 모르겠어요 / 모범답안</button><button class="btn" data-action="checkSent"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 채점하기</button></div>`;
     } else if(Q.answered && Q.autoOk){   // 자동 정답
       fb = `<div class="feedback ok"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 정답이에요!</div>${myBlock}${modelBlock}${nextBtn}`;
@@ -2510,11 +2555,11 @@ function renderQuiz(){
     }
   }
 
-  const dirTagHTML = isListen ? `<span class="dirtag"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> 듣기 · 소리만 듣고 맞히기</span>` : isRead ? `<span class="dirtag"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg> 읽기 · 베트남어 읽고 뜻 확인</span>` : `<span class="dirtag">${DIRLABEL[q.dir]}</span>`;
-  const promptBlock = (isListen && !Q.answered)
+  const dirTagHTML = isListen ? `<span class="dirtag"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> 듣기 · 받아쓰기 (베트남어로 적기)</span>` : isRead ? `<span class="dirtag"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg> 읽기 · 베트남어 읽고 뜻 확인</span>` : `<span class="dirtag">${DIRLABEL[q.dir]}</span>`;
+  const promptBlock = (isListen && !Q.answered && !Q.revealed)
     ? `<div class="listenbox">
          <button class="bigspk" data-action="speak" data-text="${esc(q.prompt)}" data-lang="${promptLang}" aria-label="다시 듣기"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg></button>
-         <div class="listenhint">${q.dir==="vn2en"?"소리를 듣고 뜻을 적어요":"소리를 듣고 베트남어를 적어요"} · 탭하면 다시 들려요</div>
+         <div class="listenhint">${isSent?"소리를 듣고 베트남어 문장을 적어요":"소리를 듣고 베트남어를 적어요"} · 탭하면 다시 들려요</div>
        </div>`
     : `<div class="prompt${isSent?" sent":""}">${esc(q.prompt)} ${spkBtn(q.prompt, promptLang)}</div>`;
   set(`
@@ -2538,7 +2583,7 @@ function renderQuiz(){
     const si = document.getElementById("sentInput");
     if(si){ si.focus(); si.addEventListener("keydown",e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); e.stopPropagation(); actions.checkSent(); } }); }  // Enter=채점, Shift+Enter=줄바꿈
   }
-  if(isListen && !Q.answered){ setTimeout(()=>speak(q.prompt, promptLang), 300); }
+  if(isListen && !Q.answered && !Q.revealed){ setTimeout(()=>speak(q.prompt, promptLang), 300); }
   if(Q.answered){ document.addEventListener("keydown", onAdvance); }
 }
 function onAdvance(e){ if(e.key==="Enter"){ document.removeEventListener("keydown", onAdvance); next(); } }
@@ -2557,7 +2602,10 @@ function checkTyped(){
   Q.typed = inp ? inp.value : "";
   const q = Q.queue[Q.idx];
   Q.toneOnly = false;
-  if(q.dir==="en2vn"){   // 답이 베트남어 → 성조까지 채점 (같은 뜻의 다른 베트남어도 정답 인정)
+  if(q.dictation){   // 받아쓰기: 들은 베트남어 그대로 (성조까지 채점, 그 단어만 정답)
+    const r = checkVnTyped(q.answer, Q.typed);
+    Q.lastOk = (r==="ok"); Q.toneOnly = (r==="tone");
+  } else if(q.dir==="en2vn"){   // 답이 베트남어 → 성조까지 채점 (같은 뜻의 다른 베트남어도 정답 인정)
     const r = checkVnAny(q.prompt, q.answer, Q.typed);
     Q.lastOk = (r==="ok"); Q.toneOnly = (r==="tone");
   } else {
@@ -2567,7 +2615,7 @@ function checkTyped(){
   if(Q.lastOk){ Q.score++; noteRight(q.word); } else { Q.wrong.push(wrongItem()); noteWrong(q.word); }
   renderQuiz();
 }
-function wrongItem(){ const q=Q.queue[Q.idx]; return {vn:q.word.vn, en:q.word.en, lesson:q.word.lesson, dir:q.dir, type:q.type}; }
+function wrongItem(){ const q=Q.queue[Q.idx]; return {vn:q.word.vn, en:q.word.en, lesson:q.word.lesson, dir:q.dir, type:q.type, dictation:!!q.dictation}; }
 function next(){
   document.removeEventListener("keydown", onAdvance);
   Q.idx++;
@@ -2632,16 +2680,25 @@ function renderResult(){
     <button class="btn soft" style="margin-top:10px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
   `);
 }
+/* 오답 다시풀기: 받아쓰기 문항은 받아쓰기로 복원 */
+function rebuildQ(w){
+  if(w.dictation){
+    return w.type==="sentence" ? listenSentQ({vn:w.vn,en:w.en}, w.lesson) : listenWordQ({vn:w.vn,en:w.en,lesson:w.lesson});
+  }
+  return makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir, w.type);
+}
 function retryWrong(){
-  const items = Q.wrong.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir, w.type));
+  const items = Q.wrong.map(rebuildQ);
   if(!items.length) return goHome();
+  if(items.some(i=>i.dictation)) state.mode="listen";
   if(state.mode==="flash"){ startFlash(items.map(i=>i.word)); return; }
   startQueue(items);
 }
 function retryLast(){
   const lw = lsGet("_wrong", []);
   if(!lw.length) return;
-  const items = lw.map(w=>makeQ({vn:w.vn,en:w.en,lesson:w.lesson}, w.dir, w.type));
+  const items = lw.map(rebuildQ);
+  if(items.some(i=>i.dictation)) state.mode="listen";
   startQueue(items);
 }
 
@@ -3448,6 +3505,8 @@ const actions = {
   starWord:(el)=>{ const w=WORDS.find(x=>x.id===Number(el.dataset.id)); if(!w) return; if(noteHas(w)){ const a=loadNote().filter(e=>noteKey(e)!==noteKey(w)); saveNote(a); } else { noteAdd(w); } renderList(); },
   goSkill:(el)=>goSkill(el.dataset.skill), startSkill,
   setupDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderSetup(); },
+  listenKind:(el)=>{ state.listenKind=el.dataset.v; lsSet("_lkind",state.listenKind); renderSetup(); },
+  listenSentLesson:(el)=>{ state.sentLesson=Number(el.dataset.l); renderSetup(); },
   speakCard:()=>speak(SP.cards[SP.idx].vn,"vi-VN"),
   revealSpeak:()=>{ SP.revealed=true; renderSpeak(); },
   speakAgain:()=>speakAdvance(true),
