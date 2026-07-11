@@ -2611,7 +2611,7 @@ function startQueue(items){ Q.queue=items; Q.idx=0; Q.score=0; Q.wrong=[]; Q.wor
 
 function setupQ(){
   const q = Q.queue[Q.idx];
-  Q.answered=false; Q.picked=null; Q.typed=""; Q.revealed=false; Q.autoOk=false;
+  Q.answered=false; Q.picked=null; Q.typed=""; Q.revealed=false; Q.autoOk=false; Q.toneWarn=false;
   if(state.mode==="mc"){
     const key = q.dir==="vn2en" ? "en" : "vn";
     const pkey = q.dir==="vn2en" ? "vn" : "en";
@@ -2641,12 +2641,31 @@ function levenshtein(a,b){
   }
   return prev[n];
 }
+function sentTokens(s){ return normSent(s).split(" ").filter(Boolean); }
 function sentMatch(typed, answer){
   const a=normSent(typed), b=normSent(answer);
   if(!a) return false;
   if(a===b) return true;
   const sim = 1 - levenshtein(a,b)/Math.max(a.length,b.length,1);
-  return sim >= 0.8;   // 사소한 차이(오타·성조 한둘·문장부호)는 자동 정답
+  if(sim >= 0.8) return true;   // 사소한 차이(오타·성조 한둘·문장부호)는 자동 정답
+  // 어순만 다르거나 불필요어가 붙은 경우: 모범답안의 핵심 단어가 거의 다 들어있으면 자동 정답
+  const at=new Set(sentTokens(a)), bt=sentTokens(b);
+  if(bt.length>=2){
+    const hit=bt.filter(t=>at.has(t)).length;
+    if(hit/bt.length >= 0.85) return true;
+  }
+  return false;
+}
+/* 성조까지 채점 — ok(성조·철자 정확) / tone(글자는 맞는데 성조·dấu만 달라 시험 감점) / no(내용도 다름) */
+function normSentTone(s){ return String(s).toLowerCase().replace(/[.,!?;:'"“”‘’…()\-–]/g," ").replace(/\s+/g," ").trim(); }  /* 성조 유지, 대소문자·부호·띄어쓰기만 무시 */
+function gradeSent(typed, answer){
+  const aT=normSentTone(typed), bT=normSentTone(answer);
+  if(!aT) return "no";
+  if(aT===bT) return "ok";                                          // 성조까지 완전 일치
+  const bTok=bT.split(" ").filter(Boolean), aSet=new Set(aT.split(" ").filter(Boolean));
+  if(bTok.length>=2 && bTok.every(t=>aSet.has(t))) return "ok";     // 정답 단어가 성조까지 다 맞음(어순만 다름)
+  if(sentMatch(typed, answer)) return "tone";                       // 성조 빼면 맞음 → 성조·철자만 다름
+  return "no";
 }
 function renderQuiz(){
   const q = Q.queue[Q.idx], n = Q.queue.length;
@@ -3681,8 +3700,10 @@ const actions = {
   revealRead:()=>{ Q.revealed=true; renderQuiz(); },
   readStar:()=>{ const w=Q.queue[Q.idx].word; if(noteHas(w)){ const a=loadNote().filter(e=>noteKey(e)!==noteKey(w)); saveNote(a); } else { noteAdd(w); } renderQuiz(); },
   checkSent:()=>{ if(Q.answered||Q.revealed) return; const inp=document.getElementById("sentInput"); Q.typed=inp?inp.value.trim():""; const ans=Q.queue[Q.idx].answer;
-    if(Q.typed && sentMatch(Q.typed, ans)){ Q.answered=true; Q.lastOk=true; Q.autoOk=true; Q.score++; noteRight(Q.queue[Q.idx].word); }
-    else { Q.revealed=true; }   // 자동으로 못 맞추면 모범답안 보여주고 스스로 채점
+    const g = Q.typed ? gradeSent(Q.typed, ans) : "no";
+    Q.toneWarn = (g==="tone");
+    if(g==="ok"){ Q.answered=true; Q.lastOk=true; Q.autoOk=true; Q.score++; noteRight(Q.queue[Q.idx].word); }   // 성조까지 맞아야 자동 정답
+    else { Q.revealed=true; }   // ok 아니면(성조 차이 포함) 모범답안 보여주고 자가채점
     renderQuiz(); },
   selfRight:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=true; Q.score++; noteRight(Q.queue[Q.idx].word); renderQuiz(); },
   selfWrong:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=false; Q.wrong.push(wrongItem()); noteWrong(Q.queue[Q.idx].word); renderQuiz(); },
