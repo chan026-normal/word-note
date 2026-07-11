@@ -2166,23 +2166,57 @@ let VOICES = [];
 function loadVoices(){ try{ VOICES = (window.speechSynthesis && speechSynthesis.getVoices()) || []; }catch(e){ VOICES = []; } }
 function viVoices(){ return VOICES.filter(v => (v.lang||"").toLowerCase().replace("_","-").startsWith("vi")); }
 function ttsRate(){ const r = Number(lsGet("_rate", 0.9)); return (r>=0.5 && r<=2) ? r : 0.9; }
-/* 베트남어일 때만 사용자가 고른 음성(없으면 '향상된' 우선) 적용. 한국어 등은 OS 기본 음성 사용 */
+/* 베트남어일 때만 사용자가 고른 음성 적용. 한국어 등은 OS 기본 음성 사용.
+   ⚠️ 자동 선택은 '기기에 설치된(오프라인)' 음성 우선 — 온라인(network) 음성은 버퍼링으로 끊길 수 있음 */
 function pickedVoice(lang){
   if(!(lang||"").toLowerCase().startsWith("vi")) return null;
   const vs = viVoices(); if(!vs.length) return null;
   const uri = lsGet("_voiceURI","");
   if(uri){ const f = vs.find(v=>v.voiceURI===uri); if(f) return f; }
-  return vs.find(v=>/enhanced|premium|neural|natural|nâng cao/i.test(v.name)) || vs[0];
+  const enh = v => /enhanced|premium|neural|natural|nâng cao/i.test(v.name);
+  const local = v => v.localService !== false;
+  return vs.find(v=>local(v) && enh(v)) || vs.find(local) || vs.find(enh) || vs[0];
+}
+/* TTS 전용 발음 교정 — 화면 글자는 그대로 두고 '소리'만 바꿈.
+   베트남어 음성이 외국 이름(한국·영어)을 이상하게 읽는 걸 완화. 필요하면 여기 줄만 추가하면 됨. */
+const TTS_FIX = [
+  [/\bEun\s*Ji\b/gi, "Ưn Chi"],   // 은지
+  [/\bJane\b/gi, "Chên"],          // 제인 — 베트남어 음성이 '자이'로 읽던 것
+];
+function ttsText(text, lang){
+  if(!(lang||"").toLowerCase().startsWith("vi")) return text;   // 베트남어 재생일 때만 교정
+  let t = String(text);
+  TTS_FIX.forEach(([re, rep]) => { t = t.replace(re, rep); });
+  return t;
 }
 if(window.speechSynthesis){ loadVoices(); try{ speechSynthesis.onvoiceschanged = loadVoices; }catch(e){} }
+/* 끊김 방지 2종:
+   ① cancel() 직후 바로 speak()하면 크롬(특히 맥)에서 소리가 씹힘 → 짧게 지연 + 시퀀스 토큰으로 중복 재생 차단
+   ② 크롬은 긴 문장을 도중에 멈추는 버그가 있음 → 재생 중 주기적으로 pause/resume해 깨움 */
+let TTS_KEEP = null, TTS_SEQ = 0;
+function ttsKeepStop(){ if(TTS_KEEP){ clearInterval(TTS_KEEP); TTS_KEEP = null; } }
 function speak(text, lang){
   try{
     if(!window.speechSynthesis) return;
     if(!VOICES.length) loadVoices();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = lang || "en-US"; u.rate = ttsRate();
-    const v = pickedVoice(lang); if(v){ u.voice = v; u.lang = v.lang; }
-    speechSynthesis.cancel(); speechSynthesis.speak(u);
+    ttsKeepStop();
+    speechSynthesis.cancel();
+    const my = ++TTS_SEQ;
+    setTimeout(()=>{
+      if(my !== TTS_SEQ) return;   // 그 사이 새 재생 요청이 왔으면 이 건은 버림(중복·겹침 방지)
+      try{
+        const u = new SpeechSynthesisUtterance(ttsText(text, lang));
+        u.lang = lang || "en-US";
+        u.rate = ttsRate();
+        const v = pickedVoice(lang); if(v){ u.voice = v; u.lang = v.lang; }
+        u.onend = ttsKeepStop; u.onerror = ttsKeepStop;
+        speechSynthesis.speak(u);
+        TTS_KEEP = setInterval(()=>{
+          if(!speechSynthesis.speaking){ ttsKeepStop(); return; }
+          try{ speechSynthesis.pause(); speechSynthesis.resume(); }catch(e){}
+        }, 8000);
+      }catch(e){}
+    }, 80);
   }catch(e){}
 }
 function makeQ(word, dir, type){
