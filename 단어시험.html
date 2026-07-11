@@ -286,6 +286,7 @@
     <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21"/><path d="M9 21h6"/></symbol>
     <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7"/><rect x="8" y="13" width="8" height="7"/></symbol>
     <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="3" y="6.5" width="18" height="11" rx="1.5"/><path d="M6.5 10h.01M10 10h.01M13.5 10h.01M17 10h.01M8 13.5h8"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 21 19H3z"/><path d="M12 10v4"/><path d="M12 16.5h.01"/></symbol>
     <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4 11V9a3 3 0 0 1 3-3h11"/><path d="M15 3l3 3-3 3"/><path d="M20 13v2a3 3 0 0 1-3 3H6"/><path d="M9 21l-3-3 3-3"/></symbol>
     <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9.5 17h5"/><path d="M10 20h4"/><path d="M8 13a5 5 0 1 1 8 0c-.8.9-1 1.6-1 2.5H9c0-.9-.2-1.6-1-2.5z"/></symbol>
@@ -2316,20 +2317,12 @@ function renderHome(){
       <button class="btn soft" data-action="goSkill" data-skill="exam"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg> 실전 시험</button>
       <button class="btn soft" data-action="goSkill" data-skill="flash"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg> 플래시카드</button>
     </div>
-    <button class="btn soft" style="margin-top:10px" data-action="goSent"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 문장 시험 <span style="font-weight:600;opacity:.85">(단원별 회화·예문)</span></button>
 
     <button class="btn accent" style="margin-top:10px" data-action="goPaper"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-printer'/></svg> 시험지 만들기 <span style="font-weight:600;opacity:.85">(인쇄·여럿이 함께)</span></button>
 
     <div class="secrow">
-      <button class="btn soft" data-action="goList"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 단어장 보기</button>
-      <button class="btn soft" data-action="goAdd"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-plus'/></svg> 단어 추가</button>
-    </div>
-    <div class="secrow">
-      <button class="btn line" data-action="goTelex"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-keyboard'/></svg> 베트남어 타자(Telex)</button>
-      <button class="btn line" data-action="goVoice"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 발음(소리) 설정</button>
-    </div>
-    <div class="center" style="margin-top:18px">
-      <button class="link" data-action="goBackup" style="color:var(--muted);font-size:12.5px;font-weight:600"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> 백업 / 복원 (기기 옮길 때만)</button>
+      <button class="btn soft" data-action="goList"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 단어장</button>
+      <button class="btn line" data-action="goSettings"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-gear'/></svg> 설정</button>
     </div>
   `);
 }
@@ -3085,6 +3078,23 @@ function renderBackup(){
   });
 }
 
+/* ---------- 설정 (발음 · 타자 · 백업 모음) ---------- */
+function goSettings(){ renderSettings(); }
+function renderSettings(){
+  state.screen="settings";
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-gear'/></svg> 설정</h2>
+      <div class="muted tiny" style="margin-top:-4px">소리·타자·데이터에 관한 설정이에요.</div>
+    </div>
+    <button class="btn soft" data-action="goVoice"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 발음(소리) 설정 <span style="font-weight:600;opacity:.8">(목소리·속도)</span></button>
+    <button class="btn soft" style="margin-top:10px" data-action="goTelex"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-keyboard'/></svg> 베트남어 타자(Telex) <span style="font-weight:600;opacity:.8">(성조 치는 법)</span></button>
+    <button class="btn soft" style="margin-top:10px" data-action="goBackup"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> 백업 / 복원 <span style="font-weight:600;opacity:.8">(기기 옮길 때 · 데이터 지키기)</span></button>
+    <div class="muted tiny center" style="margin-top:16px">글씨 크기는 화면 맨 위 −/+ 버튼으로 조절해요.</div>
+  `);
+}
+
 /* ---------- 베트남어 타자(Telex) 도움말 ---------- */
 /* ---------- 발음(소리) 설정 화면 ---------- */
 const TTS_SAMPLE = "Tôi có thể nói tiếng Việt.";
@@ -3258,43 +3268,9 @@ function renderSpeakDone(){
   `);
 }
 
-/* ---------- 문장 시험 (단원별) ---------- */
-function goSent(){ if(!state.sentLesson) state.sentLesson = sentLessons()[0]; renderSentSetup(); }
-function renderSentSetup(){
-  state.screen="sentsetup";
-  const lessons = sentLessons();
-  const cur = state.sentLesson || lessons[0];
-  const chips = lessons.map(l=>`<button class="chip ${String(cur)===String(l)?"on":""}" data-action="sentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("");
-  set(`
-    <button class="link" data-action="goHome">← 처음으로</button>
-    <div class="card">
-      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 문장 시험</h2>
-      <div class="muted tiny" style="margin-top:-4px">단원을 고르면 그 단원 문장만 시험 봐요. 번역한 뒤 모범답안과 비교해 <b>스스로 채점</b>해요.</div>
-    </div>
-    <div class="card">
-      <h2>① 단원</h2>
-      <div class="row">${chips}</div>
-    </div>
-    <div class="card">
-      <h2>② 방향</h2>
-      <div class="seg">
-        <button class="${state.dir==="vn2en"?"on":""}" data-action="sentDir" data-v="vn2en">베→한<span class="desc">베트남어 보고</span></button>
-        <button class="${state.dir==="en2vn"?"on":""}" data-action="sentDir" data-v="en2vn">한→베<span class="desc">한국어 보고</span></button>
-        <button class="${state.dir==="random"?"on":""}" data-action="sentDir" data-v="random">랜덤<span class="desc">섞어서</span></button>
-      </div>
-    </div>
-    <button class="btn lg" data-action="startSent"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> Lesson ${cur} 문장 시험 시작 (${(SENT_BY_LESSON[cur]||[]).length}문장)</button>
-  `);
-}
-function startSent(){
-  const l = state.sentLesson || sentLessons()[0];
-  const pool = SENT_BY_LESSON[l]||[];
-  if(!pool.length){ alert("이 단원에 문장이 없어요."); return; }
-  state.mode="type";
-  Q.queue = shuffle(pool).map(s=>makeQ({vn:s.vn, en:s.en, lesson:"L"+l+" 문장"}, dirOf(state.dir), "sentence"));
-  Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null;
-  setupQ(); renderQuiz();
-}
+/* (옛 '문장 시험' 화면은 2026-07-11 삭제 — '쓰기 → 문장'과 완전 중복이라 홈 정리하며 제거.
+    문장 공부는 이제 4영역(읽기·쓰기·듣기·말하기)의 '문장' 토글 = startSentQueue 로 함.
+    ⚠️ state.sentLesson은 startSentQueue/renderSetup에서 계속 쓰므로 유지) */
 
 /* ---------- 단어장 보기 ---------- */
 const L = { lesson:"all", q:"", hide:false, multi:false, pick:new Set() };
@@ -3408,6 +3384,7 @@ function renderList(){
       <div class="row" style="margin-bottom:6px">${chips}</div>
       ${mineHint}
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+        <button class="chip mine" data-action="goAdd"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-plus'/></svg> 단어 추가</button>
         <button class="chip ${L.hide?"on":""}" data-action="toggleHide">${L.hide?"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye-off'/></svg> 뜻 가림 (마우스 올리면 보임)":"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg> 뜻 보임"}</button>
         <button class="chip mine" data-action="exportWord" title="지금 보이는 단어를 Word 문서로 저장"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> Word로 저장</button>
         <button class="chip" data-action="toggleMulti" title="여러 단원을 골라 한 파일로 저장"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-folder'/></svg> 여러 단원 모아 저장</button>
@@ -3770,12 +3747,10 @@ const actions = {
   pickAll:()=>{ L.pick=new Set(lessonsList()); renderList(); },
   pickClear:()=>{ L.pick.clear(); renderList(); },
   delWord:(el)=>delWord(el.dataset.i),
-  goNote, startNote, goSent, startSent, goBackup, goTelex, goVoice, copyExport, downloadExport,
+  goNote, startNote, goBackup, goTelex, goVoice, goSettings, copyExport, downloadExport,
   snoozeBackup:()=>{ bkMark(); renderHome(); },
   pickVoice:(el)=>{ lsSet("_voiceURI", el.dataset.uri||""); renderVoice(); speak(TTS_SAMPLE,"vi-VN"); },
   testVoice:()=>{ speak(TTS_SAMPLE,"vi-VN"); },
-  sentLesson:(el)=>{ state.sentLesson=Number(el.dataset.l); renderSentSetup(); },
-  sentDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderSentSetup(); },
   doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },
   removeNote:(el)=>{ const a=loadNote(); a.splice(Number(el.dataset.i),1); saveNote(a); renderNote(); },
   noteDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderNote(); },
