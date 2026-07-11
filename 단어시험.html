@@ -156,6 +156,20 @@
   .skillcard .nm{font-size:17px; font-weight:800}
   .skillcard .ds{font-size:12px; color:var(--muted); line-height:1.45}
   .skillcard .tg{margin-top:3px; font-size:11px; font-weight:700; color:var(--brand); background:var(--brandsoft); padding:3px 9px; border-radius:999px; align-self:flex-start}
+  /* 4영역 카드 — 색으로 구분하지 않고 아이콘·글자로만 (차분한 학습 톤) */
+  .skillcard{box-shadow:none; border:1px solid var(--line)}
+  .skillcard:active{background:var(--bg)}
+  .skillcard .ic{color:var(--muted)}
+  .skillcard .tg{color:var(--muted); background:var(--bg); font-weight:600}
+  /* 홈 단어 검색바 */
+  .hsearch{display:flex; align-items:center; gap:9px; background:var(--card); border:1.5px solid var(--line); border-radius:999px; padding:2px 15px; margin-bottom:12px}
+  .hsearch .ic{color:var(--muted); flex:0 0 auto; font-size:18px}
+  .hsearch input{flex:1; min-width:0; border:none; background:none; outline:none; color:var(--ink); font-size:15px; padding:11px 0; font-family:inherit}
+  .hsearch input::placeholder{color:var(--muted)}
+  #findResults:not(:empty){background:var(--card); border:1px solid var(--line); border-radius:14px; padding:4px 14px; margin-bottom:14px}
+  /* 개수 배지 */
+  .btn.rowbtn{display:flex; align-items:center; gap:9px; text-align:left}
+  .badge{margin-left:auto; background:var(--brandsoft); color:var(--brand); font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px}
   .secrow{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:10px}
   .listenbox{display:flex; flex-direction:column; align-items:center; gap:10px; padding:14px 0 2px}
   .bigspk{width:104px; height:104px; border-radius:50%; border:none; background:var(--brandsoft); color:var(--brand); font-size:42px; cursor:pointer; transition:.12s}
@@ -2338,6 +2352,12 @@ function renderHome(){
   }).join("");
 
   set(`
+    <div class="hsearch">
+      <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-search'/></svg>
+      <input id="findInput" placeholder="단어 찾기 — 베트남어 · 뜻" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div id="findResults"></div>
+
     <div class="card">
       <h2>오늘 무엇을 연습할까요?</h2>
       <div class="skillgrid">${cards}</div>
@@ -2345,7 +2365,7 @@ function renderHome(){
 
     ${bkNudgeHTML()}
 
-    <button class="btn ghost" data-action="goNote"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 오답 노트 ${noteCount>0?`(${noteCount}개)`:"(비어있음)"}</button>
+    <button class="btn ghost rowbtn" data-action="goNote"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> <span>오답 노트</span><span class="badge">${noteCount>0?noteCount+"개":"비어있음"}</span></button>
 
     <div class="secrow">
       <button class="btn soft" data-action="goSkill" data-skill="exam"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg> 실전 시험</button>
@@ -2359,6 +2379,7 @@ function renderHome(){
       <button class="btn line" data-action="goSettings"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-gear'/></svg> 설정</button>
     </div>
   `);
+  bindFind();   // 홈 단어 검색
 }
 function refresh(){ if(state.screen==="setup") renderSetup(); else if(state.screen==="paper") genPaper(false); else renderHome(); }
 function bindSelection(){
@@ -2376,7 +2397,7 @@ function bindFind(){
   const res=document.getElementById("findResults");
   const render=()=>{
     const k=norm(inp.value);
-    if(!k){ res.innerHTML=`<div class="muted tiny">단어를 입력하면 몇 과 몇 번에 있는지 알려줘요.</div>`; return; }
+    if(!k){ res.innerHTML=""; return; }   // 비어 있으면 결과창도 숨김(홈이 깔끔하게)
     const hits=WORDS.filter(w=>norm(w.vn).includes(k)||norm(w.en).includes(k)).slice(0,40);
     if(!hits.length){ res.innerHTML=`<div class="muted tiny">'${esc(inp.value)}' 을(를) 못 찾았어요. (교재에 없는 단어일 수 있어요)</div>`; return; }
     res.innerHTML=hits.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-top:1px solid var(--line)">
@@ -2433,13 +2454,6 @@ function renderSetup(){
          <div class="row">${sentLessons().map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="studySentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
        </div>`
     : `<div class="card"><h2>① 공부할 범위</h2>${selectionBlockHTML(true)}</div>`;
-  // 읽기: 단어 찾기 (몇 과 몇 번)
-  const findCard = state.skill==="read" ? `
-    <div class="card">
-      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-search'/></svg> 단어 찾기 <span style="font-weight:600;opacity:.7;font-size:13px">(몇 과에 있는지)</span></h2>
-      <input class="answer" id="findInput" placeholder="베트남어나 뜻으로 검색 (예: cám ơn, 감사)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="margin-bottom:6px">
-      <div id="findResults"></div>
-    </div>`:"";
   const countSeg = s.count ? `
     <div class="card">
       <h2>${showDir?"③":"②"} 문제 수</h2>
@@ -2458,11 +2472,9 @@ function renderSetup(){
     ${rangeCard}
     ${dirSeg}
     ${countSeg}
-    ${findCard}
     <button class="btn lg" data-action="startSkill">${s.emoji} ${s.label} 시작하기</button>
   `);
   bindSelection();
-  bindFind();
 }
 function startSkill(){
   const s=SKILLS[state.skill];
