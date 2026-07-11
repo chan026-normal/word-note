@@ -2043,6 +2043,23 @@ const SEED_NOTE = [
 const KEY = "gybm_wordnote_v1";
 function lsGet(k, fb){ try{ const v=localStorage.getItem(KEY+k); return v?JSON.parse(v):fb; }catch(e){ return fb; } }
 function lsSet(k, v){ try{ localStorage.setItem(KEY+k, JSON.stringify(v)); }catch(e){} }
+/* ---------- 데이터 지킴이: 영구저장 요청 + 백업 넛지 ---------- */
+let PERSISTED = null;   // true=승인 / false=미지원·거절 / null=미확인
+function requestPersist(){ try{ if(navigator.storage && navigator.storage.persist){ navigator.storage.persist().then(g=>{ PERSISTED=!!g; }).catch(()=>{}); } }catch(e){} }
+function bkCount(){ return (lsGet("_custom",[])||[]).length + (loadNote()||[]).length; }   // 내 단어 + 오답노트 총 개수
+function bkMark(){ lsSet("_lastbk", bkCount()); }   // 백업/복원 시 호출 → 넛지 리셋
+function bkNudgeHTML(){
+  const diff = bkCount() - Number(lsGet("_lastbk", 0) || 0);
+  if(diff < 5) return "";   // 마지막 백업 이후 5개 이상 쌓였을 때만
+  return `<div class="card" style="border:1px solid var(--warn);background:var(--warnsoft);padding:13px 15px">
+      <div style="font-weight:700;color:var(--warn)"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg> 백업 안 한 내용이 ${diff}개 쌓였어요</div>
+      <div class="muted tiny" style="margin:4px 0 10px">브라우저가 데이터를 지우면 사라져요. 지금 백업해두면 안전해요.</div>
+      <div class="btn2">
+        <button class="btn soft" data-action="snoozeBackup">나중에</button>
+        <button class="btn" data-action="goBackup"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> 백업하기</button>
+      </div>
+    </div>`;
+}
 
 /* =========================================================
    3) 단어 만들기
@@ -2290,6 +2307,8 @@ function renderHome(){
       <h2>오늘 무엇을 연습할까요?</h2>
       <div class="skillgrid">${cards}</div>
     </div>
+
+    ${bkNudgeHTML()}
 
     <button class="btn ghost" data-action="goNote"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 오답 노트 ${noteCount>0?`(${noteCount}개)`:"(비어있음)"}</button>
 
@@ -2742,9 +2761,11 @@ function renderQuiz(){
         <div class="btn2" style="margin-top:12px"><button class="btn soft" data-action="revealSent"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg> 모르겠어요 / 모범답안</button><button class="btn" data-action="checkSent"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 채점하기</button></div>`;
     } else if(Q.answered && Q.autoOk){   // 자동 정답
       fb = `<div class="feedback ok"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 정답이에요!</div>${myBlock}${modelBlock}${nextBtn}`;
-    } else if(!Q.answered){              // 자동으로 못 맞춤(또는 모르겠어요) → 자가채점
-      fb = `${myBlock}${modelBlock}
-        <div class="promptsub" style="margin-top:12px">${Q.typed?"내가 쓴 답이 뜻만 맞아도 '맞았어요'를 눌러요":"내 번역과 비교해보세요 — 맞았나요?"}</div>
+    } else if(!Q.answered){              // 자동 못 맞춤 / 성조 차이 / 모르겠어요 → 자가채점
+      const toneBanner = Q.toneWarn ? `<div class="feedback no" style="margin-bottom:8px"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg> 성조·철자가 달라요 — 실제 시험에선 감점될 수 있어요. 모범답안과 꼭 비교하세요.</div>` : "";
+      const selfHint = Q.toneWarn ? "성조까지 정확한지 확인하고 스스로 채점하세요" : (Q.typed?"내가 쓴 답이 뜻만 맞아도 '맞았어요'를 눌러요":"내 번역과 비교해보세요 — 맞았나요?");
+      fb = `${toneBanner}${myBlock}${modelBlock}
+        <div class="promptsub" style="margin-top:12px">${selfHint}</div>
         <div class="btn2"><button class="btn soft" data-action="selfWrong"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-x'/></svg> 틀렸어요</button><button class="btn" data-action="selfRight"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 맞았어요</button></div>`;
     } else {                             // 자가채점 결과
       fb = `<div class="feedback ${Q.lastOk?"ok":"no"}">${Q.lastOk?"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 맞음 처리":"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-x'/></svg> 틀림 처리"}
@@ -2984,6 +3005,7 @@ function fallbackCopy(okMsg){
 }
 function copyExport(){
   const text=exportData(), msg="복사됐어요! 카톡으로 나에게 보내거나, 다른 브라우저에 붙여넣어 복원하세요.";
+  bkMark();   // 백업함 → 넛지 리셋
   try{
     if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(()=>alert(msg), ()=>fallbackCopy(msg)); return; }
   }catch(e){}
@@ -2995,6 +3017,7 @@ function downloadExport(){
     const url=URL.createObjectURL(blob);
     const a=document.createElement("a"); a.href=url; a.download="단어시험_백업.json"; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
+    bkMark();   // 백업함 → 넛지 리셋
   }catch(e){ alert("파일 저장이 안 되면 '복사하기'를 이용해 주세요."); }
 }
 function importBackup(text){
@@ -3012,14 +3035,25 @@ function importBackup(text){
     obj.custom.forEach(c=>{ if(c&&c.vn&&c.en&&!seen.has(k(c))){ cur.push({vn:c.vn,en:c.en}); seen.add(k(c)); ac++; } });
     lsSet("_custom",cur); buildWords();
   }
+  bkMark();   // 복원했으면 백업본이 있는 것 → 넛지 리셋
   return {ok:true,msg:`완료! 오답 노트 ${an}개, 내 단어 ${ac}개를 새로 합쳤어요. (이미 있던 건 그대로 유지)`};
 }
 function goBackup(){ renderBackup(); }
 function renderBackup(){
   state.screen="backup";
   const noteN=loadNote().length, customN=lsGet("_custom",[]).length;
+  const pstat = PERSISTED===true?" (이 브라우저: 켜짐 ✓)":PERSISTED===false?" (이 브라우저는 지원 안 함)":"";
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card" style="background:var(--brandsoft)">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg> 데이터가 안 지워지게 지키는 법</h2>
+      <div class="muted tiny" style="line-height:1.75">
+        내 단어·오답노트는 <b>이 브라우저 안에만</b> 저장돼요. 안전하게 지키려면:<br>
+        <b>1. 백업(아래)</b> — 가장 확실해요. 파일·코드로 저장해두면 지워져도 복원할 수 있어요.<br>
+        <b>2. 아이폰이면 홈 화면에 추가</b> — 그리고 가끔 열어주세요. (7일 넘게 안 열면 사파리가 지울 수 있어요)<br>
+        <b>3. 자동</b> — 앱이 열릴 때 브라우저에 '데이터 지우지 마' 요청을 보내요${pstat}.
+      </div>
+    </div>
     <div class="card">
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> 백업 / 복원</h2>
       <div class="muted tiny" style="margin-bottom:6px">오답 노트와 내 단어를 다른 브라우저·기기로 옮겨요. (브라우저마다 저장이 따로라서요.)</div>
@@ -3737,6 +3771,7 @@ const actions = {
   pickClear:()=>{ L.pick.clear(); renderList(); },
   delWord:(el)=>delWord(el.dataset.i),
   goNote, startNote, goSent, startSent, goBackup, goTelex, goVoice, copyExport, downloadExport,
+  snoozeBackup:()=>{ bkMark(); renderHome(); },
   pickVoice:(el)=>{ lsSet("_voiceURI", el.dataset.uri||""); renderVoice(); speak(TTS_SAMPLE,"vi-VN"); },
   testVoice:()=>{ speak(TTS_SAMPLE,"vi-VN"); },
   sentLesson:(el)=>{ state.sentLesson=Number(el.dataset.l); renderSentSetup(); },
@@ -3777,6 +3812,7 @@ seedNote();
 state.rStart = 0; state.rEnd = WORDS.length-1;
 goHome();
 bindZoom(); applyZoom();
+requestPersist();   // 브라우저에 '데이터 자동 삭제 하지 마' 요청
 </script>
 </body>
 </html>
