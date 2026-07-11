@@ -2324,6 +2324,25 @@ function bindSelection(){
   el.onchange=()=>{ const f=WORDS.find(w=>String(w.lesson)===el.value); state.rEnd=f.gi; refresh(); };
   en.onchange=()=>{ state.rEnd=Number(en.value); refresh(); };
 }
+/* 읽기 화면 '단어 찾기' — 입력하면 몇 과 몇 번인지 + 뜻 + 발음 (화면 재생성 없이 결과만 갱신) */
+function bindFind(){
+  const inp=document.getElementById("findInput"); if(!inp) return;
+  const res=document.getElementById("findResults");
+  const render=()=>{
+    const k=norm(inp.value);
+    if(!k){ res.innerHTML=`<div class="muted tiny">단어를 입력하면 몇 과 몇 번에 있는지 알려줘요.</div>`; return; }
+    const hits=WORDS.filter(w=>norm(w.vn).includes(k)||norm(w.en).includes(k)).slice(0,40);
+    if(!hits.length){ res.innerHTML=`<div class="muted tiny">'${esc(inp.value)}' 을(를) 못 찾았어요. (교재에 없는 단어일 수 있어요)</div>`; return; }
+    res.innerHTML=hits.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-top:1px solid var(--line)">
+        <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:var(--brand);background:var(--brandsoft);padding:2px 7px;border-radius:6px;white-space:nowrap">${esc(lessonLabel(w.lesson))}${w.num?" "+w.num+"번":""}</span>
+        <span style="flex:1 1 40%;font-weight:700">${esc(w.vn)}</span>
+        <span style="flex:1 1 40%;color:var(--muted);font-size:13px">${esc(w.en)}</span>
+        ${spkBtn(w.vn,"vi-VN",true)}
+      </div>`).join("");
+  };
+  inp.addEventListener("input", render);
+  render();
+}
 
 /* ---------- 영역 선택 → 설정 화면 ---------- */
 function goSkill(skill){ state.skill=skill; lsSet("_skill",skill); const sd=(SKILLS[skill]||{}).dir; if(sd && skill!=="exam") state.dir=sd; renderSetup(); }
@@ -2368,6 +2387,13 @@ function renderSetup(){
          <div class="row">${sentLessons().map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="studySentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
        </div>`
     : `<div class="card"><h2>① 공부할 범위</h2>${selectionBlockHTML(true)}</div>`;
+  // 읽기: 단어 찾기 (몇 과 몇 번)
+  const findCard = state.skill==="read" ? `
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-search'/></svg> 단어 찾기 <span style="font-weight:600;opacity:.7;font-size:13px">(몇 과에 있는지)</span></h2>
+      <input class="answer" id="findInput" placeholder="베트남어나 뜻으로 검색 (예: cám ơn, 감사)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="margin-bottom:6px">
+      <div id="findResults"></div>
+    </div>`:"";
   const countSeg = s.count ? `
     <div class="card">
       <h2>${showDir?"③":"②"} 문제 수</h2>
@@ -2386,9 +2412,11 @@ function renderSetup(){
     ${rangeCard}
     ${dirSeg}
     ${countSeg}
+    ${findCard}
     <button class="btn lg" data-action="startSkill">${s.emoji} ${s.label} 시작하기</button>
   `);
   bindSelection();
+  bindFind();
 }
 function startSkill(){
   const s=SKILLS[state.skill];
