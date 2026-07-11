@@ -2964,7 +2964,7 @@ const GRAD = 2; // 연속 정답 GRAD번이면 노트에서 졸업(자동 제거
 function lc2(s){ return String(s).trim().toLowerCase(); }
 function noteKey(w){ return lc2(w.vn)+"||"+lc2(w.en); }
 function loadNote(){ return lsGet("_notebook", []); }
-function saveNote(a){ lsSet("_notebook", a); }
+function saveNote(a){ lsSet("_notebook", a); cloudSave(); }
 function noteHas(w){ const k=noteKey(w); return loadNote().some(e=>noteKey(e)===k); }
 function noteAdd(w){ const a=loadNote(),k=noteKey(w); if(!a.some(e=>noteKey(e)===k)){ a.push({vn:w.vn,en:w.en,lesson:w.lesson,type:w.type||"word",streak:0}); saveNote(a); } }
 function noteWrong(w){ const a=loadNote(),k=noteKey(w),e=a.find(x=>noteKey(x)===k); if(e){ e.streak=0; } else { a.push({vn:w.vn,en:w.en,lesson:w.lesson,type:w.type||"word",streak:0}); } saveNote(a); }
@@ -3124,16 +3124,113 @@ function renderBackup(){
   });
 }
 
+/* =========================================================
+   클라우드 동기화 (선택 사항) — 로그인하면 어느 브라우저·기기에서든 단어장이 유지됨
+   ⚠️ 아래 FIREBASE_CONFIG가 비어 있으면 로그인 UI가 아예 안 보이고,
+      앱은 지금까지와 100% 동일하게(로컬 저장 · 로그인 없음 · 오프라인) 동작합니다.
+   ⚠️ 이 설정값은 공개돼도 안전합니다(Firebase 웹 설정은 원래 공개용).
+      실제 보안은 Firestore 보안 규칙이 담당 — 각자 자기 문서만 읽고 쓸 수 있게 해둘 것.
+   ========================================================= */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyC6PGnjRjRkN9zfBCspexURWH_IYKNzFlo",
+  authDomain: "wordnote-db1dd.firebaseapp.com",
+  projectId: "wordnote-db1dd",
+  storageBucket: "wordnote-db1dd.firebasestorage.app",
+  messagingSenderId: "1014229401303",
+  appId: "1:1014229401303:web:b538e5606d2491604afa92"
+};
+const CLOUD = { on:false, user:null, auth:null, db:null, fns:null, busy:false };
+function cloudConfigured(){ return !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey); }
+function cloudData(){ return { notebook: loadNote(), custom: lsGet("_custom",[]), at: Date.now() }; }
+/* 클라우드 데이터를 로컬에 '합치기'(기존 것 안 지움) — 백업 복원과 같은 방식 */
+function mergeCloud(remote){
+  if(!remote) return;
+  if(Array.isArray(remote.notebook)){
+    const cur=loadNote(), seen=new Set(cur.map(noteKey));
+    remote.notebook.forEach(e=>{ if(e&&e.vn&&e.en&&!seen.has(noteKey(e))){ cur.push({vn:e.vn,en:e.en,lesson:e.lesson,type:e.type||"word",streak:e.streak||0}); seen.add(noteKey(e)); } });
+    saveNote(cur);
+  }
+  if(Array.isArray(remote.custom)){
+    const cur=lsGet("_custom",[]), k=c=>lc2(c.vn)+"||"+lc2(c.en), seen=new Set(cur.map(k));
+    remote.custom.forEach(c=>{ if(c&&c.vn&&c.en&&!seen.has(k(c))){ cur.push({vn:c.vn,en:c.en}); seen.add(k(c)); } });
+    lsSet("_custom",cur); buildWords();
+  }
+}
+async function cloudInit(){
+  if(!cloudConfigured() || CLOUD.on) return;
+  try{
+    const [a,b,c] = await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js")
+    ]);
+    const app = a.initializeApp(FIREBASE_CONFIG);
+    CLOUD.auth = b.getAuth(app);
+    CLOUD.db   = c.getFirestore(app);
+    CLOUD.fns  = { GoogleAuthProvider:b.GoogleAuthProvider, signInWithPopup:b.signInWithPopup, signOut:b.signOut, doc:c.doc, getDoc:c.getDoc, setDoc:c.setDoc };
+    CLOUD.on = true;
+    b.onAuthStateChanged(CLOUD.auth, async (u)=>{
+      CLOUD.user = u || null;
+      if(u) await cloudSync();
+      if(state.screen==="settings") renderSettings();
+    });
+  }catch(e){ CLOUD.on=false; }   // 인터넷 없음/차단 → 조용히 로컬 모드로 계속
+}
+async function cloudLogin(){
+  try{
+    if(!CLOUD.on) await cloudInit();
+    if(!CLOUD.on){ alert("인터넷에 연결되어 있지 않아 로그인할 수 없어요. (앱은 그대로 쓸 수 있어요)"); return; }
+    await CLOUD.fns.signInWithPopup(CLOUD.auth, new CLOUD.fns.GoogleAuthProvider());
+  }catch(e){ alert("로그인이 취소되었거나 실패했어요."); }
+}
+async function cloudLogout(){
+  try{ if(CLOUD.on) await CLOUD.fns.signOut(CLOUD.auth); }catch(e){}
+  CLOUD.user=null; renderSettings();
+}
+/* 로그인 상태면: 클라우드 것을 내려받아 합치고 → 합쳐진 걸 다시 올림 */
+async function cloudSync(){
+  if(!CLOUD.on || !CLOUD.user || CLOUD.busy) return;
+  CLOUD.busy = true;
+  try{
+    const { doc, getDoc, setDoc } = CLOUD.fns;
+    const ref = doc(CLOUD.db, "users", CLOUD.user.uid);
+    const snap = await getDoc(ref);
+    if(snap.exists()) mergeCloud(snap.data());
+    await setDoc(ref, cloudData());
+    bkMark();   // 클라우드에 저장됨 → 백업 넛지 리셋
+  }catch(e){}
+  CLOUD.busy = false;
+}
+let cloudTimer = null;
+function cloudSave(){   // 데이터가 바뀔 때 호출 (잠깐 모았다가 한 번에 올림)
+  if(!CLOUD.on || !CLOUD.user || CLOUD.busy) return;
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(cloudSync, 1200);
+}
+
 /* ---------- 설정 (발음 · 타자 · 백업 모음) ---------- */
 function goSettings(){ renderSettings(); }
 function renderSettings(){
   state.screen="settings";
+  // 클라우드 동기화 카드 — FIREBASE_CONFIG를 안 채웠으면 아예 안 보임
+  const cloudCard = !cloudConfigured() ? "" : (CLOUD.user ? `
+    <div class="card" style="background:var(--accentsoft)">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> 클라우드 동기화 · 켜짐</h2>
+      <div class="muted tiny">${esc(CLOUD.user.email||"로그인됨")}<br>내 단어·오답노트가 자동으로 인터넷에 저장돼요. 다른 브라우저·기기에서 로그인하면 그대로 나와요.</div>
+      <button class="btn line" style="margin-top:10px" data-action="cloudLogout">로그아웃</button>
+    </div>` : `
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> 클라우드 동기화 <span style="font-weight:600;opacity:.7;font-size:13px">(선택)</span></h2>
+      <div class="muted tiny">구글로 로그인하면 <b>내 단어·오답노트가 인터넷에 저장</b>돼요. 브라우저를 바꾸거나 데이터를 지워도, 시크릿모드에서도 <b>로그인만 하면 그대로</b> 나와요. 로그인 안 해도 앱은 지금처럼 쓸 수 있어요.</div>
+      <button class="btn" style="margin-top:10px" data-action="cloudLogin">구글로 로그인</button>
+    </div>`);
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-gear'/></svg> 설정</h2>
       <div class="muted tiny" style="margin-top:-4px">소리·타자·데이터에 관한 설정이에요.</div>
     </div>
+    ${cloudCard}
     <button class="btn soft" data-action="goVoice"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 발음(소리) 설정 <span style="font-weight:600;opacity:.8">(목소리·속도)</span></button>
     <button class="btn soft" style="margin-top:10px" data-action="goTelex"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-keyboard'/></svg> 베트남어 타자(Telex) <span style="font-weight:600;opacity:.8">(성조 치는 법)</span></button>
     <button class="btn soft" style="margin-top:10px" data-action="goBackup"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-save'/></svg> 백업 / 복원 <span style="font-weight:600;opacity:.8">(기기 옮길 때 · 데이터 지키기)</span></button>
@@ -3583,11 +3680,13 @@ function addWord(){
   const en=(document.getElementById("inEn").value||"").trim();
   if(!vn||!en){ alert("단어와 뜻을 모두 입력해주세요."); return; }
   const custom = lsGet("_custom", []); custom.push({vn,en}); lsSet("_custom", custom);
+  cloudSave();
   buildWords(); renderAdd();
   setAddStatus(_icCheck+" 추가됐어요", "ok", 1600);   // 잠깐 보였다 부드럽게 사라짐
 }
 function delWord(i){
   const custom = lsGet("_custom", []); custom.splice(Number(i),1); lsSet("_custom", custom);
+  cloudSave();
   buildWords(); renderAdd();
 }
 
@@ -3795,6 +3894,7 @@ const actions = {
   delWord:(el)=>delWord(el.dataset.i),
   goNote, startNote, goBackup, goTelex, goVoice, goSettings, copyExport, downloadExport,
   snoozeBackup:()=>{ bkMark(); renderHome(); },
+  cloudLogin, cloudLogout,
   pickVoice:(el)=>{ lsSet("_voiceURI", el.dataset.uri||""); renderVoice(); speak(TTS_SAMPLE,"vi-VN"); },
   testVoice:()=>{ speak(TTS_SAMPLE,"vi-VN"); },
   doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },
@@ -3834,6 +3934,7 @@ state.rStart = 0; state.rEnd = WORDS.length-1;
 goHome();
 bindZoom(); applyZoom();
 requestPersist();   // 브라우저에 '데이터 자동 삭제 하지 마' 요청
+cloudInit();        // 클라우드 동기화(설정돼 있고 로그인돼 있으면 자동 복원) — 설정 없으면 아무 일도 안 함
 </script>
 </body>
 </html>
