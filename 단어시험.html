@@ -140,6 +140,28 @@
   .spk{border:none;background:var(--brandsoft);color:var(--brand);width:38px;height:38px;border-radius:12px;cursor:pointer;font-size:17px;vertical-align:middle}
   .spk.sm{width:30px;height:30px;font-size:14px;border-radius:9px}
 
+  /* 대화 빈칸 채우기 (듣기) */
+  .dplay{display:flex; gap:8px; padding:12px 14px}
+  .dplay .btn{margin:0; flex:1}
+  .dlg{padding:4px 14px}
+  .dline{display:flex; gap:10px; padding:11px 0; border-top:1px solid var(--line); border-radius:10px; transition:background .2s}
+  .dline:first-child{border-top:0}
+  .dline.now{background:var(--brandsoft)}
+  .dwho{flex:0 0 auto; min-width:58px; font-weight:800; font-size:13px; color:var(--brand); padding-top:6px}
+  .dbody{flex:1; min-width:0}
+  .dtext{line-height:2.2; font-size:16px; word-break:break-word}
+  input.dblank{display:inline-block; border:0; border-bottom:2px solid var(--brand); background:transparent;
+    font:inherit; font-size:15px; font-weight:700; color:var(--ink); text-align:center; padding:0 2px; outline:none; border-radius:0}
+  input.dblank:focus{background:var(--brandsoft)}
+  .dblank.done{display:inline-block; min-width:40px; text-align:center; padding:0 4px; font-weight:800; border-bottom:2px solid var(--line)}
+  .dblank.done.ok{color:var(--good); border-bottom-color:var(--good)}
+  .dblank.done.tone{color:var(--warn); border-bottom-color:var(--warn)}
+  .dblank.done.no{color:var(--bad); border-bottom-color:var(--bad); text-decoration:line-through}
+  .dans{display:inline-block; margin-left:5px; color:var(--good); font-weight:800; font-size:15px}
+  .dbtns{display:flex; gap:6px; align-items:center; margin-top:5px}
+  .chip.tiny{padding:4px 10px; font-size:12px}
+  .dhint{margin-top:5px; font-size:13.5px; color:var(--muted); line-height:1.5}
+
   /* flashcard */
   .flash{
     perspective:1200px; height:240px; margin:8px 0 16px; cursor:pointer;
@@ -1967,6 +1989,181 @@ const allSentences = () => sentLessons().flatMap(l => SENT_BY_LESSON[l] || []);
 const paperSents = l => (SENT_BY_LESSON[l]||[]);
 const allPaperSentences = () => sentLessons().flatMap(l => paperSents(l));
 
+/* =========================================================
+   3-b) 교재 회화(HỘI THOẠI) — '대화 빈칸 채우기'용
+   단원별 대화 배열. 각 대화는 백틱 문자열, 한 줄 = "화자|베트남어|한국어".
+   교재 사진에서 화자·순서 그대로 옮김(1~7과, 대화 20개).
+   단원 추가 시: 아래에 번호 키로 대화 배열만 넣으면 화면·빈칸이 자동 반영됨.
+   ========================================================= */
+const DIALOG_RAW = {
+1: [
+`David|Chào chị.|안녕하세요.
+Vân|Chào anh. Xin lỗi, anh tên là gì?|안녕하세요. 실례지만, 이름이 뭐예요?
+David|Tôi xin tự giới thiệu, tôi tên là David.|제 소개를 하겠습니다, 제 이름은 David입니다.
+Vân|Chào anh David.|David 씨 안녕하세요.
+David|Chị tên là gì?|이름이 뭐예요?
+Vân|Tôi tên là Vân.|제 이름은 Vân입니다.
+David|V-Ơ-N.|V-Ơ-N.
+Vân|Không. V-Â-N.|아니요. V-Â-N.
+David|À..., xin lỗi.|아…, 미안해요.
+Vân|Không sao.|괜찮아요.`,
+`Vân|Chào anh. Chào chị.|안녕하세요. 안녕하세요.
+David|Xin chào. Xin giới thiệu với Vân, đây là Eun Ji.|안녕하세요. Vân에게 소개할게요, 이쪽은 은지예요.
+David|Eun Ji. Đây là Vân.|은지, 이쪽은 Vân이에요.
+Vân|Rất vui được gặp Eun Ji.|은지를 만나서 반가워요.
+Eun Ji|Chào chị Vân. Rất vui được gặp chị.|Vân 언니 안녕하세요. 만나서 반가워요.`,
+`Vân|Chào anh David.|David 씨 안녕하세요.
+David|Chào Vân. Vân có khỏe không?|Vân 안녕하세요. 잘 지내요?
+Vân|Cám ơn anh. Tôi khỏe. Còn anh? Anh có khỏe không?|고마워요. 저는 잘 지내요. 당신은요? 잘 지내요?
+David|Tôi cũng khỏe. Cám ơn.|저도 잘 지내요. 고마워요.
+Vân|Hôm nay anh có gặp Eun Ji không?|오늘 은지를 만났어요?
+David|Không, hôm nay tôi không gặp Eun Ji.|아니요, 오늘 은지를 안 만났어요.`
+],
+2: [
+`Vân|Chào các anh.|안녕하세요 (여러분).
+David|Chào Vân. Khỏe không?|Vân 안녕하세요. 잘 지내요?
+Vân|Dạ, khỏe. Cám ơn anh. Anh có khỏe không?|네, 잘 지내요. 고마워요. 잘 지내세요?
+David|Cám ơn. Tôi khỏe. À, đây là Brian, bạn tôi.|고마워요. 저는 잘 지내요. 아, 이쪽은 제 친구 Brian이에요.
+Vân|Chào anh Brian. Xin lỗi, anh là người nước nào?|Brian 씨 안녕하세요. 실례지만, 어느 나라 사람이에요?
+Brian|Tôi là người Mỹ.|저는 미국 사람이에요.
+Vân|Tôi tên là Vân. Rất vui được gặp anh.|제 이름은 Vân이에요. 만나서 반가워요.
+Brian|Rất vui được gặp chị.|만나서 반가워요.`,
+`Eun Ji|Chị Vân ơi! Kia là ai?|Vân 언니! 저 사람은 누구예요?
+Vân|À, đó là Kate.|아, 저 사람은 Kate예요.
+Eun Ji|Chị Kate là bạn anh David, phải không?|Kate 언니는 David 씨의 친구죠, 맞죠?
+Vân|Vâng, chị ấy là bạn anh David.|네, 그녀는 David 씨의 친구예요.
+Eun Ji|Anh David là người Anh. Chị Kate cũng là người Anh phải không, chị?|David 씨는 영국 사람이에요. Kate 언니도 영국 사람이죠?
+Vân|Không phải. Chị ấy là người Úc.|아니에요. 그녀는 호주 사람이에요.`,
+`Vân|Kate, chị có biết anh Brian không?|Kate, Brian 씨 알아요?
+Kate|Brian, người Mỹ phải không?|Brian, 미국 사람이죠?
+Vân|Phải. Anh ấy là người Mỹ.|맞아요. 그는 미국 사람이에요.
+Kate|Hôm qua tôi gặp Brian và David. Các anh ấy đi với hai người bạn. Một người tên là Eun Ji, người Trung Quốc. Còn một người tên là Hiroki, người Nhật.|어제 저는 Brian과 David를 만났어요. 그들은 친구 두 명과 함께 갔어요. 한 명은 은지라는 중국 사람이고, 또 한 명은 Hiroki라는 일본 사람이에요.
+Vân|Eun Ji không phải là người Trung Quốc. Chị ấy là người Hàn Quốc.|은지는 중국 사람이 아니에요. 그녀는 한국 사람이에요.
+Kate|À ...|아…`
+],
+3: [
+`Thư ký|Chào em.|안녕하세요.
+Eun Ji|Chào thầy ạ. Em muốn đăng ký học tiếng Việt.|선생님 안녕하세요. 베트남어 수업을 등록하고 싶어요.
+Thư ký|Em tên gì?|이름이 뭐예요?
+Eun Ji|Em tên là Eun Ji.|제 이름은 은지예요.
+Thư ký|Em là người nước nào?|어느 나라 사람이에요?
+Eun Ji|Dạ, em là người Hàn Quốc.|네, 저는 한국 사람이에요.
+Thư ký|Trước đây em học tiếng Việt ở đâu?|전에 베트남어를 어디서 배웠어요?
+Eun Ji|Em đã học ở Hàn Quốc ạ.|한국에서 배웠어요.`,
+`Vân|Đó là Eun Ji, phải không?|저 사람 은지죠?
+David|Ừ, đúng rồi. Eun Ji! Em đi đâu vậy?|응, 맞아요. 은지! 어디 가요?
+Eun Ji|Em đi học.|공부하러 가요.
+Vân|Eun Ji học gì?|은지는 뭘 배워요?
+Eun Ji|Em học tiếng Việt.|베트남어를 배워요.
+Vân|Eun Ji học tiếng Việt ở đâu?|은지는 베트남어를 어디서 배워요?
+Eun Ji|Em học ở Trường Đại học Khoa học Xã hội và Nhân văn Thành phố Hồ Chí Minh.|호치민시 인문사회과학대학교에서 배워요.
+David|Trước đây Brian và tôi cũng học tiếng Việt ở trường Nhân Văn. Chúng tôi đã học ở đó một năm.|전에 Brian과 저도 인문대에서 베트남어를 배웠어요. 우리는 거기서 1년 배웠어요.`,
+`Vân|Học tiếng Việt có khó không, Eun Ji?|베트남어 배우는 거 어려워요, 은지?
+Eun Ji|Khó nhưng thú vị.|어렵지만 재미있어요.
+Vân|Eun Ji và anh Lee đã học tiếng Việt ở Hàn Quốc, phải không?|은지와 Lee 씨는 한국에서 베트남어를 배웠죠?
+Eun Ji|Vâng, em và anh ấy đều học tiếng Việt ở Hàn Quốc.|네, 저와 그는 둘 다 한국에서 베트남어를 배웠어요.
+Vân|Hiện nay lớp tiếng Việt của Eun Ji có mấy người?|지금 은지의 베트남어 반에는 몇 명이 있어요?
+Eun Ji|Lớp em có 11 người.|저희 반은 11명이에요.
+Vân|Họ là người nước nào?|그들은 어느 나라 사람이에요?
+Eun Ji|Có ba người Hàn Quốc, bốn người Nhật, hai người Singapore, một người Mỹ và một người Pháp.|한국인 3명, 일본인 4명, 싱가포르인 2명, 미국인 1명, 프랑스인 1명이 있어요.`
+],
+4: [
+`Loan|Ở Nhật anh Hiroki làm nghề gì?|일본에서 Hiroki 씨는 무슨 일을 했어요?
+Hiroki|Tôi làm kế toán ở ngân hàng. Còn chị? Dạo này chị làm gì?|저는 은행에서 회계사로 일했어요. 당신은요? 요즘 무슨 일 해요?
+Loan|Tôi làm kỹ sư ở công ty máy tính. Cô Vân cũng làm việc ở đó.|저는 컴퓨터 회사에서 엔지니어로 일해요. Vân 씨도 거기서 일해요.
+Hiroki|Cô ấy cũng làm kỹ sư, phải không?|그녀도 엔지니어죠?
+Loan|Không. Cô ấy là thư ký. Ở Nhật, ngân hàng của anh có bao nhiêu nhân viên?|아니요. 그녀는 비서예요. 일본에서 당신 은행에는 직원이 몇 명 있어요?
+Hiroki|Hơn 100 người.|100명 넘어요.`,
+`Vân|Anh dạy tiếng Anh ở trường nào?|어느 학교에서 영어를 가르쳐요?
+Brian|Tôi đang dạy ở trường ILA.|저는 ILA 학교에서 가르치고 있어요.
+Vân|Trường ILA ở Quận 1, phải không?|ILA 학교는 1군에 있죠?
+Brian|Không, tôi dạy ở Quận 2.|아니요, 저는 2군에서 가르쳐요.
+Vân|Anh dạy mấy ngày một tuần?|일주일에 며칠 가르쳐요?
+Brian|Năm ngày một tuần, từ chín giờ sáng đến mười một giờ rưỡi trưa.|일주일에 5일, 아침 9시부터 낮 11시 반까지요.
+Vân|Trường anh có nhiều giáo viên người Mỹ không?|학교에 미국인 선생님이 많아요?
+Brian|Không nhiều lắm. Khoảng 8 người.|그렇게 많지 않아요. 약 8명이요.`,
+`Hiroki|Dạo này tôi rất bận. Buổi sáng tôi đi học tiếng Việt, còn buổi chiều tôi đi làm.|요즘 저는 아주 바빠요. 아침에는 베트남어를 배우러 가고, 오후에는 일하러 가요.
+Eun Ji|Buổi chiều anh làm việc từ mấy giờ đến mấy giờ?|오후에 몇 시부터 몇 시까지 일해요?
+Hiroki|Từ hai giờ chiều đến bảy giờ tối.|오후 2시부터 저녁 7시까지요.
+Eun Ji|Hôm qua anh có đi học không?|어제 학교에 갔어요?
+Hiroki|Có, nhưng tôi vào nhầm phòng.|네, 그런데 방을 잘못 들어갔어요.
+Eun Ji|Anh vào phòng số mấy?|몇 호실에 들어갔어요?
+Hiroki|Phòng C308.|C308호요.`
+],
+5: [
+`Vân|Bây giờ chúng ta đi đâu?|지금 우리 어디 가요?
+David|Chúng ta sẽ đi mua sách.|우리는 책을 사러 갈 거예요.
+Vân|Anh biết địa chỉ nhà sách không đấy?|서점 주소 알아요?
+David|Biết. Nhà sách FAHASA, số 40 đường Nguyễn Huệ. Hôm nay nhà sách giảm giá 30%.|알아요. FAHASA 서점, Nguyễn Huệ 거리 40번지요. 오늘 서점이 30% 할인해요.
+Vân|Sao anh biết?|어떻게 알아요?
+David|Vì anh Brian nói với tôi. Hôm qua anh ấy đã mua sách ở đó.|Brian 씨가 저에게 말해줬거든요. 어제 그가 거기서 책을 샀어요.
+Vân|Anh muốn mua sách gì?|무슨 책을 사고 싶어요?
+David|Tôi muốn mua sách lịch sử Việt Nam.|베트남 역사책을 사고 싶어요.`,
+`Tài xế|Đi đâu, cô?|어디 가세요?
+Dorothy|Trường Đại học Khoa học Xã hội và Nhân văn, số 10-12 đường Đinh Tiên Hoàng, Quận 1.|인문사회과학대학교요, 1군 Đinh Tiên Hoàng 거리 10-12번지요.
+Tài xế|Gần Đài Truyền hình Thành phố, phải không cô?|시 방송국 근처죠?
+Dorothy|Đúng rồi, anh.|맞아요.
+Tài xế|Cô nói tiếng Việt giỏi quá!|베트남어를 정말 잘하시네요!
+Dorothy|Cám ơn anh.|고마워요.`,
+`Lee|Ở Thành phố Hồ Chí Minh, anh có biết nhà hàng nào ngon không?|호치민시에서 맛있는 식당 아는 곳 있어요?
+Toàn|Anh muốn hỏi nhà hàng Việt Nam hay nhà hàng Hàn Quốc?|베트남 식당이요, 아니면 한국 식당이요?
+Lee|Nhà hàng Việt Nam.|베트남 식당이요.
+Toàn|Tôi biết một nhà hàng ở Quận 1. Món ăn ngon lắm. Đặc biệt, bia tươi rất ngon.|1군에 식당 하나 알아요. 음식이 아주 맛있어요. 특히 생맥주가 아주 맛있어요.
+Lee|Bia à? Tốt quá! Tối nay tôi mời anh và anh Min đến đó uống bia. Không say không về.|맥주요? 좋아요! 오늘 저녁에 당신과 Min 씨를 거기 초대해서 맥주 마셔요. 취하지 않으면 안 돌아가요.`
+],
+6: [
+`Loan|Chào Eun Ji. Khỏe không?|은지 안녕하세요. 잘 지내요?
+Eun Ji|Dạ, khỏe. Cám ơn chị. Còn chị, chị có khỏe không ạ?|네, 잘 지내요. 고마워요. 언니는요, 잘 지내세요?
+Loan|Cám ơn. Chị cũng khỏe. Dạo này học tiếng Việt thế nào, Eun Ji?|고마워요. 저도 잘 지내요. 요즘 베트남어 공부는 어때요, 은지?
+Eun Ji|Dạ, cũng được. Cô giáo khen em phát âm tốt.|네, 괜찮아요. 선생님이 발음이 좋다고 칭찬해주셨어요.
+Loan|Thế thì tốt. Lớp của Eun Ji có bao nhiêu sinh viên vậy?|그거 좋네요. 은지 반에는 학생이 몇 명이에요?
+Eun Ji|Lớp em có 8 người. Có người Mỹ, người Nhật, người Hàn Quốc, người Anh, người Pháp, người Singapore, người Đức và người Thái Lan.|저희 반은 8명이에요. 미국인, 일본인, 한국인, 영국인, 프랑스인, 싱가포르인, 독일인, 태국인이 있어요.
+Loan|Các bạn trong lớp Eun Ji đều đi làm hay là sinh viên?|은지 반 친구들은 다 직장인이에요, 아니면 학생이에요?
+Eun Ji|Các anh chị ấy đều đi làm, chị ạ. Họ là bác sĩ, kỹ sư, kế toán, hoặc giám đốc, thư ký, giáo viên. Chỉ có em là sinh viên và một chị làm nội trợ.|그분들은 다 직장인이에요. 의사, 엔지니어, 회계사, 또는 사장, 비서, 선생님이에요. 저만 학생이고 한 분은 주부예요.`,
+`Hiroki|Ở Thành phố Hồ Chí Minh tôi đã đi tham quan Nhà thờ Đức Bà, Bưu điện Thành phố, Bảo tàng Lịch sử Việt Nam.|호치민시에서 저는 노트르담 성당, 시 우체국, 베트남 역사박물관을 구경했어요.
+Vân|Bảo tàng Lịch sử ở gần Trường Đại học Khoa học Xã hội và Nhân văn phải không?|역사박물관은 인문사회과학대학교 근처죠?
+Hiroki|Phải. Gần trường Nhân Văn lắm. Hôm qua tôi đã đến đó. Rất thú vị. Ngày mai Vân có rảnh không?|맞아요. 인문대에서 아주 가까워요. 어제 저는 거기에 갔어요. 아주 재미있었어요. 내일 Vân 씨 시간 있어요?
+Vân|Tôi rảnh từ 2 giờ chiều. Có việc gì không, anh?|오후 2시부터 시간 있어요. 무슨 일 있어요?
+Hiroki|Tôi muốn mời Vân đi với tôi đến Bảo tàng Áo dài.|Vân 씨를 아오자이 박물관에 저와 같이 가자고 초대하고 싶어요.
+Vân|Anh có biết chỗ đó địa chỉ số mấy không?|그곳 주소가 몇 번지인지 알아요?
+Hiroki|Địa chỉ à? Chúng ta sẽ xem trong Google.|주소요? 우리 구글에서 찾아봐요.`
+],
+7: [
+`Dorothy|Tôi và anh Brian sắp đi ăn trưa. Chị đi với chúng tôi không?|저와 Brian 씨는 곧 점심 먹으러 가요. 같이 갈래요?
+Vân|Không, cám ơn chị. Sáng nay tôi ăn sáng trễ. Bây giờ no lắm.|아니요, 고마워요. 오늘 아침을 늦게 먹었어요. 지금 배가 아주 불러요.
+Dorothy|Hôm nay chị ăn sáng lúc mấy giờ?|오늘 몇 시에 아침 먹었어요?
+Vân|Lúc 9 giờ. Còn chị?|9시에요. 당신은요?
+Dorothy|Tôi thường không ăn sáng.|저는 보통 아침을 안 먹어요.
+Vân|Vậy, chị thường ăn trưa lúc mấy giờ?|그럼 보통 몇 시에 점심 먹어요?
+Dorothy|Tôi thường ăn trưa lúc 11 giờ rưỡi hay 12 giờ.|저는 보통 11시 반이나 12시에 점심을 먹어요.`,
+`Eun Ji|Buồn ngủ quá!|너무 졸려요!
+Dũng|Hôm qua Eun Ji thức khuya phải không?|어제 은지 늦게까지 안 잤죠?
+Eun Ji|Ừ.|응.
+Dũng|Có nhiều bài tập quá hả?|숙제가 너무 많았어요?
+Eun Ji|Không. Tối hôm qua tôi xem phim trên mạng nên đi ngủ hơi trễ. Còn anh, anh thường đi ngủ lúc mấy giờ?|아니요. 어젯밤에 인터넷으로 영화를 봐서 조금 늦게 잤어요. 당신은 보통 몇 시에 자요?
+Dũng|Mười hai giờ đêm.|밤 12시요.`,
+`Loan|Học xong anh thường làm gì?|공부 끝나면 보통 뭐 해요?
+Lee|Tôi đi ăn trưa, rồi đến quán cà phê học tiếng Việt.|점심 먹으러 가고, 그다음 카페에 가서 베트남어를 공부해요.
+Loan|Anh học một mình à?|혼자 공부해요?
+Lee|Không. Tôi học với một bạn người Việt. Tôi dạy tiếng Hàn cho bạn đó. Bạn đó dạy tiếng Việt cho tôi.|아니요. 베트남 친구 한 명과 같이 공부해요. 저는 그 친구에게 한국어를 가르치고, 그 친구는 저에게 베트남어를 가르쳐요.
+Loan|Anh có thường lên mạng không?|인터넷을 자주 해요?
+Lee|Có, buổi tối tôi thường nghe nhạc hay xem phim trên Youtube. Thỉnh thoảng xem tin tức trên tivi.|네, 저녁에 보통 유튜브에서 음악을 듣거나 영화를 봐요. 가끔 TV로 뉴스를 봐요.`
+]
+};
+const DIALOGS = {};
+Object.keys(DIALOG_RAW).forEach(L=>{
+  DIALOGS[Number(L)] = DIALOG_RAW[L].map((blk,i)=>({
+    no: i+1,
+    lines: blk.trim().split("\n").map(r=>{
+      const p = r.split("|");
+      return { who:(p[0]||"").trim(), vn:(p[1]||"").trim(), ko:(p[2]||"").trim() };
+    }).filter(x=>x.vn)
+  }));
+});
+const dialogLessons = () => Object.keys(DIALOGS).map(Number).sort((a,b)=>a-b);
+/* 빈칸 후보에서 뺄 고유명사(등장인물·지명·상호) — 뚫어봐야 학습에 도움 안 됨 */
+const DLG_NAMES = new Set(["david","van","vân","eun","ji","brian","kate","hiroki","loan","lee","toan","toàn","dorothy","dung","dũng","min","fahasa","google","youtube","ila","c308","nguyen","nguyễn","hue","huệ","dinh","đinh","tien","tiên","hoang","hoàng","singapore"]);
+
 /* 시험 오답 → 오답노트에 자동 등록(1회). 단어=word, 작문=sentence(자가채점). lesson은 시험 날짜 표시용. */
 const SEED_NOTE_V = "exam-2026q2-r4";
 const SEED_NOTE = [
@@ -2239,6 +2436,38 @@ function speak(text, lang){
     }, 80);
   }catch(e){}
 }
+/* 여러 줄을 순서대로 재생 (대화 '전체 듣기'). onLine(i)로 지금 읽는 줄을 표시 */
+function speakLines(texts, onLine, onDone){
+  try{
+    if(!window.speechSynthesis) return;
+    if(!VOICES.length) loadVoices();
+    ttsKeepStop();
+    speechSynthesis.cancel();
+    const my = ++TTS_SEQ;
+    setTimeout(()=>{
+      if(my !== TTS_SEQ) return;
+      try{
+        const v = pickedVoice("vi-VN"), r = ttsRate();
+        texts.forEach((t, i)=>{
+          const u = new SpeechSynthesisUtterance(ttsText(t, "vi-VN"));
+          u.lang = "vi-VN"; u.rate = r;
+          if(v){ u.voice = v; u.lang = v.lang; }
+          u.onstart = ()=>{ if(my===TTS_SEQ && onLine) try{ onLine(i); }catch(e){} };
+          if(i === texts.length-1){
+            u.onend = ()=>{ ttsKeepStop(); if(my===TTS_SEQ && onDone) try{ onDone(); }catch(e){} };
+            u.onerror = ttsKeepStop;
+          }
+          speechSynthesis.speak(u);
+        });
+        TTS_KEEP = setInterval(()=>{
+          if(!speechSynthesis.speaking){ ttsKeepStop(); return; }
+          try{ speechSynthesis.pause(); speechSynthesis.resume(); }catch(e){}
+        }, 8000);
+      }catch(e){}
+    }, 80);
+  }catch(e){}
+}
+function stopSpeak(){ try{ ttsKeepStop(); TTS_SEQ++; if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){} }
 function makeQ(word, dir, type){
   return { type: type||"word", word, dir,
     prompt: dir==="vn2en" ? word.vn : word.en,
@@ -2249,7 +2478,7 @@ const DIRLABEL = { vn2en:"🇻🇳 베트남어 → 🇰🇷 한국어", en2vn:"
 /* 4영역(읽기·듣기·쓰기·말하기) + 보조(실전·플래시) 정의 */
 const SKILLS = {
   read:  {label:"읽기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg>", mode:"read",   dir:"vn2en",  count:true,  tag:"읽기 연습",      cardDesc:"베트남어 읽고<br>뜻 확인",          desc:"베트남어를 소리 내어 읽고, '뜻 보기'로 뜻을 확인해요. (입력 없이 읽는 연습)"},
-  listen:{label:"듣기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg>", mode:"listen", dir:"vn2en",  count:true,  tag:"받아쓰기",     cardDesc:"소리 듣고<br>베트남어 쓰기",       desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 베트남어 소리를 듣고 그대로 받아써요. 단어·문장을 고를 수 있어요. (성조까지 정확히!)"},
+  listen:{label:"듣기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg>", mode:"listen", dir:"vn2en",  count:true,  tag:"받아쓰기·대화",     cardDesc:"소리 듣고<br>받아쓰기·빈칸",       desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 베트남어를 듣고 받아써요. <b>단어·문장 받아쓰기</b> 또는 교재 <b>대화 빈칸 채우기</b>를 고를 수 있어요. (성조까지 정확히!)"},
   write: {label:"쓰기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg>", mode:"type",   dir:"en2vn",  count:true,  tag:"한 ↔ 베",      cardDesc:"뜻 보고<br>베트남어 쓰기",          desc:"한국어 뜻을 보고 베트남어를 직접 입력해요. 아래에서 방향(한→베·베→한)을 골라요. (성조까지 정확히!)"},
   speak: {label:"말하기", emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-mic'/></svg>", mode:"speak",  dir:"vn2en",  count:true,  tag:"따라 말하기",  cardDesc:"듣고 따라 말한 뒤<br>스스로 체크",  desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 듣고 따라 말한 뒤 스스로 체크해요. 아래에서 방향을 골라요."},
   exam:  {label:"실전 시험", emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg>", mode:"exam", dir:"random", count:false, tag:"단어40+문장10", cardDesc:"단어 40 + 문장 10",              desc:"단어 40개 + 문장 10개를 실제 시험처럼 한 번에 풀어요."},
@@ -2292,8 +2521,11 @@ const state = {
   selMode: lsGet("_selMode","lesson"), // lesson(단원별) | range(번호 범위)
   rStart: 0, rEnd: 0,            // 범위 지정 시 전체순서(gi) 기준 시작/끝
   skill: lsGet("_skill","read"),  // read | listen | write | speak | exam | flash (홈에서 고른 영역)
-  studyKind: lsGet("_skind","word"),   // 공부 대상: word(단어) | sent(문장) — 읽기·쓰기·듣기·말하기 공용
-  sentBulk: !!lsGet("_sbulk", false)   // 쓰기+문장: false=한 문제씩 / true=여러 문제 한 번에(시험지처럼)
+  studyKind: lsGet("_skind","word"),   // 공부 대상: word(단어) | sent(문장) | dlg(대화 빈칸 — 듣기 전용)
+  sentBulk: !!lsGet("_sbulk", false),  // 쓰기+문장: false=한 문제씩 / true=여러 문제 한 번에(시험지처럼)
+  dlgLesson: Number(lsGet("_dlgL", 1)) || 1,   // 대화 빈칸: 단원
+  dlgNo: Number(lsGet("_dlgN", 1)) || 1,       // 대화 빈칸: 대화 번호
+  dlgLevel: lsGet("_dlvl","normal")            // 대화 빈칸 난이도: easy | normal | hard
 };
 
 /* ---------- 홈 ---------- */
@@ -2423,7 +2655,9 @@ function renderSetup(){
   state.screen="setup";
   const s=SKILLS[state.skill];
   const isListen = state.skill==="listen";
+  if(state.studyKind==="dlg" && !isListen) state.studyKind="word";   // '대화 빈칸'은 듣기 전용
   const kindable = ["read","write","listen","speak"].includes(state.skill);   // 단어/문장 선택 가능한 영역
+  const studyDlg  = isListen && state.studyKind==="dlg";
   const studySent = kindable && state.studyKind==="sent";
   const showDir = state.skill!=="exam" && state.skill!=="read" && !isListen;   // 실전·읽기·듣기는 방향 선택 없음
   const dirSeg = showDir ? `
@@ -2435,15 +2669,35 @@ function renderSetup(){
         <button class="${state.dir==="random"?"on":""}" data-action="setupDir" data-v="random">랜덤<span class="desc">섞어서</span></button>
       </div>
     </div>`:"";
-  // 단어/문장 선택 (읽기·쓰기·듣기·말하기 공통)
+  // 단어/문장(/대화) 선택 — 읽기·쓰기·듣기·말하기 공통, '대화 빈칸'은 듣기에만
   const kindSeg = kindable ? `
     <div class="card">
-      <h2>${isListen?"무엇을 받아쓸까요?":"무엇으로 공부할까요?"}</h2>
+      <h2>${isListen?"무엇을 들을까요?":"무엇으로 공부할까요?"}</h2>
       <div class="seg">
-        <button class="${state.studyKind==="word"?"on":""}" data-action="studyKind" data-v="word">단어<span class="desc">단어로</span></button>
-        <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">문장으로</span></button>
+        <button class="${state.studyKind==="word"?"on":""}" data-action="studyKind" data-v="word">단어<span class="desc">받아쓰기</span></button>
+        <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">받아쓰기</span></button>
+        ${isListen?`<button class="${studyDlg?"on":""}" data-action="studyKind" data-v="dlg">대화<span class="desc">빈칸 채우기</span></button>`:""}
       </div>
     </div>`:"";
+  // 대화 빈칸: 단원 · 대화 번호 · 난이도
+  const dlgCard = studyDlg ? (()=>{
+    const Ls = dialogLessons();
+    if(!Ls.includes(state.dlgLesson)) state.dlgLesson = Ls[0];
+    const ds = DIALOGS[state.dlgLesson]||[];
+    if(!ds.some(d=>d.no===state.dlgNo)) state.dlgNo = 1;
+    const lvl = [["easy","쉬움","빈칸 적게"],["normal","보통","적당히"],["hard","어려움","빈칸 많이"]];
+    return `
+    <div class="card"><h2>① 단원</h2>
+      <div class="row">${Ls.map(l=>`<button class="chip ${state.dlgLesson===l?"on":""}" data-action="dlgLesson" data-l="${l}">${lessonLabel(l)} <small>대화 ${(DIALOGS[l]||[]).length}개</small></button>`).join("")}</div>
+    </div>
+    <div class="card"><h2>② 대화</h2>
+      <div class="row">${ds.map(d=>`<button class="chip ${state.dlgNo===d.no?"on":""}" data-action="dlgNo" data-n="${d.no}">대화 ${d.no} <small>${d.lines.length}줄</small></button>`).join("")}</div>
+    </div>
+    <div class="card"><h2>③ 난이도</h2>
+      <div class="seg">${lvl.map(([v,n,d])=>`<button class="${state.dlgLevel===v?"on":""}" data-action="dlgLevel" data-v="${v}">${n}<span class="desc">${d}</span></button>`).join("")}</div>
+      <div class="muted tiny" style="margin-top:8px">그 단원에서 배운 <b>핵심 단어</b>를 먼저 빈칸으로 뚫어요. 풀 때마다 빈칸 자리가 조금씩 달라져요.</div>
+    </div>`;
+  })() : "";
   // 쓰기 + 문장: 한 문제씩 / 여러 문제 한 번에(시험지처럼)
   const bulkSeg = (state.skill==="write" && studySent) ? `
     <div class="card">
@@ -2455,12 +2709,13 @@ function renderSetup(){
     </div>`:"";
   // 범위: 문장이면 문장 단원 칩, 아니면 단어 범위 선택
   const curSent = state.sentLesson || sentLessons()[0];
-  const rangeCard = studySent
+  const rangeCard = studyDlg ? ""
+    : studySent
     ? `<div class="card"><h2>① 단원 (문장)</h2>
          <div class="row">${sentLessons().map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="studySentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
        </div>`
     : `<div class="card"><h2>① 공부할 범위</h2>${selectionBlockHTML(true)}</div>`;
-  const countSeg = s.count ? `
+  const countSeg = (s.count && !studyDlg) ? `
     <div class="card">
       <h2>${showDir?"③":"②"} 문제 수</h2>
       <div class="seg">
@@ -2475,10 +2730,11 @@ function renderSetup(){
     </div>
     ${kindSeg}
     ${bulkSeg}
+    ${dlgCard}
     ${rangeCard}
     ${dirSeg}
     ${countSeg}
-    <button class="btn lg" data-action="startSkill">${s.emoji} ${s.label} 시작하기</button>
+    <button class="btn lg" data-action="startSkill">${s.emoji} ${studyDlg?"대화 빈칸 채우기 시작":s.label+" 시작하기"}</button>
   `);
   bindSelection();
 }
@@ -2488,8 +2744,9 @@ function startSkill(){
   if(state.skill==="exam") state.dir="random";   // 실전시험만 랜덤 고정, 나머지는 setup에서 고른 방향 사용
   const kindable = ["read","write","listen","speak"].includes(state.skill);
   const useSent = kindable && state.studyKind==="sent";
-  // 듣기 = 받아쓰기(소리 듣고 베트남어 그대로 쓰기): 단어 또는 문장
+  // 듣기 = 받아쓰기(소리 듣고 베트남어 그대로 쓰기): 단어 또는 문장 / 또는 대화 빈칸 채우기
   if(state.skill==="listen"){
+    if(state.studyKind==="dlg"){ startDlg(); return; }
     if(useSent){ startSentQueue("listen"); return; }
     const pool=poolSelected();
     if(pool.length===0){ alert("먼저 ① 에서 공부할 범위를 한 개 이상 골라주세요."); return; }
@@ -2531,6 +2788,213 @@ function startSentQueue(skill){
   else { state.mode="type"; Q.queue=arr.map(x=>makeQ({vn:x.vn,en:x.en,lesson:lbl}, dirOf(state.dir), "sentence")); }   // 쓰기: 번역+자동/자가채점
   Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null;
   setupQ(); renderQuiz();
+}
+
+/* =========================================================
+   대화 빈칸 채우기 (듣기) — 교재 회화를 듣고 빈칸을 채움
+   빈칸 = 그 단원 '핵심 단어' 우선, 모자라면 일반 낱말. 풀 때마다 자리가 달라짐.
+   채점은 성조까지(실제 시험 기준). 성조만 틀리면 경고로 알려줌.
+   ========================================================= */
+const DLG = { lesson:1, no:1, level:"normal", lines:[], nb:0, ans:{}, res:{}, graded:false, score:0, hint:{}, playing:false };
+/* 낱말/구분자로 쪼갬 — 원문(성조·대소문자)을 그대로 보존해 다시 붙일 수 있게 */
+function dlgTokens(s){
+  const out=[]; const re=/[0-9A-Za-zÀ-ỹĐđ%]+|[^0-9A-Za-zÀ-ỹĐđ%]+/g; let m;
+  while((m=re.exec(String(s)))) out.push(m[0]);
+  return out;
+}
+const isWordTok = t => /^[0-9A-Za-zÀ-ỹĐđ%]+$/.test(t);
+/* 빈칸 후보 단어 — tier 0 = 그 단원에서 새로 배운 단어(핵심), tier 1 = 앞 단원 복습 단어 */
+function dlgVocab(lesson){
+  return WORDS.filter(w => typeof w.lesson==="number" && w.lesson<=lesson && w.vn)
+              .map(w => ({vn:w.vn, en:w.en, key:normTone(w.vn), tier: w.lesson===lesson ? 0 : 1}))
+              .filter(x => x.key.length>=2);
+}
+/* 한 줄에 뚫을 빈칸 개수 */
+function dlgBlankCount(nWords, level){
+  if(nWords<2) return 0;
+  if(level==="easy")   return 1;
+  if(level==="hard")   return Math.max(2, Math.round(nWords*0.45));
+  return Math.max(1, Math.min(3, Math.round(nWords*0.25)));
+}
+/* 한 줄을 parts(문자열 조각 + 빈칸)로 쪼갬 */
+function dlgBuildLine(vn, vocab, level, startIdx){
+  const toks = dlgTokens(vn);
+  const wi = [];                                  // 낱말 토큰의 인덱스들
+  toks.forEach((t,i)=>{ if(isWordTok(t)) wi.push(i); });
+  const nWords = wi.length;
+  const want = Math.min(dlgBlankCount(nWords, level), Math.max(0, nWords-1));
+  const spans = [];                               // {a,b} = 낱말 인덱스(wi 기준) 구간 [a,b]
+  const taken = new Array(nWords).fill(false);
+  const push = (a,b)=>{ for(let k=a;k<=b;k++) if(taken[k]) return false;
+                        for(let k=a;k<=b;k++) taken[k]=true; spans.push({a,b}); return true; };
+  const wordAt = k => normTone(toks[wi[k]]);
+  // ① 교재 단어(구 포함) 후보 — 그 단원 새 단어(tier 0) → 앞 단원 단어(tier 1) 순, 같은 급이면 긴 구를 먼저
+  const cand = [];
+  vocab.forEach(v=>{
+    const parts = v.key.split(" ");
+    for(let k=0; k+parts.length<=nWords; k++){
+      let hit=true;
+      for(let j=0;j<parts.length;j++) if(wordAt(k+j)!==parts[j]){ hit=false; break; }
+      if(hit) cand.push({a:k, b:k+parts.length-1, tier:v.tier, len:parts.length});
+    }
+  });
+  shuffle(cand)
+    .sort((x,y)=> (x.tier-y.tier) || (y.len-x.len))
+    .forEach(c=>{ if(spans.length<want) push(c.a,c.b); });
+  // ② 모자라면 일반 낱말(고유명사·1글자 제외)
+  if(spans.length<want){
+    const rest=[];
+    for(let k=0;k<nWords;k++){
+      const w = toks[wi[k]];
+      if(taken[k] || w.length<2) continue;
+      if(DLG_NAMES.has(normTone(w)) || DLG_NAMES.has(norm(w))) continue;
+      rest.push(k);
+    }
+    shuffle(rest).forEach(k=>{ if(spans.length<want) push(k,k); });
+  }
+  spans.sort((x,y)=>x.a-y.a);
+  // parts 조립
+  const blankAt = {};                             // 낱말인덱스 → span
+  spans.forEach(sp=>{ blankAt[sp.a]=sp; });
+  const parts=[]; let buf=""; let bi=startIdx;
+  const blanks=[];
+  for(let i=0;i<toks.length;){
+    const k = wi.indexOf(i);
+    const sp = (k>=0) ? blankAt[k] : null;
+    if(sp){
+      const from=wi[sp.a], to=wi[sp.b];
+      const ansText = toks.slice(from, to+1).join("");
+      if(buf){ parts.push({t:"s", s:buf}); buf=""; }
+      parts.push({t:"b", bi, ans:ansText});
+      blanks.push({bi, ans:ansText});
+      bi++;
+      i = to+1;
+    } else {
+      buf += toks[i]; i++;
+    }
+  }
+  if(buf) parts.push({t:"s", s:buf});
+  return {parts, blanks, next:bi};
+}
+function startDlg(){
+  const ds = DIALOGS[state.dlgLesson]||[];
+  const d = ds.find(x=>x.no===state.dlgNo) || ds[0];
+  if(!d){ alert("이 단원에는 대화가 없어요."); return; }
+  const vocab = dlgVocab(state.dlgLesson);
+  let bi=0;
+  DLG.lesson=state.dlgLesson; DLG.no=d.no; DLG.level=state.dlgLevel;
+  DLG.lines = d.lines.map(ln=>{
+    const r = dlgBuildLine(ln.vn, vocab, state.dlgLevel, bi);
+    bi = r.next;
+    return { who:ln.who, vn:ln.vn, ko:ln.ko, parts:r.parts, blanks:r.blanks };
+  });
+  DLG.nb=bi; DLG.ans={}; DLG.res={}; DLG.hint={}; DLG.graded=false; DLG.score=0; DLG.playing=false;
+  state.mode="dlg";
+  renderDlg();
+}
+function dlgSaveInputs(){
+  view.querySelectorAll("input.dblank").forEach(i=>{ DLG.ans[Number(i.dataset.b)] = i.value; });
+}
+function renderDlg(){
+  state.screen="dlg";
+  const rows = DLG.lines.map((ln,li)=>{
+    const body = ln.parts.map(p=>{
+      if(p.t==="s") return esc(p.s);
+      const r = DLG.res[p.bi];
+      const val = esc(DLG.ans[p.bi]||"");
+      const w = Math.max(4, Math.min(20, p.ans.length+1));
+      if(!DLG.graded)
+        return `<input class="dblank" data-b="${p.bi}" value="${val}" style="width:${w}ch" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">`;
+      const cls = r ? r.g : "no";
+      const shown = (DLG.ans[p.bi]||"").trim() || "—";
+      return `<span class="dblank done ${cls}">${esc(shown)}</span>${cls!=="ok"?`<span class="dans">${esc(p.ans)}</span>`:""}`;
+    }).join("");
+    return `<div class="dline${DLG.playing===li?" now":""}" data-li="${li}">
+      <span class="dwho">${esc(ln.who)}</span>
+      <div class="dbody">
+        <div class="dtext">${body}</div>
+        <div class="dbtns">
+          ${spkBtn(ln.vn,"vi-VN",true)}
+          <button class="chip tiny" data-action="dlgHint" data-li="${li}">${DLG.hint[li]?"뜻 숨기기":"힌트"}</button>
+        </div>
+        ${DLG.hint[li]||DLG.graded ? `<div class="dhint">${esc(ln.ko)}</div>`:""}
+      </div>
+    </div>`;
+  }).join("");
+  const head = DLG.graded
+    ? `<div class="card center">
+        <div class="stat"><div><b>${DLG.score}</b><div class="tiny muted">맞은 빈칸</div></div>
+          <div><b>${DLG.nb}</b><div class="tiny muted">전체 빈칸</div></div>
+          <div><b>${DLG.nb?Math.round(DLG.score/DLG.nb*100):0}%</b><div class="tiny muted">정답률</div></div></div>
+      </div>`
+    : "";
+  const foot = DLG.graded
+    ? `<button class="btn lg" data-action="dlgRetry"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 다시 풀기 (빈칸 새로)</button>
+       <button class="btn line" style="margin-top:10px" data-action="dlgNext">다음 대화 →</button>
+       <button class="btn line" style="margin-top:10px" data-action="quitDlg">그만두기</button>`
+    : `<button class="btn lg" data-action="dlgGrade"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 채점하기</button>
+       <button class="btn line" style="margin-top:10px" data-action="quitDlg">그만두기</button>`;
+  set(`
+    <div class="qtop">
+      <span><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> ${lessonLabel(DLG.lesson)} · 대화 ${DLG.no}</span>
+      <span>빈칸 ${DLG.nb}개</span>
+    </div>
+    ${head}
+    <div class="card dplay">
+      <button class="btn" data-action="dlgPlayAll"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 대화 전체 듣기</button>
+      <button class="btn line" data-action="dlgStop">멈추기</button>
+    </div>
+    <div class="card dlg">${rows}</div>
+    ${foot}
+  `);
+  view.querySelectorAll("input.dblank").forEach(inp=>{
+    inp.addEventListener("input", ()=>{ DLG.ans[Number(inp.dataset.b)] = inp.value; });
+    inp.addEventListener("keydown", e=>{
+      if(e.key!=="Enter") return;
+      e.preventDefault();
+      const all=[...view.querySelectorAll("input.dblank")];
+      const i=all.indexOf(inp);
+      if(i>=0 && i<all.length-1) all[i+1].focus(); else dlgGrade();
+    });
+  });
+}
+function dlgHighlight(li){
+  DLG.playing = li;
+  view.querySelectorAll(".dline").forEach(el=>el.classList.toggle("now", Number(el.dataset.li)===li));
+}
+function dlgPlayAll(){
+  dlgSaveInputs();
+  speakLines(DLG.lines.map(l=>l.vn), dlgHighlight, ()=>{ DLG.playing=false; view.querySelectorAll(".dline.now").forEach(el=>el.classList.remove("now")); });
+}
+function dlgGrade(){
+  if(DLG.graded) return;
+  dlgSaveInputs();
+  DLG.score=0;
+  DLG.lines.forEach(ln=>{
+    ln.blanks.forEach(b=>{
+      const typed=(DLG.ans[b.bi]||"").trim();
+      const g = typed ? checkVnTyped(b.ans, typed) : "no";   // 성조까지 채점
+      DLG.res[b.bi] = {g};
+      if(g==="ok"){ DLG.score++; }
+      else {
+        // 빈칸이 교재 단어면 오답노트에 담아둠 (단어가 아닌 조각은 담지 않음)
+        const k = normTone(b.ans);
+        const w = WORDS.find(x=>normTone(x.vn)===k);
+        if(w) noteWrong(w);
+      }
+    });
+  });
+  DLG.graded=true;
+  stopSpeak(); DLG.playing=false;
+  renderDlg();
+}
+function dlgNextDialog(){
+  const ds = DIALOGS[state.dlgLesson]||[];
+  const i = ds.findIndex(d=>d.no===DLG.no);
+  if(i>=0 && i+1<ds.length){ state.dlgNo = ds[i+1].no; lsSet("_dlgN", state.dlgNo); startDlg(); return; }
+  const Ls = dialogLessons(), li = Ls.indexOf(state.dlgLesson);
+  if(li>=0 && li+1<Ls.length){ state.dlgLesson=Ls[li+1]; state.dlgNo=1; lsSet("_dlgL",state.dlgLesson); lsSet("_dlgN",1); startDlg(); return; }
+  renderSetup();
 }
 
 /* ---------- 문장 여러 개 한 번에 풀기 (시험지처럼) ---------- */
@@ -2995,7 +3459,7 @@ function startNote(){
   if(!note.length){ alert("오답 노트가 비어 있어요. 시험에서 틀리거나, 단어장에서 별표(☆)로 추가하면 모여요."); return; }
   const items=note.map(e=>makeQ({vn:e.vn,en:e.en,lesson:e.lesson}, dirOf(state.dir), e.type));
   if(state.mode==="flash"){ startFlash(items.map(i=>i.word)); return; }
-  if(state.mode==="listen"||state.mode==="speak"||state.mode==="read") state.mode="type";   // 오답 노트 시험은 주관식(듣기/말하기/읽기 모드로 깨지지 않게)
+  if(state.mode==="listen"||state.mode==="speak"||state.mode==="read"||state.mode==="dlg"||state.mode==="bulk") state.mode="type";   // 오답 노트 시험은 주관식(듣기/말하기/읽기/대화 모드로 깨지지 않게)
   startQueue(items);
 }
 function renderNote(){
@@ -3912,6 +4376,13 @@ const actions = {
   goSkill:(el)=>goSkill(el.dataset.skill), startSkill,
   setupDir:(el)=>{ state.dir=el.dataset.v; lsSet("_dir",state.dir); renderSetup(); },
   studyKind:(el)=>{ state.studyKind=el.dataset.v; lsSet("_skind",state.studyKind); renderSetup(); },
+  dlgLesson:(el)=>{ state.dlgLesson=Number(el.dataset.l); state.dlgNo=1; lsSet("_dlgL",state.dlgLesson); lsSet("_dlgN",1); renderSetup(); },
+  dlgNo:(el)=>{ state.dlgNo=Number(el.dataset.n); lsSet("_dlgN",state.dlgNo); renderSetup(); },
+  dlgLevel:(el)=>{ state.dlgLevel=el.dataset.v; lsSet("_dlvl",state.dlgLevel); renderSetup(); },
+  dlgPlayAll, dlgStop:()=>{ stopSpeak(); DLG.playing=false; view.querySelectorAll(".dline.now").forEach(el=>el.classList.remove("now")); },
+  dlgHint:(el)=>{ dlgSaveInputs(); const li=Number(el.dataset.li); DLG.hint[li]=!DLG.hint[li]; renderDlg(); },
+  dlgGrade, dlgRetry:()=>{ stopSpeak(); startDlg(); }, dlgNext:dlgNextDialog,
+  quitDlg:()=>{ stopSpeak(); goHome(); },
   sentBulk:(el)=>{ state.sentBulk = el.dataset.v==="1"; lsSet("_sbulk", state.sentBulk); renderSetup(); },
   bulkGrade, bulkNext,
   bulkToggle:(el)=>bulkToggle(el.dataset.i),
