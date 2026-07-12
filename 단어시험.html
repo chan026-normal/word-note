@@ -2679,8 +2679,8 @@ function renderSetup(){
           <button class="${studyDlg?"on":""}" data-action="studyKind" data-v="dlg">대화<span class="desc">빈칸 채우기</span></button>
           <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">받아쓰기</span></button>
         ` : `
-          <button class="${state.studyKind==="word"?"on":""}" data-action="studyKind" data-v="word">단어<span class="desc">단어로</span></button>
-          <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">문장으로</span></button>
+          <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장</button>
+          <button class="${state.studyKind==="word"?"on":""}" data-action="studyKind" data-v="word">단어</button>
         `}
       </div>
     </div>`:"";
@@ -2959,9 +2959,9 @@ function renderDlg(){
     ? `${nWrong ? `<button class="btn lg" data-action="dlgRetryWrong"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 틀린 빈칸 ${nWrong}개만 다시 풀기</button>` : ""}
        <button class="btn ${nWrong?"line":"lg"}" style="margin-top:10px" data-action="dlgRetry"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-shuffle'/></svg> 처음부터 (빈칸 새로)</button>
        <button class="btn line" style="margin-top:10px" data-action="dlgNext">다음 대화 →</button>
-       <button class="btn line" style="margin-top:10px" data-action="quitDlg">그만두기</button>`
+       <button class="btn line" style="margin-top:10px" data-action="quitDlg">← 단원·대화 다시 고르기</button>`
     : `<button class="btn lg" data-action="dlgGrade"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 채점하기</button>
-       <button class="btn line" style="margin-top:10px" data-action="quitDlg">그만두기</button>`;
+       <button class="btn line" style="margin-top:10px" data-action="quitDlg">← 단원·대화 다시 고르기</button>`;
   set(`
     <div class="qtop">
       <span><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> ${lessonLabel(DLG.lesson)} · 대화 ${DLG.no}</span>
@@ -4408,7 +4408,7 @@ const actions = {
   dlgPlayAll, dlgStop:()=>{ stopSpeak(); DLG.playing=false; view.querySelectorAll(".dline.now").forEach(el=>el.classList.remove("now")); },
   dlgHint:(el)=>{ dlgSaveInputs(); const li=Number(el.dataset.li); DLG.hint[li]=!DLG.hint[li]; renderDlg(); },
   dlgGrade, dlgRetryWrong, dlgRetry:()=>{ stopSpeak(); startDlg(); }, dlgNext:dlgNextDialog,
-  quitDlg:()=>{ stopSpeak(); goHome(); },
+  quitDlg:()=>{ stopSpeak(); DLG.playing=false; renderSetup(); },   // 홈이 아니라 '듣기 설정(단원·대화 선택)'으로
   sentBulk:(el)=>{ state.sentBulk = el.dataset.v==="1"; lsSet("_sbulk", state.sentBulk); renderSetup(); },
   bulkGrade, bulkNext,
   bulkToggle:(el)=>bulkToggle(el.dataset.i),
