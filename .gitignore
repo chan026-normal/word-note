@@ -5,3 +5,4 @@ contents.zip
 *.jpeg
 *.jpg
 *.png
+!icon-*.png
