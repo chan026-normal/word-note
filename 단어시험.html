@@ -2493,7 +2493,18 @@ function spkBtn(text, lang, sm){
    5) 화면 그리기
    ========================================================= */
 const view = document.getElementById("view");
-const set = h => { view.innerHTML = h; window.scrollTo(0,0); };
+/* 화면을 다시 그릴 때 스크롤 처리:
+   - '다른 화면'으로 넘어가면 맨 위로 (홈→설정, 다음 문제 등)
+   - '같은 화면'을 다시 그리는 거면 있던 자리 유지 (칩·토글·힌트 버튼 등 → 맨 위로 안 튐)
+   화면 구분은 state.screen 키. 문제 번호·페이지가 바뀌면 키도 바뀌게 해서 그땐 맨 위로 감. */
+let LAST_SCREEN = null;
+const set = h => {
+  const same = (state.screen != null && state.screen === LAST_SCREEN);
+  const y = window.scrollY;
+  view.innerHTML = h;
+  LAST_SCREEN = state.screen;
+  window.scrollTo(0, same ? y : 0);
+};
 /* 시험지 컨트롤(방향·문장범위 등) 다시 그릴 때 스크롤 위치 유지 — set이 매번 맨 위로 올리는 걸 되돌림 */
 const paperKeep = fn => { const y = window.scrollY; fn(); window.scrollTo(0, y); };
 /* 화면 확대(글씨 크게/작게) — #view에 zoom 적용. 매 화면 자동 가운데 정렬돼 초점이 안 튐 */
@@ -2619,7 +2630,7 @@ function renderHome(){
   `);
   bindFind();   // 홈 단어 검색
 }
-function refresh(){ if(state.screen==="setup") renderSetup(); else if(state.screen==="paper") genPaper(false); else renderHome(); }
+function refresh(){ if(String(state.screen).startsWith("setup")) renderSetup(); else if(state.screen==="paper") genPaper(false); else renderHome(); }
 function bindSelection(){
   const sl=document.getElementById("startLesson");
   if(!sl) return;
@@ -2652,7 +2663,7 @@ function bindFind(){
 /* ---------- 영역 선택 → 설정 화면 ---------- */
 function goSkill(skill){ state.skill=skill; lsSet("_skill",skill); const sd=(SKILLS[skill]||{}).dir; if(sd && skill!=="exam") state.dir=sd; renderSetup(); }
 function renderSetup(){
-  state.screen="setup";
+  state.screen="setup:"+state.skill;   // 영역이 바뀌면 맨 위로, 같은 영역 안 토글은 자리 유지
   const s=SKILLS[state.skill];
   const isListen = state.skill==="listen";
   if(state.studyKind==="dlg" && !isListen) state.studyKind="word";   // '대화 빈칸'은 듣기 전용
@@ -2909,7 +2920,7 @@ function dlgSaveInputs(){
   view.querySelectorAll("input.dblank").forEach(i=>{ DLG.ans[Number(i.dataset.b)] = i.value; });
 }
 function renderDlg(){
-  state.screen="dlg";
+  state.screen="dlg:"+DLG.lesson+":"+DLG.no+":"+DLG.retry;   // 대화/회차가 바뀔 때만 맨 위로
   const rows = DLG.lines.map((ln,li)=>{
     const body = ln.parts.map(p=>{
       if(p.t==="s") return esc(p.s);
@@ -3033,7 +3044,7 @@ function startSentBulk(arr, lbl){
 }
 const bulkPages = () => Math.max(1, Math.ceil(BULK.items.length / BULK.per));
 function renderSentBulk(){
-  state.screen="bulk";
+  state.screen="bulk:"+BULK.page;   // 페이지 넘길 때만 맨 위로
   const total=BULK.items.length, start=BULK.page*BULK.per, end=Math.min(start+BULK.per, total);
   const rows=[];
   for(let i=start;i<end;i++){
@@ -3222,6 +3233,7 @@ function gradeSent(typed, answer){
   return "no";
 }
 function renderQuiz(){
+  state.screen="quiz:"+Q.idx;   // 다음 문제로 넘어갈 때만 맨 위로 (채점·정답공개는 자리 유지)
   const q = Q.queue[Q.idx], n = Q.queue.length;
   const pct = Math.round((Q.idx/(n))*100);
   const isSent = q.type==="sentence";
@@ -3832,6 +3844,7 @@ function startFlash(pool){
   F.idx=0; F.flip=false; renderFlash();
 }
 function renderFlash(){
+  state.screen="flash:"+F.idx;   // 카드 넘길 때만 맨 위로 (뒤집기는 자리 유지)
   const c = F.cards[F.idx], n=F.cards.length;
   const pLang = c.dir==="vn2en"?"vi-VN":"ko-KR", aLang = c.dir==="vn2en"?"ko-KR":"vi-VN";
   set(`
@@ -3865,6 +3878,7 @@ function startSpeak(pool, isSent){
   renderSpeak();
 }
 function renderSpeak(){
+  state.screen="speak:"+SP.idx;   // 다음 카드로 넘어갈 때만 맨 위로
   const w = SP.cards[SP.idx], n=SP.cards.length;
   const showVn = w.dir!=="en2vn";   // 베→한: 베트남어 듣고 따라 말하기 / 한→베: 한국어 보고 베트남어로 말하기
   const front = showVn ? w.vn : w.en, fLang = showVn ? "vi-VN" : "ko-KR";
@@ -3897,6 +3911,7 @@ function speakAdvance(toNote){
   SP.idx++; SP.revealed=false; renderSpeak();
 }
 function renderSpeakDone(){
+  state.screen="result";
   set(`
     <div class="card center" style="padding:24px">
       <div class="emoji"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-mic'/></svg></div>
@@ -3988,6 +4003,7 @@ function exportPicked(){
   downloadDoc(wordDocHtml(list, label, "", true), docFileName(label));
 }
 function renderList(){
+  state.screen="list";   // 단원 칩·검색 바꿔도 자리 유지
   const lessons = lessonsList();
   const customN = WORDS.filter(w=>w.lesson==="custom").length;
   const filt = L.multi ? pickedWordsAll() : curListWords();
@@ -4128,6 +4144,7 @@ async function doAutoFill(){
 }
 function goAdd(){ renderAdd(); }
 function renderAdd(){
+  state.screen="add";
   const custom = lsGet("_custom", []);
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>

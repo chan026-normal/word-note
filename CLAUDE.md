@@ -54,6 +54,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 - Telex 도움말: `renderTelex()`.
 - 기타: `renderHome()`, `renderList()`(단어장), `renderAdd()`(단어추가), `renderFlash()`(플래시카드), `selectionBlockHTML()`(단원/범위 공용), `speak()`(🔊 Web Speech: 베=vi-VN, 한=ko-KR).
 - **발음(소리) 설정**(2026-07-10): `renderVoice`/`goVoice`(홈 하단 '발음(소리) 설정' 버튼). 앱은 자체 발음엔진 없음 — **기기 내장 TTS**(Web Speech)를 씀. 기기 vi 음성 목록(`viVoices`=`VOICES` 중 lang이 vi)에서 **음성 선택**(LS `_voiceURI`, 미선택 시 enhanced/premium/neural/natural 이름 우선=`pickedVoice`)+**속도 조절**(LS `_rate`, 슬라이더 0.6~1.3배=`ttsRate`, 기본 0.9). `speak`가 **베트남어일 때만** 선택 음성 적용(한국어 등은 OS 기본). `loadVoices`+`onvoiceschanged`로 목록 로드. 액션 `pickVoice`(선택 저장+미리듣기)·`testVoice`(샘플 "Tôi có thể nói tiếng Việt." 재생). 하노이/호치민 억양은 기기 음성이 결정(대개 북부 표준).
+- **스크롤 유지**(2026-07-12): 예전 `set()`은 그릴 때마다 `scrollTo(0,0)` → 칩·토글·힌트 하나만 눌러도 맨 위로 튐(사용자 지적). 이제 `set()`이 **`state.screen` 키를 이전 렌더와 비교** → **같은 화면이면 스크롤 자리 유지**, **다른 화면이면 맨 위로**. 화면 키에 **인덱스를 붙여** 진짜 이동일 때만 위로 감: `setup:{skill}` · `quiz:{Q.idx}` · `flash:{F.idx}` · `speak:{SP.idx}` · `dlg:{단원}:{대화}:{retry}` · `bulk:{page}` · `list` · `add` · `note` · `paper` · `home` · `result` 등. **새 화면을 만들면 `state.screen`을 반드시 세팅할 것**(안 하면 이전 키가 남아 스크롤이 안 올라감). `refresh()`는 `startsWith("setup")`로 비교. (기존 `paperKeep`은 그대로 둠 — 이제 중복이지만 무해.)
 - 클릭 처리: 하단 `actions` 맵 + `view.addEventListener("click", ...)` (data-action 위임).
 
 ## 6. 자주 하는 변경
