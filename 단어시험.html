@@ -2478,7 +2478,7 @@ const DIRLABEL = { vn2en:"🇻🇳 베트남어 → 🇰🇷 한국어", en2vn:"
 /* 4영역(읽기·듣기·쓰기·말하기) + 보조(실전·플래시) 정의 */
 const SKILLS = {
   read:  {label:"읽기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-eye'/></svg>", mode:"read",   dir:"vn2en",  count:true,  tag:"읽기 연습",      cardDesc:"베트남어 읽고<br>뜻 확인",          desc:"베트남어를 소리 내어 읽고, '뜻 보기'로 뜻을 확인해요. (입력 없이 읽는 연습)"},
-  listen:{label:"듣기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg>", mode:"listen", dir:"vn2en",  count:true,  tag:"받아쓰기·대화",     cardDesc:"소리 듣고<br>받아쓰기·빈칸",       desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 베트남어를 듣고 받아써요. <b>단어·문장 받아쓰기</b> 또는 교재 <b>대화 빈칸 채우기</b>를 고를 수 있어요. (성조까지 정확히!)"},
+  listen:{label:"듣기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg>", mode:"listen", dir:"vn2en",  count:true,  tag:"대화·문장",     cardDesc:"대화 빈칸<br>문장 받아쓰기",       desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 교재 <b>대화를 들으며 빈칸</b>을 채우거나, <b>문장을 받아써요</b>. (성조까지 정확히!)"},
   write: {label:"쓰기",   emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg>", mode:"type",   dir:"en2vn",  count:true,  tag:"한 ↔ 베",      cardDesc:"뜻 보고<br>베트남어 쓰기",          desc:"한국어 뜻을 보고 베트남어를 직접 입력해요. 아래에서 방향(한→베·베→한)을 골라요. (성조까지 정확히!)"},
   speak: {label:"말하기", emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-mic'/></svg>", mode:"speak",  dir:"vn2en",  count:true,  tag:"따라 말하기",  cardDesc:"듣고 따라 말한 뒤<br>스스로 체크",  desc:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 듣고 따라 말한 뒤 스스로 체크해요. 아래에서 방향을 골라요."},
   exam:  {label:"실전 시험", emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg>", mode:"exam", dir:"random", count:false, tag:"단어40+문장10", cardDesc:"단어 40 + 문장 10",              desc:"단어 40개 + 문장 10개를 실제 시험처럼 한 번에 풀어요."},
@@ -2656,6 +2656,7 @@ function renderSetup(){
   const s=SKILLS[state.skill];
   const isListen = state.skill==="listen";
   if(state.studyKind==="dlg" && !isListen) state.studyKind="word";   // '대화 빈칸'은 듣기 전용
+  if(isListen && state.studyKind==="word") state.studyKind="dlg";    // 듣기엔 '단어' 없음 (대화·문장만)
   const kindable = ["read","write","listen","speak"].includes(state.skill);   // 단어/문장 선택 가능한 영역
   const studyDlg  = isListen && state.studyKind==="dlg";
   const studySent = kindable && state.studyKind==="sent";
@@ -2669,14 +2670,18 @@ function renderSetup(){
         <button class="${state.dir==="random"?"on":""}" data-action="setupDir" data-v="random">랜덤<span class="desc">섞어서</span></button>
       </div>
     </div>`:"";
-  // 단어/문장(/대화) 선택 — 읽기·쓰기·듣기·말하기 공통, '대화 빈칸'은 듣기에만
+  // 무엇으로 공부할까 — 듣기는 [대화·문장], 나머지는 [단어·문장]
   const kindSeg = kindable ? `
     <div class="card">
       <h2>${isListen?"무엇을 들을까요?":"무엇으로 공부할까요?"}</h2>
       <div class="seg">
-        <button class="${state.studyKind==="word"?"on":""}" data-action="studyKind" data-v="word">단어<span class="desc">받아쓰기</span></button>
-        <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">받아쓰기</span></button>
-        ${isListen?`<button class="${studyDlg?"on":""}" data-action="studyKind" data-v="dlg">대화<span class="desc">빈칸 채우기</span></button>`:""}
+        ${isListen ? `
+          <button class="${studyDlg?"on":""}" data-action="studyKind" data-v="dlg">대화<span class="desc">빈칸 채우기</span></button>
+          <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">받아쓰기</span></button>
+        ` : `
+          <button class="${state.studyKind==="word"?"on":""}" data-action="studyKind" data-v="word">단어<span class="desc">단어로</span></button>
+          <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">문장으로</span></button>
+        `}
       </div>
     </div>`:"";
   // 대화 빈칸: 단원 · 대화 번호 · 난이도
@@ -2744,17 +2749,10 @@ function startSkill(){
   if(state.skill==="exam") state.dir="random";   // 실전시험만 랜덤 고정, 나머지는 setup에서 고른 방향 사용
   const kindable = ["read","write","listen","speak"].includes(state.skill);
   const useSent = kindable && state.studyKind==="sent";
-  // 듣기 = 받아쓰기(소리 듣고 베트남어 그대로 쓰기): 단어 또는 문장 / 또는 대화 빈칸 채우기
+  // 듣기 = 대화 빈칸 채우기 / 문장 받아쓰기 (단어 받아쓰기는 없앰 — 2026-07-12)
   if(state.skill==="listen"){
-    if(state.studyKind==="dlg"){ startDlg(); return; }
     if(useSent){ startSentQueue("listen"); return; }
-    const pool=poolSelected();
-    if(pool.length===0){ alert("먼저 ① 에서 공부할 범위를 한 개 이상 골라주세요."); return; }
-    let q=shuffle(pool);
-    if(state.count!=="all") q=q.slice(0, Math.min(Number(state.count), q.length));
-    Q.queue=q.map(w=>listenWordQ(w));
-    Q.idx=0; Q.score=0; Q.wrong=[]; Q.wordCount=null; Q.sentCount=null;
-    setupQ(); renderQuiz(); return;
+    startDlg(); return;
   }
   // 읽기·쓰기·말하기 — 문장으로 공부
   if(useSent){ startSentQueue(state.skill); return; }
