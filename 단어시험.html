@@ -140,6 +140,17 @@
   .spk{border:none;background:var(--brandsoft);color:var(--brand);width:38px;height:38px;border-radius:12px;cursor:pointer;font-size:17px;vertical-align:middle}
   .spk.sm{width:30px;height:30px;font-size:14px;border-radius:9px}
 
+  /* 단어 순서 배치 (쓰기 → 문장 → 순서 배치) */
+  .wline{min-height:52px; display:flex; flex-wrap:wrap; gap:7px; align-items:flex-start; align-content:flex-start;
+    padding:11px; border-bottom:2px dashed var(--line); border-radius:10px; background:var(--bg)}
+  .wpool{display:flex; flex-wrap:wrap; gap:7px; margin-top:14px}
+  .wchip{border:1.5px solid var(--line); background:var(--card); color:var(--ink);
+    padding:9px 13px; border-radius:12px; font-size:16px; font-weight:700; cursor:pointer; transition:.12s; box-shadow:0 1px 0 var(--line)}
+  .wchip:active{transform:scale(.96)}
+  .wchip.placed{border-color:var(--brand); background:var(--brandsoft); color:var(--brand); box-shadow:none}
+  .wchip.used{visibility:hidden}
+  .wchip:disabled{cursor:default}
+
   /* 대화 빈칸 채우기 (듣기) */
   .dplay{display:flex; gap:8px; padding:12px 14px}
   .dplay .btn{margin:0; flex:1}
@@ -2533,7 +2544,10 @@ const state = {
   rStart: 0, rEnd: 0,            // 범위 지정 시 전체순서(gi) 기준 시작/끝
   skill: lsGet("_skill","read"),  // read | listen | write | speak | exam | flash (홈에서 고른 영역)
   studyKind: lsGet("_skind","word"),   // 공부 대상: word(단어) | sent(문장) | dlg(대화 빈칸 — 듣기 전용)
-  sentBulk: !!lsGet("_sbulk", false),  // 쓰기+문장: false=한 문제씩 / true=여러 문제 한 번에(시험지처럼)
+  // 쓰기+문장 푸는 방식: one=한 문제씩 / bulk=여러 문제 한 번에(시험지처럼) / order=단어 순서 배치
+  // (옛 버전은 _sbulk에 true/false를 저장했어서 그대로 넘겨받아 변환)
+  sentMode: (()=>{ const v = lsGet("_sbulk", "one"); if(v===true) return "bulk"; if(v===false) return "one";
+                   return ["one","bulk","order"].includes(v) ? v : "one"; })(),
   dlgLesson: Number(lsGet("_dlgL", 1)) || 1,   // 대화 빈칸: 단원
   dlgNo: Number(lsGet("_dlgN", 1)) || 1,       // 대화 빈칸: 대화 번호
   dlgLevel: lsGet("_dlvl","normal")            // 대화 빈칸 난이도: easy | normal | hard
@@ -2671,7 +2685,9 @@ function renderSetup(){
   const kindable = ["read","write","listen","speak"].includes(state.skill);   // 단어/문장 선택 가능한 영역
   const studyDlg  = isListen && state.studyKind==="dlg";
   const studySent = kindable && state.studyKind==="sent";
-  const showDir = state.skill!=="exam" && state.skill!=="read" && !isListen;   // 실전·읽기·듣기는 방향 선택 없음
+  const studyOrder = state.skill==="write" && kindable && state.studyKind==="sent" && state.sentMode==="order";
+  // 실전·읽기·듣기는 방향 선택 없음. 순서 배치도 방향 고정(한국어 뜻 보고 베트남어 배열)
+  const showDir = state.skill!=="exam" && state.skill!=="read" && !isListen && !studyOrder;
   const dirSeg = showDir ? `
     <div class="card">
       <h2>방향</h2>
@@ -2719,8 +2735,9 @@ function renderSetup(){
     <div class="card">
       <h2>푸는 방식</h2>
       <div class="seg">
-        <button class="${!state.sentBulk?"on":""}" data-action="sentBulk" data-v="0">한 문제씩<span class="desc">넘기면서</span></button>
-        <button class="${state.sentBulk?"on":""}" data-action="sentBulk" data-v="1">여러 문제 한 번에<span class="desc">시험지처럼</span></button>
+        <button class="${state.sentMode==="one"?"on":""}" data-action="sentMode" data-v="one">한 문제씩<span class="desc">넘기면서</span></button>
+        <button class="${state.sentMode==="bulk"?"on":""}" data-action="sentMode" data-v="bulk">여러 문제<span class="desc">시험지처럼</span></button>
+        <button class="${state.sentMode==="order"?"on":""}" data-action="sentMode" data-v="order">순서 배치<span class="desc">단어 배열</span></button>
       </div>
     </div>`:"";
   // 범위: 문장이면 문장 단원 칩, 아니면 단어 범위 선택
@@ -2790,7 +2807,8 @@ function startSentQueue(skill){
   const lbl = "L"+l+" 문장";
   let arr = shuffle(pool);
   if(state.count!=="all") arr = arr.slice(0, Math.min(Number(state.count), arr.length));
-  if(skill==="write" && state.sentBulk){ startSentBulk(arr, lbl); return; }   // 쓰기: 여러 문제 한 번에(시험지처럼)
+  if(skill==="write" && state.sentMode==="order"){ startSentOrder(arr, lbl); return; }  // 쓰기: 단어 순서 배치
+  if(skill==="write" && state.sentMode==="bulk"){ startSentBulk(arr, lbl); return; }    // 쓰기: 여러 문제 한 번에(시험지처럼)
   if(skill==="speak"){ startSpeak(arr.map(x=>({vn:x.vn, en:x.en, lesson:lbl})), true); return; }   // 말하기: SP 사용
   if(skill==="listen"){ state.mode="listen"; Q.queue=arr.map(x=>listenSentQ(x, lbl)); }
   else if(skill==="read"){ state.mode="read"; Q.queue=arr.map(x=>({type:"sentence", word:{vn:x.vn,en:x.en,lesson:lbl}, dir:"vn2en", prompt:x.vn, answer:x.en})); }
@@ -3032,6 +3050,120 @@ function dlgNextDialog(){
   const Ls = dialogLessons(), li = Ls.indexOf(state.dlgLesson);
   if(li>=0 && li+1<Ls.length){ state.dlgLesson=Ls[li+1]; state.dlgNo=1; lsSet("_dlgL",state.dlgLesson); lsSet("_dlgN",1); startDlg(); return; }
   renderSetup();
+}
+
+/* =========================================================
+   단어 순서 배치 (쓰기 → 문장 → 순서 배치)
+   한국어 뜻을 보고, 흩어진 베트남어 단어를 눌러 순서대로 배열해 문장을 완성.
+   ========================================================= */
+const ORD = { items:[], idx:0, score:0, wrong:[], words:[], pool:[], placed:[], answered:false, ok:false, lbl:"" };
+/* 문장을 낱말로 쪼갬 (구두점은 붙어 있는 그대로 — 교재 표기 유지) */
+const ordWords = s => String(s).trim().split(/\s+/).filter(Boolean);
+function startSentOrder(arr, lbl){
+  // 너무 짧거나(3개 미만) 너무 긴(14개 초과) 문장은 순서 배치에 안 맞아 제외
+  let pool = arr.filter(x => { const n = ordWords(x.vn).length; return n>=3 && n<=14; });
+  if(pool.length < 3) pool = arr;                      // 남는 게 거의 없으면 그냥 다 씀
+  if(!pool.length){ alert("이 단원에 순서 배치로 낼 문장이 없어요."); return; }
+  state.mode="order";
+  ORD.items = pool.map(x=>({vn:x.vn, en:x.en, lesson:lbl, type:"sentence"}));
+  ORD.idx=0; ORD.score=0; ORD.wrong=[]; ORD.lbl=lbl;
+  ordSetup();
+  renderOrder();
+}
+function ordSetup(){
+  const it = ORD.items[ORD.idx];
+  ORD.words = ordWords(it.vn);
+  // 흩어놓기 (원래 순서 그대로 나오면 다시 섞음)
+  let p;
+  for(let t=0; t<12; t++){
+    p = shuffle(ORD.words.map((w,i)=>({w, i})));
+    if(ORD.words.length<2 || p.some((x,k)=>x.i!==k)) break;
+  }
+  ORD.pool = p;
+  ORD.placed = [];
+  ORD.answered=false; ORD.ok=false;
+}
+const ordSentence = () => ORD.placed.map(x=>x.w).join(" ");
+function renderOrder(){
+  state.screen = "order:"+ORD.idx;
+  const it = ORD.items[ORD.idx], n = ORD.items.length;
+  const done = ORD.placed.length === ORD.words.length;
+  const answer = it.vn;
+
+  const placedHTML = ORD.placed.length
+    ? ORD.placed.map((x,k)=>`<button class="wchip placed" data-action="ordUnpick" data-k="${k}" ${ORD.answered?"disabled":""}>${esc(x.w)}</button>`).join("")
+    : `<span class="muted tiny">아래 단어를 눌러 순서대로 놓아보세요</span>`;
+  const poolHTML = ORD.pool.map((x,k)=>{
+    const used = ORD.placed.some(p=>p.i===x.i);
+    return `<button class="wchip${used?" used":""}" data-action="ordPick" data-k="${k}" ${used||ORD.answered?"disabled":""}>${esc(x.w)}</button>`;
+  }).join("");
+
+  let fb="";
+  if(ORD.answered){
+    fb = ORD.ok
+      ? `<div class="feedback ok"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 정답이에요! ${spkBtn(answer,"vi-VN",true)}</div>`
+      : `<div class="feedback no"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-x'/></svg> 아쉬워요
+           <span class="ans">${esc(answer)} ${spkBtn(answer,"vi-VN",true)}</span>
+           <div class="mycmp" style="margin-top:8px"><b>내 답</b>${esc(ordSentence()||"(비어 있음)")}</div>
+         </div>`;
+  }
+  set(`
+    <div class="qtop"><span><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-shuffle'/></svg> 순서 배치 ${ORD.idx+1} / ${n}</span><span>점수 ${ORD.score}</span></div>
+    <div class="bar"><i style="width:${Math.round((ORD.idx/n)*100)}%"></i></div>
+    <div class="card">
+      <div class="muted tiny" style="margin-bottom:6px">${esc(it.lesson)} · 뜻을 보고 단어를 순서대로 놓으세요</div>
+      <div class="qword" style="font-size:19px; line-height:1.5">${esc(it.en)}</div>
+    </div>
+    <div class="card">
+      <div class="wline">${placedHTML}</div>
+      <div class="wpool">${poolHTML}</div>
+      ${!ORD.answered ? `<div class="btn2" style="margin-top:12px">
+          <button class="btn soft" data-action="ordClear">지우기</button>
+          <button class="btn soft" data-action="ordShuffle"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-shuffle'/></svg> 다시 섞기</button>
+        </div>`:""}
+    </div>
+    ${fb}
+    ${ORD.answered
+      ? `<button class="btn lg" data-action="ordNext">${ORD.idx+1>=n?"결과 보기 →":"다음 문제 →"}</button>`
+      : `<button class="btn lg" data-action="ordCheck" ${done?"":"disabled"}><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> ${done?"확인하기":`단어 ${ORD.words.length-ORD.placed.length}개 남았어요`}</button>`}
+    <button class="btn line" style="margin-top:10px" data-action="quitOrder">← 설정으로</button>
+  `);
+}
+function ordCheck(){
+  if(ORD.answered) return;
+  if(ORD.placed.length !== ORD.words.length) return;
+  const it = ORD.items[ORD.idx];
+  ORD.ok = (ordSentence() === ORD.words.join(" "));   // 단어 조각이 그대로라 순서만 맞으면 정답
+  ORD.answered = true;
+  if(ORD.ok){ ORD.score++; noteRight(it); }
+  else { ORD.wrong.push(it); noteWrong(it); }
+  renderOrder();
+}
+function ordNext(){
+  if(ORD.idx+1 >= ORD.items.length){ renderOrderDone(); return; }
+  ORD.idx++; ordSetup(); renderOrder();
+}
+function renderOrderDone(){
+  state.screen="result";
+  const n=ORD.items.length, pct=n?Math.round(ORD.score/n*100):0;
+  set(`
+    <div class="card center">
+      <div class="emoji">${pct>=70?"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-trophy'/></svg>":"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg>"}</div>
+      <div class="stat"><div><b>${ORD.score}</b><div class="tiny muted">정답</div></div>
+        <div><b>${n}</b><div class="tiny muted">문제</div></div>
+        <div><b>${pct}%</b><div class="tiny muted">정답률</div></div></div>
+    </div>
+    ${ORD.wrong.length ? `<div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-x'/></svg> 다시 볼 문장 ${ORD.wrong.length}개</h2>
+      <div class="muted tiny" style="margin:-6px 0 8px">오답 노트에 저장됐어요.</div>
+      ${ORD.wrong.map(x=>`<div style="padding:8px 0; border-top:1px solid var(--line)">
+        <div style="font-weight:700">${esc(x.vn)} ${spkBtn(x.vn,"vi-VN",true)}</div>
+        <div class="muted tiny" style="margin-top:2px">${esc(x.en)}</div>
+      </div>`).join("")}
+    </div>`:""}
+    <button class="btn lg" data-action="quitOrder"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 다시 하기</button>
+    <button class="btn line" style="margin-top:10px" data-action="goHome">← 처음으로</button>
+  `);
 }
 
 /* ---------- 문장 여러 개 한 번에 풀기 (시험지처럼) ---------- */
@@ -3497,7 +3629,7 @@ function startNote(){
   if(!note.length){ alert("오답 노트가 비어 있어요. 시험에서 틀리거나, 단어장에서 별표(☆)로 추가하면 모여요."); return; }
   const items=note.map(e=>makeQ({vn:e.vn,en:e.en,lesson:e.lesson}, dirOf(state.dir), e.type));
   if(state.mode==="flash"){ startFlash(items.map(i=>i.word)); return; }
-  if(state.mode==="listen"||state.mode==="speak"||state.mode==="read"||state.mode==="dlg"||state.mode==="bulk") state.mode="type";   // 오답 노트 시험은 주관식(듣기/말하기/읽기/대화 모드로 깨지지 않게)
+  if(["listen","speak","read","dlg","bulk","order"].includes(state.mode)) state.mode="type";   // 오답 노트 시험은 주관식(듣기/말하기/읽기/대화/순서배치 모드로 깨지지 않게)
   startQueue(items);
 }
 function renderNote(){
@@ -4426,7 +4558,14 @@ const actions = {
   dlgHint:(el)=>{ dlgSaveInputs(); const li=Number(el.dataset.li); DLG.hint[li]=!DLG.hint[li]; renderDlg(); },
   dlgGrade, dlgRetryWrong, dlgRetry:()=>{ stopSpeak(); startDlg(); }, dlgNext:dlgNextDialog,
   quitDlg:()=>{ stopSpeak(); DLG.playing=false; renderSetup(); },   // 홈이 아니라 '듣기 설정(단원·대화 선택)'으로
-  sentBulk:(el)=>{ state.sentBulk = el.dataset.v==="1"; lsSet("_sbulk", state.sentBulk); renderSetup(); },
+  sentMode:(el)=>{ state.sentMode = el.dataset.v; lsSet("_sbulk", state.sentMode); renderSetup(); },
+  ordPick:(el)=>{ if(ORD.answered) return; const k=Number(el.dataset.k); const x=ORD.pool[k];
+    if(!x || ORD.placed.some(p=>p.i===x.i)) return; ORD.placed.push(x); renderOrder(); },
+  ordUnpick:(el)=>{ if(ORD.answered) return; ORD.placed.splice(Number(el.dataset.k),1); renderOrder(); },
+  ordClear:()=>{ if(ORD.answered) return; ORD.placed=[]; renderOrder(); },
+  ordShuffle:()=>{ if(ORD.answered) return; ORD.pool=shuffle(ORD.pool); renderOrder(); },
+  ordCheck, ordNext,
+  quitOrder:()=>{ renderSetup(); },
   bulkGrade, bulkNext,
   bulkToggle:(el)=>bulkToggle(el.dataset.i),
   quitBulk:()=>{ if(confirm("그만둘까요? 지금까지 채점한 결과를 보여드릴게요.")) renderBulkDone(); },
