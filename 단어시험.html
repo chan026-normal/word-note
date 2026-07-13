@@ -2550,7 +2550,8 @@ const state = {
                    return ["one","bulk","order"].includes(v) ? v : "one"; })(),
   dlgLesson: Number(lsGet("_dlgL", 1)) || 1,   // 대화 빈칸: 단원
   dlgNo: Number(lsGet("_dlgN", 1)) || 1,       // 대화 빈칸: 대화 번호
-  dlgLevel: lsGet("_dlvl","normal")            // 대화 빈칸 난이도: easy | normal | hard
+  dlgLevel: lsGet("_dlvl","normal"),           // 빈칸 난이도(대화·문장 공용): easy | normal | hard
+  listenSent: lsGet("_lsent","cloze")          // 듣기+문장 푸는 방식: cloze=빈칸 채우기 / dictate=받아쓰기
 };
 
 /* ---------- 홈 ---------- */
@@ -2661,12 +2662,13 @@ function bindFind(){
   const render=()=>{
     const k=norm(inp.value);
     if(!k){ res.innerHTML=""; return; }   // 비어 있으면 결과창도 숨김(홈이 깔끔하게)
-    const hits=WORDS.filter(w=>norm(w.vn).includes(k)||norm(w.en).includes(k)).slice(0,40);
+    // 베트남어 · 한국어 뜻 · 교재 영어 뜻(eng) 모두로 검색
+    const hits=WORDS.filter(w=>norm(w.vn).includes(k)||norm(w.en).includes(k)||(w.eng&&norm(w.eng).includes(k))).slice(0,40);
     if(!hits.length){ res.innerHTML=`<div class="muted tiny">'${esc(inp.value)}' 을(를) 못 찾았어요. (교재에 없는 단어일 수 있어요)</div>`; return; }
     res.innerHTML=hits.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-top:1px solid var(--line)">
         <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:var(--brand);background:var(--brandsoft);padding:2px 7px;border-radius:6px;white-space:nowrap">${esc(lessonLabel(w.lesson))}${w.num?" "+w.num+"번":""}</span>
-        <span style="flex:1 1 40%;font-weight:700">${esc(w.vn)}</span>
-        <span style="flex:1 1 40%;color:var(--muted);font-size:13px">${esc(w.en)}</span>
+        <span style="flex:1 1 38%;font-weight:700">${esc(w.vn)}</span>
+        <span style="flex:1 1 42%;color:var(--muted);font-size:13px">${esc(w.en)}${w.eng?`<span style="display:block;font-size:11.5px;opacity:.75">${esc(w.eng)}</span>`:""}</span>
         ${spkBtn(w.vn,"vi-VN",true)}
       </div>`).join("");
   };
@@ -2704,7 +2706,7 @@ function renderSetup(){
       <div class="seg">
         ${isListen ? `
           <button class="${studyDlg?"on":""}" data-action="studyKind" data-v="dlg">대화<span class="desc">빈칸 채우기</span></button>
-          <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">받아쓰기</span></button>
+          <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장<span class="desc">빈칸·받아쓰기</span></button>
         ` : `
           <button class="${state.studyKind==="sent"?"on":""}" data-action="studyKind" data-v="sent">문장</button>
           <button class="${state.studyKind==="word"?"on":""}" data-action="studyKind" data-v="word">단어</button>
@@ -2728,6 +2730,24 @@ function renderSetup(){
     <div class="card"><h2>③ 난이도</h2>
       <div class="seg">${lvl.map(([v,n,d])=>`<button class="${state.dlgLevel===v?"on":""}" data-action="dlgLevel" data-v="${v}">${n}<span class="desc">${d}</span></button>`).join("")}</div>
       <div class="muted tiny" style="margin-top:8px">그 단원에서 배운 <b>핵심 단어</b>를 먼저 빈칸으로 뚫어요. 풀 때마다 빈칸 자리가 조금씩 달라져요.</div>
+    </div>`;
+  })() : "";
+  // 듣기 + 문장: 빈칸 채우기 / 받아쓰기
+  const listenSentCloze = isListen && studySent && state.listenSent==="cloze";
+  const lsSeg = (isListen && studySent) ? `
+    <div class="card">
+      <h2>어떻게 풀까요?</h2>
+      <div class="seg">
+        <button class="${listenSentCloze?"on":""}" data-action="listenSent" data-v="cloze">빈칸 채우기<span class="desc">일부만 쓰기</span></button>
+        <button class="${!listenSentCloze?"on":""}" data-action="listenSent" data-v="dictate">받아쓰기<span class="desc">전부 쓰기</span></button>
+      </div>
+    </div>` : "";
+  // 듣기 + 문장 + 빈칸: 난이도
+  const lsLevel = listenSentCloze ? (()=>{
+    const lvl = [["easy","쉬움","빈칸 적게"],["normal","보통","적당히"],["hard","어려움","빈칸 많이"]];
+    return `<div class="card"><h2>난이도</h2>
+      <div class="seg">${lvl.map(([v,n,d])=>`<button class="${state.dlgLevel===v?"on":""}" data-action="dlgLevel" data-v="${v}">${n}<span class="desc">${d}</span></button>`).join("")}</div>
+      <div class="muted tiny" style="margin-top:8px">문장을 듣고 빈칸을 채워요. 그 단원 <b>핵심 단어</b>가 먼저 뚫리고, 풀 때마다 자리가 달라져요.</div>
     </div>`;
   })() : "";
   // 쓰기 + 문장: 한 문제씩 / 여러 문제 한 번에(시험지처럼)
@@ -2763,11 +2783,13 @@ function renderSetup(){
     </div>
     ${kindSeg}
     ${bulkSeg}
+    ${lsSeg}
     ${dlgCard}
     ${rangeCard}
+    ${lsLevel}
     ${dirSeg}
     ${countSeg}
-    <button class="btn lg" data-action="startSkill">${s.emoji} ${studyDlg?"대화 빈칸 채우기 시작":s.label+" 시작하기"}</button>
+    <button class="btn lg" data-action="startSkill">${s.emoji} ${studyDlg?"대화 빈칸 채우기 시작":listenSentCloze?"문장 빈칸 채우기 시작":s.label+" 시작하기"}</button>
   `);
   bindSelection();
 }
@@ -2810,6 +2832,7 @@ function startSentQueue(skill){
   if(skill==="write" && state.sentMode==="order"){ startSentOrder(arr, lbl); return; }  // 쓰기: 단어 순서 배치
   if(skill==="write" && state.sentMode==="bulk"){ startSentBulk(arr, lbl); return; }    // 쓰기: 여러 문제 한 번에(시험지처럼)
   if(skill==="speak"){ startSpeak(arr.map(x=>({vn:x.vn, en:x.en, lesson:lbl})), true); return; }   // 말하기: SP 사용
+  if(skill==="listen" && state.listenSent==="cloze"){ startSentCloze(arr, l, lbl); return; }   // 듣기: 문장 빈칸 채우기
   if(skill==="listen"){ state.mode="listen"; Q.queue=arr.map(x=>listenSentQ(x, lbl)); }
   else if(skill==="read"){ state.mode="read"; Q.queue=arr.map(x=>({type:"sentence", word:{vn:x.vn,en:x.en,lesson:lbl}, dir:"vn2en", prompt:x.vn, answer:x.en})); }
   else { state.mode="type"; Q.queue=arr.map(x=>makeQ({vn:x.vn,en:x.en,lesson:lbl}, dirOf(state.dir), "sentence")); }   // 쓰기: 번역+자동/자가채점
@@ -2822,7 +2845,8 @@ function startSentQueue(skill){
    빈칸 = 그 단원 '핵심 단어' 우선, 모자라면 일반 낱말. 풀 때마다 자리가 달라짐.
    채점은 성조까지(실제 시험 기준). 성조만 틀리면 경고로 알려줌.
    ========================================================= */
-const DLG = { lesson:1, no:1, level:"normal", lines:[], nb:0, ans:{}, res:{}, graded:false, score:0, hint:{}, playing:false,
+const DLG = { kind:"dlg",         // dlg=교재 대화 / sent=문장 빈칸 채우기 (같은 화면·채점 재사용)
+              lesson:1, no:1, level:"normal", lines:[], nb:0, ans:{}, res:{}, graded:false, score:0, hint:{}, playing:false,
               locked:new Set(),   // 이미 맞힌 빈칸(다시 풀 때 그대로 채워둠)
               retry:0 };          // 0=처음 / 1↑=틀린 것만 다시 푸는 중 (횟수)
 const dlgAllBlanks = () => DLG.lines.flatMap(l=>l.blanks);
@@ -2906,7 +2930,33 @@ function dlgBuildLine(vn, vocab, level, startIdx){
   if(buf) parts.push({t:"s", s:buf});
   return {parts, blanks, next:bi};
 }
+/* 듣기 → 문장 → 빈칸 채우기. 문장 하나하나를 대화의 '한 줄'처럼 취급해서 같은 화면·채점을 그대로 씀 */
+function startSentCloze(arr, lesson, lbl){
+  const vocab = dlgVocab(Number(lesson) || 1);
+  let bi = 0;
+  const lines = arr.map((x, i) => {
+    const r = dlgBuildLine(x.vn, vocab, state.dlgLevel, bi);
+    bi = r.next;
+    return { who:(i+1)+".", vn:x.vn, ko:x.en, parts:r.parts, blanks:r.blanks };
+  });
+  DLG.kind="sent"; DLG.lesson=Number(lesson)||1; DLG.no=0; DLG.level=state.dlgLevel; DLG.srcLabel=lbl;
+  DLG.lines=lines; DLG.nb=bi; DLG.ans={}; DLG.res={}; DLG.hint={}; DLG.graded=false; DLG.score=0; DLG.playing=false;
+  DLG.locked=new Set(); DLG.retry=0;
+  DLG.batch=(DLG.batch||0)+1;
+  state.mode="dlg";
+  renderDlg();
+}
+/* 문장 빈칸: '다음 →' = 그 단원 문장에서 새로 뽑아 다시 출제 */
+function nextSentCloze(){
+  const l = state.sentLesson || sentLessons()[0];
+  const pool = SENT_BY_LESSON[l] || [];
+  if(!pool.length) { renderSetup(); return; }
+  let arr = shuffle(pool);
+  const n = (state.count!=="all") ? Math.min(Number(state.count), arr.length) : arr.length;
+  startSentCloze(arr.slice(0, n), l, "L"+l+" 문장");
+}
 function startDlg(){
+  DLG.kind="dlg";
   const ds = DIALOGS[state.dlgLesson]||[];
   const d = ds.find(x=>x.no===state.dlgNo) || ds[0];
   if(!d){ alert("이 단원에는 대화가 없어요."); return; }
@@ -2938,7 +2988,8 @@ function dlgSaveInputs(){
   view.querySelectorAll("input.dblank").forEach(i=>{ DLG.ans[Number(i.dataset.b)] = i.value; });
 }
 function renderDlg(){
-  state.screen="dlg:"+DLG.lesson+":"+DLG.no+":"+DLG.retry;   // 대화/회차가 바뀔 때만 맨 위로
+  const isSentCloze = DLG.kind==="sent";
+  state.screen="dlg:"+DLG.kind+":"+DLG.lesson+":"+(isSentCloze?(DLG.batch||0):DLG.no)+":"+DLG.retry;   // 대화/문제묶음/회차가 바뀔 때만 맨 위로
   const rows = DLG.lines.map((ln,li)=>{
     const body = ln.parts.map(p=>{
       if(p.t==="s") return esc(p.s);
@@ -2984,21 +3035,23 @@ function renderDlg(){
         </div>
       </div>`
     : "";
+  const backLbl = isSentCloze ? "← 단원 다시 고르기" : "← 단원·대화 다시 고르기";
+  const nextLbl = isSentCloze ? "새 문장으로 →" : "다음 대화 →";
   const foot = DLG.graded
     ? `${nWrong ? `<button class="btn lg" data-action="dlgRetryWrong"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 틀린 빈칸 ${nWrong}개만 다시 풀기</button>` : ""}
-       <button class="btn ${nWrong?"line":"lg"}" style="margin-top:10px" data-action="dlgRetry"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-shuffle'/></svg> 처음부터 (빈칸 새로)</button>
-       <button class="btn line" style="margin-top:10px" data-action="dlgNext">다음 대화 →</button>
-       <button class="btn line" style="margin-top:10px" data-action="quitDlg">← 단원·대화 다시 고르기</button>`
+       <button class="btn ${nWrong?"line":"lg"}" style="margin-top:10px" data-action="dlgRetry"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-shuffle'/></svg> ${isSentCloze?"같은 문장, 빈칸 새로":"처음부터 (빈칸 새로)"}</button>
+       <button class="btn line" style="margin-top:10px" data-action="dlgNext">${nextLbl}</button>
+       <button class="btn line" style="margin-top:10px" data-action="quitDlg">${backLbl}</button>`
     : `<button class="btn lg" data-action="dlgGrade"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 채점하기</button>
-       <button class="btn line" style="margin-top:10px" data-action="quitDlg">← 단원·대화 다시 고르기</button>`;
+       <button class="btn line" style="margin-top:10px" data-action="quitDlg">${backLbl}</button>`;
   set(`
     <div class="qtop">
-      <span><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> ${lessonLabel(DLG.lesson)} · 대화 ${DLG.no}</span>
+      <span><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> ${lessonLabel(DLG.lesson)} · ${isSentCloze?`문장 ${DLG.lines.length}개`:`대화 ${DLG.no}`}</span>
       <span>빈칸 ${DLG.nb}개</span>
     </div>
     ${head}
     <div class="card dplay">
-      <button class="btn" data-action="dlgPlayAll"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 대화 전체 듣기</button>
+      <button class="btn" data-action="dlgPlayAll"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${isSentCloze?"전체 듣기":"대화 전체 듣기"}</button>
       <button class="btn line" data-action="dlgStop">멈추기</button>
     </div>
     <div class="card dlg">${rows}</div>
@@ -4556,7 +4609,10 @@ const actions = {
   dlgLevel:(el)=>{ state.dlgLevel=el.dataset.v; lsSet("_dlvl",state.dlgLevel); renderSetup(); },
   dlgPlayAll, dlgStop:()=>{ stopSpeak(); DLG.playing=false; view.querySelectorAll(".dline.now").forEach(el=>el.classList.remove("now")); },
   dlgHint:(el)=>{ dlgSaveInputs(); const li=Number(el.dataset.li); DLG.hint[li]=!DLG.hint[li]; renderDlg(); },
-  dlgGrade, dlgRetryWrong, dlgRetry:()=>{ stopSpeak(); startDlg(); }, dlgNext:dlgNextDialog,
+  listenSent:(el)=>{ state.listenSent=el.dataset.v; lsSet("_lsent",state.listenSent); renderSetup(); },
+  dlgGrade, dlgRetryWrong,
+  dlgRetry:()=>{ stopSpeak(); if(DLG.kind==="sent") startSentCloze(DLG.lines.map(l=>({vn:l.vn,en:l.ko})), DLG.lesson, DLG.srcLabel); else startDlg(); },
+  dlgNext:()=>{ stopSpeak(); if(DLG.kind==="sent") nextSentCloze(); else dlgNextDialog(); },
   quitDlg:()=>{ stopSpeak(); DLG.playing=false; renderSetup(); },   // 홈이 아니라 '듣기 설정(단원·대화 선택)'으로
   sentMode:(el)=>{ state.sentMode = el.dataset.v; lsSet("_sbulk", state.sentMode); renderSetup(); },
   ordPick:(el)=>{ if(ORD.answered) return; const k=Number(el.dataset.k); const x=ORD.pool[k];
