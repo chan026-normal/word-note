@@ -2803,7 +2803,7 @@ function renderHome(){
   set(`
     <div class="hsearch">
       <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-search'/></svg>
-      <input id="findInput" placeholder="단어 찾기 — 베트남어 · 뜻" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+      <input id="findInput" placeholder="단어 찾기 — 베트남어 · 뜻 · 영어" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
     </div>
     <div id="findResults"></div>
 
@@ -2841,21 +2841,103 @@ function bindSelection(){
   en.onchange=()=>{ state.rEnd=Number(en.value); refresh(); };
 }
 /* 읽기 화면 '단어 찾기' — 입력하면 몇 과 몇 번인지 + 뜻 + 발음 (화면 재생성 없이 결과만 갱신) */
+/* 문장 안에서 그 낱말(구)이 '낱말 단위'로 나오는지.
+   ① 부분일치가 아니라 낱말 일치 → 'đi'가 'điện' 안에 걸리는 오탐 방지.
+   ② strict=true면 성조까지 비교 → 'đừng'(하지 마)이 이름 'Dung'에 걸리는 오탐 방지.
+      성조까지로 하나도 못 찾으면 호출부에서 성조 무시로 한 번 더 찾음(성조 없이 타이핑해도 나오게). */
+function sentHasTerm(sentVn, term, strict){
+  const N = strict ? normTone : norm;
+  const words = N(sentVn).split(" ").filter(Boolean);
+  const t = N(term).split(" ").filter(Boolean);
+  if(!t.length) return false;
+  for(let i=0; i+t.length<=words.length; i++){
+    let ok=true;
+    for(let j=0;j<t.length;j++) if(words[i+j]!==t[j]){ ok=false; break; }
+    if(ok) return true;
+  }
+  return false;
+}
+/* 찾은 낱말을 문장 안에서 굵게 */
+function markTerms(vn, terms, strict){
+  const N = strict ? normTone : norm;
+  const set = new Set();
+  terms.forEach(t=>N(t).split(" ").filter(Boolean).forEach(x=>set.add(x)));
+  return vn.split(/(\s+)/).map(tok=>{
+    const bare = N(tok);
+    return (bare && set.has(bare)) ? `<b style="color:var(--brand)">${esc(tok)}</b>` : esc(tok);
+  }).join("");
+}
+/* 검색어(또는 찾아진 단어)가 들어간 교재 문장·대화 줄 모으기 */
+function findSentences(terms, limit, strict){
+  const out=[], seen=new Set();
+  const push=(vn,en,label)=>{
+    const k=norm(vn); if(seen.has(k)) return; seen.add(k);
+    out.push({vn,en,label});
+  };
+  for(const l of sentLessons()){
+    for(const s of (SENT_BY_LESSON[l]||[])){
+      if(out.length>=limit) return out;
+      if(terms.some(t=>sentHasTerm(s.vn,t,strict))) push(s.vn, s.en, lessonLabel(l));
+    }
+  }
+  for(const l of dialogLessons()){
+    for(const d of (DIALOGS[l]||[])){
+      for(const ln of d.lines){
+        if(out.length>=limit) return out;
+        if(terms.some(t=>sentHasTerm(ln.vn,t,strict))) push(ln.vn, ln.ko, lessonLabel(l)+" 대화"+d.no);
+      }
+    }
+  }
+  return out;
+}
 function bindFind(){
   const inp=document.getElementById("findInput"); if(!inp) return;
   const res=document.getElementById("findResults");
+  const LIMIT=25;
   const render=()=>{
     const k=norm(inp.value);
     if(!k){ res.innerHTML=""; return; }   // 비어 있으면 결과창도 숨김(홈이 깔끔하게)
     // 베트남어 · 한국어 뜻 · 교재 영어 뜻(eng) 모두로 검색
     const hits=WORDS.filter(w=>norm(w.vn).includes(k)||norm(w.en).includes(k)||(w.eng&&norm(w.eng).includes(k))).slice(0,40);
-    if(!hits.length){ res.innerHTML=`<div class="muted tiny">'${esc(inp.value)}' 을(를) 못 찾았어요. (교재에 없는 단어일 수 있어요)</div>`; return; }
-    res.innerHTML=hits.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-top:1px solid var(--line)">
-        <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:var(--brand);background:var(--brandsoft);padding:2px 7px;border-radius:6px;white-space:nowrap">${esc(lessonLabel(w.lesson))}${w.num?" "+w.num+"번":""}</span>
-        <span style="flex:1 1 38%;font-weight:700">${esc(w.vn)}</span>
-        <span style="flex:1 1 42%;color:var(--muted);font-size:13px">${esc(w.en)}${w.eng?`<span style="display:block;font-size:11.5px;opacity:.75">${esc(w.eng)}</span>`:""}</span>
-        ${spkBtn(w.vn,"vi-VN",true)}
-      </div>`).join("");
+
+    // 이 단어가 나오는 교재 문장 — 좁은 것부터 차례로 시도해서 엉뚱한 단어가 딸려오지 않게
+    //  ① 입력 그대로 + 성조까지 정확히   (đừng → đúng/Dung 안 걸림, mới → mời 안 걸림)
+    //  ② 없으면: 검색된 단어의 베트남어로 + 성조까지  (뜻·영어로 찾은 경우: 은행/bank → ngân hàng)
+    //  ③ 그래도 없으면: 성조 무시로 완화  (성조 없이 타이핑한 경우: ngoai ngu → ngoại ngữ)
+    const raw = inp.value.trim();
+    const vns = [...new Set(hits.slice(0,6).map(w=>w.vn))];
+    let terms=[raw], strict=true;
+    let sents=findSentences(terms, LIMIT, true);
+    if(!sents.length && vns.length){ terms=vns; sents=findSentences(terms, LIMIT, true); }
+    if(!sents.length){ strict=false; terms=[raw, ...vns].filter(Boolean); sents=findSentences(terms, LIMIT, false); }
+
+    const wordBlock = hits.length
+      ? hits.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-top:1px solid var(--line)">
+          <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:var(--brand);background:var(--brandsoft);padding:2px 7px;border-radius:6px;white-space:nowrap">${esc(lessonLabel(w.lesson))}${w.num?" "+w.num+"번":""}</span>
+          <span style="flex:1 1 38%;font-weight:700">${esc(w.vn)}</span>
+          <span style="flex:1 1 42%;color:var(--muted);font-size:13px">${esc(w.en)}${w.eng?`<span style="display:block;font-size:11.5px;opacity:.75">${esc(w.eng)}</span>`:""}</span>
+          ${spkBtn(w.vn,"vi-VN",true)}
+        </div>`).join("")
+      : `<div class="muted tiny" style="padding:6px 2px">'${esc(inp.value)}' 은(는) 단어장에 없어요. (교재 단어가 아닐 수 있어요)</div>`;
+
+    const sentBlock = sents.length
+      ? `<div style="margin-top:12px;border-top:2px solid var(--line);padding-top:9px">
+          <div class="muted tiny" style="font-weight:800;margin-bottom:4px">
+            <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg>
+            이 단어가 나오는 교재 문장 ${sents.length}${sents.length>=LIMIT?"+":""}개
+          </div>
+          ${sents.map(s=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 2px;border-top:1px solid var(--line)">
+            <span style="flex:0 0 auto;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);padding:2px 6px;border-radius:6px;white-space:nowrap;margin-top:2px">${esc(s.label)}</span>
+            <span style="flex:1;min-width:0">
+              <span style="font-weight:600;line-height:1.45">${markTerms(s.vn, terms, strict)}</span>
+              <span style="display:block;color:var(--muted);font-size:12.5px;margin-top:2px">${esc(s.en)}</span>
+            </span>
+            ${spkBtn(s.vn,"vi-VN",true)}
+          </div>`).join("")}
+        </div>`
+      : (hits.length ? `<div class="muted tiny" style="margin-top:10px">교재 문장에는 아직 안 나와요.</div>` : "");
+
+    res.innerHTML = wordBlock + sentBlock;
   };
   inp.addEventListener("input", render);
   render();
