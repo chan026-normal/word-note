@@ -2981,7 +2981,22 @@ function bindFind(){
       if(v.startsWith(k)||e.startsWith(k)||g.startsWith(k)) return 4;
       return 5;
     };
-    const all=WORDS.filter(w=>norm(w.vn).includes(k)||norm(w.en).includes(k)||(w.eng&&norm(w.eng).includes(k)))
+    // ⚠️ 낱말 '중간'에 걸리는 것 제외 — 낱말이 시작하는 자리에서만 일치로 봄.
+    //   안 그러면 'đi'(성조 떼면 di)가 diligent 안에 걸려 chăm chỉ가, 'hả'(ha)가 chăm 안에 걸려 또 chăm chỉ가 나옴.
+    //   (norm이 쉼표·괄호를 공백으로 바꿔주므로 공백 기준으로 나눠 비교)
+    const startsHit=(text,q)=>{
+      if(!text||!q) return false;
+      const t=norm(text);
+      if(q.includes(" ")) return t.startsWith(q) || t.includes(" "+q);   // 여러 낱말 검색 (ngân hàng)
+      return t.split(" ").some(tok=>tok.startsWith(q));                  // 한 낱말 검색 (đi → đi học ○ / chăm ✗)
+    };
+    const engHit=w=>{
+      if(!w.eng) return false;
+      const t=" "+norm(w.eng)+" ";
+      if(t.includes(" "+k+" ")) return true;           // 낱말 통째로 (bank → bank)
+      return k.length>=4 && startsHit(w.eng, k);       // 4글자 이상이면 낱말 앞부분도 (teach → teacher)
+    };
+    const all=WORDS.filter(w=>startsHit(w.vn,k)||startsHit(w.en,k)||engHit(w))
                    .map(w=>({w,r:rank(w)})).sort((a,b)=>a.r-b.r).map(x=>x.w);
     const WMAX=8;
     const hits=all.slice(0,WMAX), more=all.length-hits.length;
