@@ -3139,7 +3139,8 @@ const state = {
   dlgNo: Number(lsGet("_dlgN", 1)) || 1,       // 대화 빈칸: 대화 번호
   dlgLevel: lsGet("_dlvl","normal"),           // 빈칸 난이도(대화·문장 공용): easy | normal | hard
   listenSent: lsGet("_lsent","cloze"),         // 듣기+문장 푸는 방식: cloze=빈칸 채우기 / dictate=받아쓰기
-  listenDlg: lsGet("_ldlg","cloze")            // 듣기+대화 푸는 방식: cloze=빈칸 채우기 / full=전부 받아쓰기
+  listenDlg: lsGet("_ldlg","cloze"),           // 듣기+대화 푸는 방식: cloze=빈칸 채우기 / full=전부 받아쓰기
+  dlgKo: lsGet("_ldlgko", true) !== false      // 전부 받아쓰기: 한국어 뜻을 보여줄지 (기본 보임)
 };
 
 /* ---------- 홈 ---------- */
@@ -3456,7 +3457,7 @@ function renderSetup(){
       <div class="row">${ds.map(d=>`<button class="chip ${state.dlgNo===d.no?"on":""}" data-action="dlgNo" data-n="${d.no}">대화 ${d.no} <small>${d.lines.length}줄</small></button>`).join("")}</div>
     </div>
     ${dlgFull ? `<div class="card">
-      <div class="muted tiny">화자와 한국어 뜻만 보여요. <b>소리를 듣고 대화를 통째로 받아써요.</b> 줄마다 🔊로 다시 들을 수 있어요. (성조까지 채점)</div>
+      <div class="muted tiny"><b>소리를 듣고 대화를 통째로 받아써요.</b> 줄마다 🔊로 다시 들을 수 있어요. (성조까지 채점)<br>한국어 뜻은 <b>보기 / 숨기기</b>를 문제 화면에서 바꿀 수 있어요.</div>
     </div>` : `<div class="card"><h2>③ 난이도</h2>
       <div class="seg">${lvl.map(([v,n,d])=>`<button class="${state.dlgLevel===v?"on":""}" data-action="dlgLevel" data-v="${v}">${n}<span class="desc">${d}</span></button>`).join("")}</div>
       <div class="muted tiny" style="margin-top:8px">그 단원에서 배운 <b>핵심 단어</b>를 먼저 빈칸으로 뚫어요. 풀 때마다 빈칸 자리가 조금씩 달라져요.</div>
@@ -3736,12 +3737,17 @@ function renderDlg(){
         ? `<textarea class="dfull" data-b="${li}" rows="2" placeholder="들은 대로 써보세요" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">${val}</textarea>`
         : `<div class="dblank done ${r?r.g:"no"}" style="display:block;text-align:left;min-width:0">${esc((DLG.ans[li]||"").trim()||"—")}</div>
            ${(!r||r.g!=="ok") ? `<div class="dans" style="margin:4px 0 0">${esc(ln.vn)}</div>` : ""}`;
+      // 한국어 뜻: 전체 토글(state.dlgKo)이 꺼져 있어도 줄별 [힌트]로 그 줄만 볼 수 있음. 채점 후엔 항상 보임
+      const showKo = state.dlgKo || DLG.hint[li] || DLG.graded;
       return `<div class="dline${DLG.playing===li?" now":""}" data-li="${li}">
         <span class="dwho">${esc(ln.who)}</span>
         <div class="dbody">
-          <div class="dhint" style="margin:0 0 5px">${esc(ln.ko)}</div>
+          ${showKo ? `<div class="dhint" style="margin:0 0 5px">${esc(ln.ko)}</div>` : ""}
           ${body}
-          <div class="dbtns">${spkBtn(ln.vn,"vi-VN",true)}</div>
+          <div class="dbtns">
+            ${spkBtn(ln.vn,"vi-VN",true)}
+            ${(!state.dlgKo && !DLG.graded) ? `<button class="chip tiny" data-action="dlgHint" data-li="${li}">${DLG.hint[li]?"뜻 숨기기":"뜻 보기"}</button>` : ""}
+          </div>
         </div>
       </div>`;
     }
@@ -3812,6 +3818,16 @@ function renderDlg(){
       <button class="btn" data-action="dlgPlayAll"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${isSentCloze?"전체 듣기":(DLG.full?"대화 듣기 (여러 번 들어도 돼요)":"대화 전체 듣기")}</button>
       <button class="btn line" data-action="dlgStop">멈추기</button>
     </div>
+    ${(DLG.full && !DLG.graded) ? `<div class="card" style="padding:10px 14px; margin-top:-6px">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px">
+        <span class="muted tiny" style="font-weight:700">한국어 뜻</span>
+        <div class="seg" style="flex:0 0 auto; width:auto">
+          <button class="${state.dlgKo?"on":""}" data-action="dlgKo" data-v="1" style="padding:6px 14px">보기</button>
+          <button class="${!state.dlgKo?"on":""}" data-action="dlgKo" data-v="0" style="padding:6px 14px">숨기기</button>
+        </div>
+      </div>
+      ${!state.dlgKo?`<div class="muted tiny" style="margin-top:7px">뜻 없이 소리만 듣고 받아써요. 막히면 줄마다 <b>뜻 보기</b>를 누르면 돼요.</div>`:""}
+    </div>` : ""}
     <div class="card dlg">${rows}</div>
     ${foot}
   `);
@@ -5465,6 +5481,8 @@ const actions = {
   dlgLevel:(el)=>{ state.dlgLevel=el.dataset.v; lsSet("_dlvl",state.dlgLevel); renderSetup(); },
   dlgPlayAll, dlgStop:()=>{ stopSpeak(); DLG.playing=false; view.querySelectorAll(".dline.now").forEach(el=>el.classList.remove("now")); },
   dlgHint:(el)=>{ dlgSaveInputs(); const li=Number(el.dataset.li); DLG.hint[li]=!DLG.hint[li]; renderDlg(); },
+  // 전부 받아쓰기: 한국어 뜻 전체 보기/숨기기 (쓰던 내용은 그대로 유지)
+  dlgKo:(el)=>{ dlgSaveInputs(); state.dlgKo = el.dataset.v==="1"; lsSet("_ldlgko", state.dlgKo); renderDlg(); },
   listenSent:(el)=>{ state.listenSent=el.dataset.v; lsSet("_lsent",state.listenSent); renderSetup(); },
   listenDlg:(el)=>{ state.listenDlg=el.dataset.v; lsSet("_ldlg",state.listenDlg); renderSetup(); },
   dlgGrade, dlgRetryWrong,
