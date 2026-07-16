@@ -174,6 +174,11 @@
   .dbtns{display:flex; gap:6px; align-items:center; margin-top:5px}
   .chip.tiny{padding:4px 10px; font-size:12px}
   .dhint{margin-top:5px; font-size:13.5px; color:var(--muted); line-height:1.5}
+  /* 대화 전부 받아쓰기 — 줄 통째로 입력 */
+  textarea.dfull{width:100%; padding:9px 11px; border:1.5px solid var(--line); border-radius:10px; font-size:15px;
+    background:var(--card); color:var(--ink); outline:none; font-weight:600; resize:vertical; line-height:1.45;
+    font-family:inherit; box-sizing:border-box}
+  textarea.dfull:focus{border-color:var(--brand)}
 
   /* flashcard */
   .flash{
@@ -3133,7 +3138,8 @@ const state = {
   dlgLesson: Number(lsGet("_dlgL", 1)) || 1,   // 대화 빈칸: 단원
   dlgNo: Number(lsGet("_dlgN", 1)) || 1,       // 대화 빈칸: 대화 번호
   dlgLevel: lsGet("_dlvl","normal"),           // 빈칸 난이도(대화·문장 공용): easy | normal | hard
-  listenSent: lsGet("_lsent","cloze")          // 듣기+문장 푸는 방식: cloze=빈칸 채우기 / dictate=받아쓰기
+  listenSent: lsGet("_lsent","cloze"),         // 듣기+문장 푸는 방식: cloze=빈칸 채우기 / dictate=받아쓰기
+  listenDlg: lsGet("_ldlg","cloze")            // 듣기+대화 푸는 방식: cloze=빈칸 채우기 / full=전부 받아쓰기
 };
 
 /* ---------- 홈 ---------- */
@@ -3427,7 +3433,8 @@ function renderSetup(){
         `}
       </div>
     </div>`:"";
-  // 대화 빈칸: 단원 · 대화 번호 · 난이도
+  // 대화: 푸는 방식 · 단원 · 대화 번호 · (빈칸일 때만)난이도
+  const dlgFull = studyDlg && state.listenDlg==="full";
   const dlgCard = studyDlg ? (()=>{
     const Ls = dialogLessons();
     if(!Ls.includes(state.dlgLesson)) state.dlgLesson = Ls[0];
@@ -3435,16 +3442,25 @@ function renderSetup(){
     if(!ds.some(d=>d.no===state.dlgNo)) state.dlgNo = 1;
     const lvl = [["easy","쉬움","빈칸 적게"],["normal","보통","적당히"],["hard","어려움","빈칸 많이"]];
     return `
+    <div class="card">
+      <h2>어떻게 풀까요?</h2>
+      <div class="seg">
+        <button class="${!dlgFull?"on":""}" data-action="listenDlg" data-v="cloze">빈칸 채우기<span class="desc">일부만 쓰기</span></button>
+        <button class="${dlgFull?"on":""}" data-action="listenDlg" data-v="full">전부 받아쓰기<span class="desc">대화 통째로</span></button>
+      </div>
+    </div>
     <div class="card"><h2>① 단원</h2>
       <div class="row">${Ls.map(l=>`<button class="chip ${state.dlgLesson===l?"on":""}" data-action="dlgLesson" data-l="${l}">${lessonLabel(l)} <small>대화 ${(DIALOGS[l]||[]).length}개</small></button>`).join("")}</div>
     </div>
     <div class="card"><h2>② 대화</h2>
       <div class="row">${ds.map(d=>`<button class="chip ${state.dlgNo===d.no?"on":""}" data-action="dlgNo" data-n="${d.no}">대화 ${d.no} <small>${d.lines.length}줄</small></button>`).join("")}</div>
     </div>
-    <div class="card"><h2>③ 난이도</h2>
+    ${dlgFull ? `<div class="card">
+      <div class="muted tiny">화자와 한국어 뜻만 보여요. <b>소리를 듣고 대화를 통째로 받아써요.</b> 줄마다 🔊로 다시 들을 수 있어요. (성조까지 채점)</div>
+    </div>` : `<div class="card"><h2>③ 난이도</h2>
       <div class="seg">${lvl.map(([v,n,d])=>`<button class="${state.dlgLevel===v?"on":""}" data-action="dlgLevel" data-v="${v}">${n}<span class="desc">${d}</span></button>`).join("")}</div>
       <div class="muted tiny" style="margin-top:8px">그 단원에서 배운 <b>핵심 단어</b>를 먼저 빈칸으로 뚫어요. 풀 때마다 빈칸 자리가 조금씩 달라져요.</div>
-    </div>`;
+    </div>`}`;
   })() : "";
   // 듣기 + 문장: 빈칸 채우기 / 받아쓰기
   const listenSentCloze = isListen && studySent && state.listenSent==="cloze";
@@ -3503,7 +3519,7 @@ function renderSetup(){
     ${lsLevel}
     ${dirSeg}
     ${countSeg}
-    <button class="btn lg" data-action="startSkill">${s.emoji} ${studyDlg?"대화 빈칸 채우기 시작":listenSentCloze?"문장 빈칸 채우기 시작":s.label+" 시작하기"}</button>
+    <button class="btn lg" data-action="startSkill">${s.emoji} ${studyDlg?(dlgFull?"대화 받아쓰기 시작":"대화 빈칸 채우기 시작"):listenSentCloze?"문장 빈칸 채우기 시작":s.label+" 시작하기"}</button>
   `);
   bindSelection();
 }
@@ -3674,15 +3690,23 @@ function startDlg(){
   const ds = DIALOGS[state.dlgLesson]||[];
   const d = ds.find(x=>x.no===state.dlgNo) || ds[0];
   if(!d){ alert("이 단원에는 대화가 없어요."); return; }
-  const vocab = dlgVocab(state.dlgLesson);
-  let bi=0;
+  DLG.full = (state.listenDlg==="full");   // 전부 받아쓰기 = 줄마다 통째로 입력
   DLG.lesson=state.dlgLesson; DLG.no=d.no; DLG.level=state.dlgLevel;
-  DLG.lines = d.lines.map(ln=>{
-    const r = dlgBuildLine(ln.vn, vocab, state.dlgLevel, bi);
-    bi = r.next;
-    return { who:ln.who, vn:ln.vn, ko:ln.ko, parts:r.parts, blanks:r.blanks };
-  });
-  DLG.nb=bi; DLG.ans={}; DLG.res={}; DLG.hint={}; DLG.graded=false; DLG.score=0; DLG.playing=false;
+  if(DLG.full){
+    // 빈칸 없이 — 줄 하나당 입력칸 하나
+    DLG.lines = d.lines.map(ln=>({ who:ln.who, vn:ln.vn, ko:ln.ko, parts:[], blanks:[] }));
+    DLG.nb = DLG.lines.length;
+  } else {
+    const vocab = dlgVocab(state.dlgLesson);
+    let bi=0;
+    DLG.lines = d.lines.map(ln=>{
+      const r = dlgBuildLine(ln.vn, vocab, state.dlgLevel, bi);
+      bi = r.next;
+      return { who:ln.who, vn:ln.vn, ko:ln.ko, parts:r.parts, blanks:r.blanks };
+    });
+    DLG.nb=bi;
+  }
+  DLG.ans={}; DLG.res={}; DLG.hint={}; DLG.graded=false; DLG.score=0; DLG.playing=false;
   DLG.locked=new Set(); DLG.retry=0;
   state.mode="dlg";
   renderDlg();
@@ -3699,12 +3723,28 @@ function dlgRetryWrong(){
   renderDlg();
 }
 function dlgSaveInputs(){
-  view.querySelectorAll("input.dblank").forEach(i=>{ DLG.ans[Number(i.dataset.b)] = i.value; });
+  view.querySelectorAll("input.dblank, textarea.dfull").forEach(i=>{ DLG.ans[Number(i.dataset.b)] = i.value; });
 }
 function renderDlg(){
   const isSentCloze = DLG.kind==="sent";
   state.screen="dlg:"+DLG.kind+":"+DLG.lesson+":"+(isSentCloze?(DLG.batch||0):DLG.no)+":"+DLG.retry;   // 대화/문제묶음/회차가 바뀔 때만 맨 위로
   const rows = DLG.lines.map((ln,li)=>{
+    // 전부 받아쓰기 — 줄 통째로 입력
+    if(DLG.full){
+      const r = DLG.res[li], val = esc(DLG.ans[li]||"");
+      const body = !DLG.graded
+        ? `<textarea class="dfull" data-b="${li}" rows="2" placeholder="들은 대로 써보세요" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">${val}</textarea>`
+        : `<div class="dblank done ${r?r.g:"no"}" style="display:block;text-align:left;min-width:0">${esc((DLG.ans[li]||"").trim()||"—")}</div>
+           ${(!r||r.g!=="ok") ? `<div class="dans" style="margin:4px 0 0">${esc(ln.vn)}</div>` : ""}`;
+      return `<div class="dline${DLG.playing===li?" now":""}" data-li="${li}">
+        <span class="dwho">${esc(ln.who)}</span>
+        <div class="dbody">
+          <div class="dhint" style="margin:0 0 5px">${esc(ln.ko)}</div>
+          ${body}
+          <div class="dbtns">${spkBtn(ln.vn,"vi-VN",true)}</div>
+        </div>
+      </div>`;
+    }
     const body = ln.parts.map(p=>{
       if(p.t==="s") return esc(p.s);
       const r = DLG.res[p.bi];
@@ -3732,12 +3772,15 @@ function renderDlg(){
       </div>
     </div>`;
   }).join("");
-  const nWrong = DLG.graded ? dlgAllBlanks().filter(b=>!DLG.res[b.bi] || DLG.res[b.bi].g!=="ok").length : 0;
-  const nLeft  = dlgAllBlanks().filter(b=>!DLG.locked.has(b.bi)).length;
+  const unit = DLG.full ? "줄" : "빈칸";
+  const nWrong = !DLG.graded ? 0
+    : (DLG.full ? DLG.lines.filter((_,li)=>!DLG.res[li] || DLG.res[li].g!=="ok").length
+                : dlgAllBlanks().filter(b=>!DLG.res[b.bi] || DLG.res[b.bi].g!=="ok").length);
+  const nLeft  = DLG.full ? DLG.lines.length : dlgAllBlanks().filter(b=>!DLG.locked.has(b.bi)).length;
   const head = DLG.graded
     ? `<div class="card center">
-        <div class="stat"><div><b>${DLG.score}</b><div class="tiny muted">맞은 빈칸</div></div>
-          <div><b>${DLG.nb}</b><div class="tiny muted">전체 빈칸</div></div>
+        <div class="stat"><div><b>${DLG.score}</b><div class="tiny muted">맞은 ${unit}</div></div>
+          <div><b>${DLG.nb}</b><div class="tiny muted">전체 ${unit}</div></div>
           <div><b>${DLG.nb?Math.round(DLG.score/DLG.nb*100):0}%</b><div class="tiny muted">정답률</div></div></div>
         ${DLG.retry&&!nWrong?`<div class="tiny" style="margin-top:10px; color:var(--good); font-weight:800">다 맞혔어요</div>`:""}
       </div>`
@@ -3745,15 +3788,16 @@ function renderDlg(){
     ? `<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:12px 14px">
         <div class="tiny" style="color:var(--warn); font-weight:800">
           <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg>
-          틀린 빈칸 ${nLeft}개만 다시 풀어요 — 정답은 가렸어요. 소리를 다시 듣고 직접 써보세요.
+          틀린 ${unit} ${nLeft}개만 다시 풀어요 — 정답은 가렸어요. 소리를 다시 듣고 직접 써보세요.
         </div>
       </div>`
     : "";
   const backLbl = isSentCloze ? "← 단원 다시 고르기" : "← 단원·대화 다시 고르기";
   const nextLbl = isSentCloze ? "새 문장으로 →" : "다음 대화 →";
+  const showRetryWrong = nWrong && !DLG.full;   // 전부 받아쓰기는 줄 단위라 '틀린 것만' 대신 '처음부터'
   const foot = DLG.graded
-    ? `${nWrong ? `<button class="btn lg" data-action="dlgRetryWrong"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 틀린 빈칸 ${nWrong}개만 다시 풀기</button>` : ""}
-       <button class="btn ${nWrong?"line":"lg"}" style="margin-top:10px" data-action="dlgRetry"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-shuffle'/></svg> ${isSentCloze?"같은 문장, 빈칸 새로":"처음부터 (빈칸 새로)"}</button>
+    ? `${showRetryWrong ? `<button class="btn lg" data-action="dlgRetryWrong"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 틀린 빈칸 ${nWrong}개만 다시 풀기</button>` : ""}
+       <button class="btn ${showRetryWrong?"line":"lg"}" style="margin-top:10px" data-action="dlgRetry"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> ${DLG.full?"다시 받아쓰기":(isSentCloze?"같은 문장, 빈칸 새로":"처음부터 (빈칸 새로)")}</button>
        <button class="btn line" style="margin-top:10px" data-action="dlgNext">${nextLbl}</button>
        <button class="btn line" style="margin-top:10px" data-action="quitDlg">${backLbl}</button>`
     : `<button class="btn lg" data-action="dlgGrade"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 채점하기</button>
@@ -3761,11 +3805,11 @@ function renderDlg(){
   set(`
     <div class="qtop">
       <span><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> ${lessonLabel(DLG.lesson)} · ${isSentCloze?`문장 ${DLG.lines.length}개`:`대화 ${DLG.no}`}</span>
-      <span>빈칸 ${DLG.nb}개</span>
+      <span>${unit} ${DLG.nb}개</span>
     </div>
     ${head}
     <div class="card dplay">
-      <button class="btn" data-action="dlgPlayAll"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${isSentCloze?"전체 듣기":"대화 전체 듣기"}</button>
+      <button class="btn" data-action="dlgPlayAll"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${isSentCloze?"전체 듣기":(DLG.full?"대화 듣기 (여러 번 들어도 돼요)":"대화 전체 듣기")}</button>
       <button class="btn line" data-action="dlgStop">멈추기</button>
     </div>
     <div class="card dlg">${rows}</div>
@@ -3778,6 +3822,17 @@ function renderDlg(){
       e.preventDefault();
       const all=[...view.querySelectorAll("input.dblank")];
       const i=all.indexOf(inp);
+      if(i>=0 && i<all.length-1) all[i+1].focus(); else dlgGrade();
+    });
+  });
+  // 전부 받아쓰기 — 줄 통째 입력칸 (Enter는 줄바꿈이 아니라 다음 줄로, Shift+Enter는 줄바꿈)
+  view.querySelectorAll("textarea.dfull").forEach(t=>{
+    t.addEventListener("input", ()=>{ DLG.ans[Number(t.dataset.b)] = t.value; });
+    t.addEventListener("keydown", e=>{
+      if(e.key!=="Enter" || e.shiftKey) return;
+      e.preventDefault();
+      const all=[...view.querySelectorAll("textarea.dfull")];
+      const i=all.indexOf(t);
       if(i>=0 && i<all.length-1) all[i+1].focus(); else dlgGrade();
     });
   });
@@ -3794,6 +3849,16 @@ function dlgGrade(){
   if(DLG.graded) return;
   dlgSaveInputs();
   DLG.score=0;
+  // 전부 받아쓰기 — 줄마다 문장 채점(성조까지). ok=정확 / tone=성조·철자만 다름 / no=오답
+  if(DLG.full){
+    DLG.lines.forEach((ln,li)=>{
+      const typed=(DLG.ans[li]||"").trim();
+      const g = typed ? gradeSent(typed, ln.vn) : "no";
+      DLG.res[li] = {g};
+      if(g==="ok") DLG.score++;
+    });
+    DLG.graded=true; stopSpeak(); DLG.playing=false; renderDlg(); return;
+  }
   DLG.lines.forEach(ln=>{
     ln.blanks.forEach(b=>{
       if(DLG.locked.has(b.bi)){ DLG.res[b.bi]={g:"ok"}; DLG.score++; return; }   // 지난 회차에 맞힌 칸
@@ -5401,6 +5466,7 @@ const actions = {
   dlgPlayAll, dlgStop:()=>{ stopSpeak(); DLG.playing=false; view.querySelectorAll(".dline.now").forEach(el=>el.classList.remove("now")); },
   dlgHint:(el)=>{ dlgSaveInputs(); const li=Number(el.dataset.li); DLG.hint[li]=!DLG.hint[li]; renderDlg(); },
   listenSent:(el)=>{ state.listenSent=el.dataset.v; lsSet("_lsent",state.listenSent); renderSetup(); },
+  listenDlg:(el)=>{ state.listenDlg=el.dataset.v; lsSet("_ldlg",state.listenDlg); renderSetup(); },
   dlgGrade, dlgRetryWrong,
   dlgRetry:()=>{ stopSpeak(); if(DLG.kind==="sent") startSentCloze(DLG.lines.map(l=>({vn:l.vn,en:l.ko})), DLG.lesson, DLG.srcLabel); else startDlg(); },
   dlgNext:()=>{ stopSpeak(); if(DLG.kind==="sent") nextSentCloze(); else dlgNextDialog(); },
