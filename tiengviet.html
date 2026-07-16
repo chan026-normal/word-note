@@ -2758,6 +2758,13 @@ function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 /* ---------- 발음(TTS) 음성·속도 ---------- */
 let VOICES = [];
 function loadVoices(){ try{ VOICES = (window.speechSynthesis && speechSynthesis.getVoices()) || []; }catch(e){ VOICES = []; } }
+/* 소리가 안 날 때 원인 알려주기 — 기기에 베트남어 음성이 없으면 브라우저가 조용히 무시하기도 함 */
+function ttsProblem(){
+  if(!window.speechSynthesis) return "이 브라우저는 소리 읽기를 지원하지 않아요.";
+  if(!VOICES.length) loadVoices();
+  if(VOICES.length && !viVoices().length) return "이 폰에 <b>베트남어 음성</b>이 없어요. 설치하면 소리가 나요.";
+  return "";
+}
 function viVoices(){ return VOICES.filter(v => (v.lang||"").toLowerCase().replace("_","-").startsWith("vi")); }
 function ttsRate(){ const r = Number(lsGet("_rate", 0.9)); return (r>=0.5 && r<=2) ? r : 0.9; }
 /* 베트남어일 때만 사용자가 고른 음성 적용. 한국어 등은 OS 기본 음성 사용.
@@ -2788,29 +2795,51 @@ if(window.speechSynthesis){ loadVoices(); try{ speechSynthesis.onvoiceschanged =
    ① cancel() 직후 바로 speak()하면 크롬(특히 맥)에서 소리가 씹힘 → 짧게 지연 + 시퀀스 토큰으로 중복 재생 차단
    ② 크롬은 긴 문장을 도중에 멈추는 버그가 있음 → 재생 중 주기적으로 pause/resume해 깨움 */
 let TTS_KEEP = null, TTS_SEQ = 0;
-function ttsKeepStop(){ if(TTS_KEEP){ clearInterval(TTS_KEEP); TTS_KEEP = null; } }
+/* ⚠️ '긴 문장 중간에 멈춤'은 **PC 크롬만의 버그**. 폰(안드로이드·아이폰)엔 없음.
+   폰에서 pause()/resume()을 돌리면 오히려 '멈춤 상태로 굳어' 그 뒤로 전부 무음이 됨
+   (동기들 제보: "되다가 갑자기 안 돼"). → 그래서 keep-alive는 PC에서만 씀. */
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test((navigator.userAgent||""));
+function ttsKeepStop(){
+  if(TTS_KEEP){ clearInterval(TTS_KEEP); TTS_KEEP = null; }
+  // 혹시 '멈춤'으로 굳었으면 반드시 풀어줌 — 안 풀면 이후 speak()이 전부 조용히 쌓이기만 함
+  try{ if(window.speechSynthesis && speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}
+}
+/* PC 크롬에서만, 그것도 실제로 재생 중일 때만 깨워줌 */
+function ttsKeepStart(){
+  if(IS_MOBILE) return;
+  TTS_KEEP = setInterval(()=>{
+    try{
+      if(!speechSynthesis.speaking){ ttsKeepStop(); return; }
+      if(speechSynthesis.paused){ speechSynthesis.resume(); return; }   // 이미 멈춰 있으면 풀기만
+      speechSynthesis.pause(); speechSynthesis.resume();
+    }catch(e){ ttsKeepStop(); }
+  }, 8000);
+}
 function speak(text, lang){
   try{
     if(!window.speechSynthesis) return;
     if(!VOICES.length) loadVoices();
     ttsKeepStop();
+    // ⚠️ 아이폰(사파리)은 '누른 그 순간'에 speak()이 호출돼야 소리가 남.
+    //    setTimeout으로 미루면 조용히 무시됨 → 아무 소리도 안 나옴.
+    //    그래서 '이미 말하던 중'일 때만 지연(맥 크롬 씹힘 방지), 아니면 바로 재생.
+    const busy = speechSynthesis.speaking || speechSynthesis.pending;
     speechSynthesis.cancel();
     const my = ++TTS_SEQ;
-    setTimeout(()=>{
+    const go = ()=>{
       if(my !== TTS_SEQ) return;   // 그 사이 새 재생 요청이 왔으면 이 건은 버림(중복·겹침 방지)
       try{
+        try{ if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}   // 굳어 있으면 풀고 시작
         const u = new SpeechSynthesisUtterance(ttsText(text, lang));
         u.lang = lang || "en-US";
         u.rate = ttsRate();
         const v = pickedVoice(lang); if(v){ u.voice = v; u.lang = v.lang; }
         u.onend = ttsKeepStop; u.onerror = ttsKeepStop;
         speechSynthesis.speak(u);
-        TTS_KEEP = setInterval(()=>{
-          if(!speechSynthesis.speaking){ ttsKeepStop(); return; }
-          try{ speechSynthesis.pause(); speechSynthesis.resume(); }catch(e){}
-        }, 8000);
+        ttsKeepStart();
       }catch(e){}
-    }, 80);
+    };
+    if(busy) setTimeout(go, 80); else go();
   }catch(e){}
 }
 /* 여러 줄을 순서대로 재생 (대화 '전체 듣기'). onLine(i)로 지금 읽는 줄을 표시 */
@@ -2819,11 +2848,13 @@ function speakLines(texts, onLine, onDone){
     if(!window.speechSynthesis) return;
     if(!VOICES.length) loadVoices();
     ttsKeepStop();
+    const busy = speechSynthesis.speaking || speechSynthesis.pending;   // 아이폰: 누른 순간 speak해야 소리 남
     speechSynthesis.cancel();
     const my = ++TTS_SEQ;
-    setTimeout(()=>{
+    const go = ()=>{
       if(my !== TTS_SEQ) return;
       try{
+        try{ if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}   // 굳어 있으면 풀고 시작
         const v = pickedVoice("vi-VN"), r = ttsRate();
         texts.forEach((t, i)=>{
           const u = new SpeechSynthesisUtterance(ttsText(t, "vi-VN"));
@@ -2836,15 +2867,14 @@ function speakLines(texts, onLine, onDone){
           }
           speechSynthesis.speak(u);
         });
-        TTS_KEEP = setInterval(()=>{
-          if(!speechSynthesis.speaking){ ttsKeepStop(); return; }
-          try{ speechSynthesis.pause(); speechSynthesis.resume(); }catch(e){}
-        }, 8000);
+        ttsKeepStart();
       }catch(e){}
-    }, 80);
+    };
+    if(busy) setTimeout(go, 80); else go();
   }catch(e){}
 }
-function stopSpeak(){ try{ ttsKeepStop(); TTS_SEQ++; if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){} }
+function stopSpeak(){ try{ ttsKeepStop(); TTS_SEQ++; if(window.speechSynthesis){ speechSynthesis.cancel();
+  try{ if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){} } }catch(e){} }   // 멈춤으로 굳은 채 끝나지 않게
 function makeQ(word, dir, type){
   return { type: type||"word", word, dir,
     prompt: dir==="vn2en" ? word.vn : word.en,
@@ -2992,6 +3022,12 @@ function renderHome(){
       <h2>오늘 무엇을 연습할까요?</h2>
       <div class="skillgrid">${cards}</div>
     </div>
+
+    ${(()=>{ const p=ttsProblem(); return p?`<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:12px 14px">
+      <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.6">
+        <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${p}
+        <button class="chip tiny" style="margin-left:6px" data-action="goVoice">해결 방법 보기</button>
+      </div></div>`:""; })()}
 
     ${bkNudgeHTML()}
 
