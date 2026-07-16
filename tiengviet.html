@@ -2758,8 +2758,25 @@ function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;"
 /* ---------- 발음(TTS) 음성·속도 ---------- */
 let VOICES = [];
 function loadVoices(){ try{ VOICES = (window.speechSynthesis && speechSynthesis.getVoices()) || []; }catch(e){ VOICES = []; } }
-/* 소리가 안 날 때 원인 알려주기 — 기기에 베트남어 음성이 없으면 브라우저가 조용히 무시하기도 함 */
+/* ⚠️ 카톡·인스타 등 '앱 안에서 열리는 브라우저'(인앱 브라우저)는 소리 읽기(Web Speech)를 지원하지 않음.
+   특히 안드로이드 카톡은 Chrome WebView라 음성 목록이 아예 비어 있어 **아무 소리도 안 남**.
+   → 감지해서 '크롬/사파리로 열기' 버튼을 보여줌. (사용자 제보: 카톡 링크로 바로 열면 소리 안 남) */
+const IN_APP = /KAKAOTALK|Instagram|FBAN|FBAV|FB_IAB|NAVER\(inapp|Line\/|DaumApps|everytimeApp|; ?wv\)/i.test(navigator.userAgent||"");
+/* 기본 브라우저로 다시 열기 — 카톡은 전용 스킴이 있고, 안드로이드는 intent로 크롬 지정 */
+function openExternal(){
+  const url = location.href, ua = navigator.userAgent||"";
+  try{
+    if(/KAKAOTALK/i.test(ua)){ location.href = "kakaotalk://web/openExternal?url=" + encodeURIComponent(url); return; }
+    if(/Android/i.test(ua)){
+      location.href = "intent://" + url.replace(/^https?:\/\//,"") + "#Intent;scheme=https;package=com.android.chrome;end";
+      return;
+    }
+  }catch(e){}
+  alert("오른쪽 위·아래의 ⋯ (또는 공유) 버튼 → '다른 브라우저로 열기' / 'Safari로 열기'를 눌러주세요.");
+}
+/* 소리가 안 날 때 원인 알려주기 */
 function ttsProblem(){
+  if(IN_APP) return "inapp";                                   // 카톡 등 앱 안 브라우저 → 소리 기능 없음
   if(!window.speechSynthesis) return "이 브라우저는 소리 읽기를 지원하지 않아요.";
   if(!VOICES.length) loadVoices();
   if(VOICES.length && !viVoices().length) return "이 폰에 <b>베트남어 음성</b>이 없어요. 설치하면 소리가 나요.";
@@ -3023,11 +3040,20 @@ function renderHome(){
       <div class="skillgrid">${cards}</div>
     </div>
 
-    ${(()=>{ const p=ttsProblem(); return p?`<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:12px 14px">
-      <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.6">
-        <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${p}
-        <button class="chip tiny" style="margin-left:6px" data-action="goVoice">해결 방법 보기</button>
-      </div></div>`:""; })()}
+    ${(()=>{ const p=ttsProblem(); if(!p) return "";
+      if(p==="inapp") return `<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:14px">
+        <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.65">
+          <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg>
+          지금은 <b>카톡 안의 브라우저</b>로 열려 있어서 <b>발음 소리가 안 나요.</b><br>
+          <span style="font-weight:600">아래 버튼으로 크롬·사파리에서 열면 소리가 나요.</span>
+        </div>
+        <button class="btn" style="margin-top:10px" data-action="openExternal">크롬 · 사파리로 열기</button>
+      </div>`;
+      return `<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:12px 14px">
+        <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.6">
+          <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${p}
+          <button class="chip tiny" style="margin-left:6px" data-action="goVoice">해결 방법 보기</button>
+        </div></div>`; })()}
 
     ${bkNudgeHTML()}
 
@@ -4470,6 +4496,14 @@ function renderVoice(){
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 발음(소리) 설정</h2>
       <div class="muted tiny" style="margin-top:-4px">듣기·발음 버튼이 읽어주는 <b>목소리</b>와 <b>속도</b>를 정해요. 기기에 깔린 베트남어 음성을 사용해요.</div>
     </div>
+    ${IN_APP?`<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:14px">
+      <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.65">
+        <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg>
+        <b>카톡 안의 브라우저</b>에서는 소리 기능이 없어요 — 목소리 목록도 비어 있어요.<br>
+        <span style="font-weight:600">크롬·사파리로 열면 정상으로 나옵니다.</span>
+      </div>
+      <button class="btn" style="margin-top:10px" data-action="openExternal">크롬 · 사파리로 열기</button>
+    </div>`:""}
     <div class="card">
       <h2>목소리</h2>
       <div class="row">
@@ -5082,6 +5116,7 @@ function renderPaper(){
    ========================================================= */
 const actions = {
   goHome, goList, goAdd, start, retryLast, retryWrong, retryWrongQ:retryWrong,
+  openExternal,   // 카톡 등 앱 안 브라우저 → 크롬·사파리로 다시 열기 (거기서만 소리가 남)
   // 결과 화면 → 그 영역의 설정(범위·단원 고르는 곳)으로. 영역이 없으면(오답노트 등) 홈으로
   backToSetup:()=>{ stopSpeak(); if(SKILLS[state.skill]) renderSetup(); else goHome(); },
   pick:(el)=>pick(el.dataset.i),
