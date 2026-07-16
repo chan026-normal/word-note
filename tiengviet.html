@@ -3184,7 +3184,8 @@ const state = {
   listenSent: lsGet("_lsent","cloze"),         // 듣기+문장 푸는 방식: cloze=빈칸 채우기 / dictate=받아쓰기
   listenDlg: lsGet("_ldlg","cloze"),           // 듣기+대화 푸는 방식: cloze=빈칸 채우기 / full=전부 받아쓰기
   dlgKo: lsGet("_ldlgko", true) !== false,     // 전부 받아쓰기·Chính tả: 한국어 뜻을 보여줄지 (기본 보임)
-  ctLesson: Number(lsGet("_ctL", 2)) || 2      // 받아쓰기(Chính tả) 단원
+  ctLesson: Number(lsGet("_ctL", 2)) || 2,     // 받아쓰기(Chính tả) 단원
+  sentOrder: lsGet("_sord","random")           // 쓰기+문장 순서: book=교재 순서(이어서 풀기 가능) / random=섞기
 };
 
 /* ---------- 홈 ---------- */
@@ -3556,6 +3557,32 @@ function renderSetup(){
         <button class="${state.sentMode==="bulk"?"on":""}" data-action="sentMode" data-v="bulk">여러 문제<span class="desc">시험지처럼</span></button>
       </div>
     </div>`:"";
+  // 쓰기 + 문장: 문제 순서 (교재 순서면 '이어서 풀기'가 됨)
+  const isBulk = state.skill==="write" && studySent && state.sentMode==="bulk";
+  const bookOrder = state.sentOrder==="book";
+  const orderSeg = (state.skill==="write" && studySent) ? (()=>{
+    const l = state.sentLesson || sentLessons()[0];
+    const pos = bookOrder && isBulk ? bulkPosGet(l) : 0;
+    const from = pos*10 + 1;
+    return `<div class="card">
+      <h2>문제 순서</h2>
+      <div class="seg">
+        <button class="${bookOrder?"on":""}" data-action="sentOrder" data-v="book">교재 순서<span class="desc">1번부터 차례로</span></button>
+        <button class="${!bookOrder?"on":""}" data-action="sentOrder" data-v="random">랜덤<span class="desc">섞어서</span></button>
+      </div>
+      ${isBulk ? (pos>0
+        ? `<div class="card" style="background:var(--brandsoft); border:0; margin:10px 0 0; padding:10px 12px">
+             <div class="tiny" style="color:var(--brand); font-weight:800">
+               <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pin'/></svg>
+               ${lessonLabel(l)} — <b>${from}번</b>부터 이어서 풀어요.
+               <button class="chip tiny" style="margin-left:6px" data-action="bulkReset" data-l="${l}">처음부터</button>
+             </div>
+           </div>`
+        : `<div class="muted tiny" style="margin-top:8px">${bookOrder
+             ? "교재 순서대로 10개씩 풀어요. <b>어디까지 했는지 기억</b>해서 다음에 이어서 풀 수 있어요."
+             : "섞어서 나와요. (이어서 풀기는 <b>교재 순서</b>일 때만 돼요)"}</div>`) : ""}
+    </div>`;
+  })() : "";
   // 범위: 문장이면 문장 단원 칩, 아니면 단어 범위 선택
   const curSent = state.sentLesson || sentLessons()[0];
   const rangeCard = (studyDlg||studyCt) ? ""
@@ -3564,7 +3591,7 @@ function renderSetup(){
          <div class="row">${sentLessons().map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="studySentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
        </div>`
     : `<div class="card"><h2>① 공부할 범위</h2>${selectionBlockHTML(true)}</div>`;
-  const countSeg = (s.count && !studyDlg && !studyCt) ? `
+  const countSeg = (s.count && !studyDlg && !studyCt && !isBulk) ? `
     <div class="card">
       <h2>${showDir?"③":"②"} 문제 수</h2>
       <div class="seg">
@@ -3579,6 +3606,7 @@ function renderSetup(){
     </div>
     ${kindSeg}
     ${bulkSeg}
+    ${orderSeg}
     ${lsSeg}
     ${dlgCard}
     ${ctCard}
@@ -3586,7 +3614,7 @@ function renderSetup(){
     ${lsLevel}
     ${dirSeg}
     ${countSeg}
-    <button class="btn lg" data-action="startSkill">${s.emoji} ${studyCt?"받아쓰기 시작":studyDlg?(dlgFull?"대화 받아쓰기 시작":"대화 빈칸 채우기 시작"):listenSentCloze?"문장 빈칸 채우기 시작":s.label+" 시작하기"}</button>
+    <button class="btn lg" data-action="startSkill">${s.emoji} ${(isBulk && bookOrder && bulkPosGet(state.sentLesson||sentLessons()[0])>0)?`${bulkPosGet(state.sentLesson||sentLessons()[0])*10+1}번부터 이어서 풀기`:studyCt?"받아쓰기 시작":studyDlg?(dlgFull?"대화 받아쓰기 시작":"대화 빈칸 채우기 시작"):listenSentCloze?"문장 빈칸 채우기 시작":s.label+" 시작하기"}</button>
   `);
   bindSelection();
 }
@@ -3625,10 +3653,15 @@ function startSentQueue(skill){
   const pool = SENT_BY_LESSON[l]||[];
   if(!pool.length){ alert("이 단원에 문장이 없어요."); return; }
   const lbl = "L"+l+" 문장";
-  let arr = shuffle(pool);
+  // 쓰기+문장은 '교재 순서'를 고를 수 있음 — 순서를 지키면 '이어서 풀기'가 가능해짐
+  const keepOrder = (skill==="write" && state.sentOrder==="book");
+  let arr = keepOrder ? pool.slice() : shuffle(pool);
+  // 쓰기: 여러 문제(시험지처럼) — 전체를 10개씩 나눠 품. 교재 순서면 지난번에 멈춘 곳부터 이어서
+  if(skill==="write" && state.sentMode==="bulk"){
+    startSentBulk(arr, lbl, l, keepOrder ? bulkPosGet(l) : 0); return;
+  }
   if(state.count!=="all") arr = arr.slice(0, Math.min(Number(state.count), arr.length));
   if(skill==="write" && state.sentMode==="order"){ startSentOrder(arr, lbl); return; }  // 쓰기: 단어 순서 배치
-  if(skill==="write" && state.sentMode==="bulk"){ startSentBulk(arr, lbl); return; }    // 쓰기: 여러 문제 한 번에(시험지처럼)
   if(skill==="speak"){ startSpeak(arr.map(x=>({vn:x.vn, en:x.en, lesson:lbl})), true); return; }   // 말하기: SP 사용
   if(skill==="listen" && state.listenSent==="cloze"){ startSentCloze(arr, l, lbl); return; }   // 듣기: 문장 빈칸 채우기
   if(skill==="listen"){ state.mode="listen"; Q.queue=arr.map(x=>listenSentQ(x, lbl)); }
@@ -4098,11 +4131,18 @@ function renderOrderDone(){
 }
 
 /* ---------- 문장 여러 개 한 번에 풀기 (시험지처럼) ---------- */
-const BULK = { items:[], page:0, per:10, ans:{}, res:{}, graded:false, score:0 };
-function startSentBulk(arr, lbl){
+const BULK = { items:[], page:0, per:10, ans:{}, res:{}, graded:false, score:0, lesson:null };
+/* '교재 순서'로 풀 때만 어디까지 했는지 기억 — {단원: 다음에 풀 페이지}. 랜덤은 매번 순서가 달라 의미 없음 */
+const bulkPosAll = () => lsGet("_bulkpos", {}) || {};
+const bulkPosGet = l => Number(bulkPosAll()[String(l)] || 0);
+function bulkPosSet(l, page){ const a=bulkPosAll(); if(page>0) a[String(l)]=page; else delete a[String(l)]; lsSet("_bulkpos", a); }
+function startSentBulk(arr, lbl, lesson, resumeFrom){
   state.mode="bulk";
   BULK.items = arr.map(x=>({vn:x.vn, en:x.en, lesson:lbl, type:"sentence", dir:dirOf(state.dir)}));
-  BULK.page=0; BULK.ans={}; BULK.res={}; BULK.graded=false; BULK.score=0;
+  BULK.lesson = lesson ?? null;
+  BULK.page = Number(resumeFrom||0);
+  if(BULK.page >= Math.ceil(BULK.items.length/BULK.per)) BULK.page = 0;   // 범위 넘으면 처음부터
+  BULK.ans={}; BULK.res={}; BULK.graded=false; BULK.score=0;
   renderSentBulk();
 }
 const bulkPages = () => Math.max(1, Math.ceil(BULK.items.length / BULK.per));
@@ -4178,8 +4218,14 @@ function bulkToggle(i){
   renderSentBulk();
 }
 function bulkNext(){
-  if(BULK.page+1 >= bulkPages()){ renderBulkDone(); return; }
-  BULK.page++; BULK.graded=false; renderSentBulk();
+  const keep = (state.sentOrder==="book" && BULK.lesson!=null);
+  if(BULK.page+1 >= bulkPages()){
+    if(keep) bulkPosSet(BULK.lesson, 0);   // 끝까지 다 풀었으면 기록 지움(다음엔 처음부터)
+    renderBulkDone(); return;
+  }
+  BULK.page++; BULK.graded=false;
+  if(keep) bulkPosSet(BULK.lesson, BULK.page);   // 여기까지 했다고 기억
+  renderSentBulk();
 }
 function renderBulkDone(){
   state.screen="result";
@@ -5575,6 +5621,8 @@ const actions = {
   dlgNext:()=>{ stopSpeak(); if(DLG.kind==="sent") nextSentCloze(); else dlgNextDialog(); },
   quitDlg:()=>{ stopSpeak(); DLG.playing=false; renderSetup(); },   // 홈이 아니라 '듣기 설정(단원·대화 선택)'으로
   sentMode:(el)=>{ state.sentMode = el.dataset.v; lsSet("_sbulk", state.sentMode); renderSetup(); },
+  sentOrder:(el)=>{ state.sentOrder = el.dataset.v; lsSet("_sord", state.sentOrder); renderSetup(); },
+  bulkReset:(el)=>{ bulkPosSet(Number(el.dataset.l), 0); renderSetup(); },   // 이어서 풀기 기록 지우기
   ordPick:(el)=>{ if(ORD.answered) return; const k=Number(el.dataset.k); const x=ORD.pool[k];
     if(!x || ORD.placed.some(p=>p.i===x.i)) return; ORD.placed.push(x); renderOrder(); },
   ordUnpick:(el)=>{ if(ORD.answered) return; ORD.placed.splice(Number(el.dataset.k),1); renderOrder(); },
