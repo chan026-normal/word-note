@@ -3050,6 +3050,15 @@ function speakLines(texts, onLine, onDone){
     if(busy) setTimeout(go, 80); else go();
   }catch(e){}
 }
+/* 새로고침 — 그냥 reload()하면 브라우저가 **캐시된 옛 파일**을 다시 주는 경우가 많음
+   (앱을 업데이트해도 폰에선 옛 화면 그대로). 주소에 시각(?v=)을 붙여 새 파일을 확실히 받아옴.
+   ⚠️ 저장한 단어·오답노트는 주소가 아니라 도메인 기준(localStorage)이라 그대로 남음. */
+function hardReload(){
+  try{
+    stopSpeak();
+    location.replace(location.pathname + "?v=" + Date.now());   // replace: 뒤로가기 기록 안 쌓임
+  }catch(e){ location.reload(); }
+}
 function stopSpeak(){ try{ ttsKeepStop(); TTS_SEQ++; if(window.speechSynthesis){ speechSynthesis.cancel();
   try{ if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){} } }catch(e){} }   // 멈춤으로 굳은 채 끝나지 않게
 function makeQ(word, dir, type){
@@ -3230,6 +3239,8 @@ function renderHome(){
       <button class="btn soft" data-action="goList"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 단어장</button>
       <button class="btn line" data-action="goSettings"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-gear'/></svg> 설정</button>
     </div>
+
+    <button class="link" style="margin-top:14px" data-action="hardReload"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 새로고침 (최신 내용 받기)</button>
   `);
   bindFind();   // 홈 단어 검색
 }
@@ -5291,6 +5302,7 @@ function renderPaper(){
 const actions = {
   goHome, goList, goAdd, start, retryLast, retryWrong, retryWrongQ:retryWrong,
   openExternal,   // 카톡 등 앱 안 브라우저 → 크롬·사파리로 다시 열기 (거기서만 소리가 남)
+  hardReload,     // 최신 내용 받기 (캐시 무시)
   // 결과 화면 → 그 영역의 설정(범위·단원 고르는 곳)으로. 영역이 없으면(오답노트 등) 홈으로
   backToSetup:()=>{ stopSpeak(); if(SKILLS[state.skill]) renderSetup(); else goHome(); },
   pick:(el)=>pick(el.dataset.i),
