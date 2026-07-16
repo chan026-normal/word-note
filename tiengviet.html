@@ -214,6 +214,9 @@
   .hsearch input{flex:1; min-width:0; border:none; background:none; outline:none; color:var(--ink); font-size:15px; padding:11px 0; font-family:inherit}
   .hsearch input::placeholder{color:var(--muted)}
   #findResults:not(:empty){background:var(--card); border:1px solid var(--line); border-radius:14px; padding:4px 14px; margin-bottom:14px}
+  /* 남부(교재)말 옆에 하노이말 병기 */
+  .ntag{display:inline-block; margin-left:6px; font-size:10.5px; font-weight:600; color:var(--muted);
+        border:1px solid var(--line); border-radius:5px; padding:0 5px; vertical-align:middle; white-space:nowrap}
   /* 개수 배지 */
   .btn.rowbtn{display:flex; align-items:center; gap:9px; text-align:left}
   .badge{margin-left:auto; background:var(--brandsoft); color:var(--brand); font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px}
@@ -244,10 +247,9 @@
   .addstatus{font-size:12.5px; font-weight:700; margin:8px 0 0; min-height:17px; display:flex; align-items:center; gap:5px; transition:opacity .25s ease}
   .addstatus.fading{opacity:0}
   .addstatus.ok{color:var(--good)}
-  .addstatus.warn{color:var(--warn)}
-  .addstatus.busy{color:var(--muted)}
-  .search.needcheck{border-color:var(--warn); background:var(--warnsoft)}
-  .del{border:none;background:var(--badsoft);color:var(--bad);border-radius:9px;width:30px;height:30px;cursor:pointer;font-weight:800}
+  /* 손가락으로 누르기 편하게 44px (30px는 잘 안 눌렸음) */
+  .del{border:none;background:var(--badsoft);color:var(--bad);border-radius:10px;width:44px;height:40px;cursor:pointer;font-weight:800;font-size:17px;flex:0 0 auto}
+  .del:active{background:var(--bad);color:#fff}
   .star{border:none;background:none;cursor:pointer;font-size:20px;line-height:1;color:var(--muted);padding:2px 4px;flex:0 0 auto}
   .star.on{color:#e2a900}
   .notedot{font-size:11px;letter-spacing:1px;color:var(--brand);flex:0 0 auto}
@@ -2893,6 +2895,14 @@ function lessonsList(){
 const LESSON_NAMES = { 13: "오늘 배운 ★", 14: "7/2 복습" };
 const lessonLabel = l => l==="custom" ? "내 단어" : (typeof l==="number" ? (LESSON_NAMES[l] || ("Lesson "+l)) : l);
 
+/* 남부(호치민)말 → 북부(하노이)말 병기.
+   교재가 호치민에서 만든 것이라 남부말만 실린 단어가 있음. 표준어(하노이)도 같이 알아두라고 보여줌.
+   ⚠️ 교재 뜻(en)·문장은 손대지 않음 — 화면 표시(단어장·검색)와 쓰기 정답 인정에만 씀. */
+const NORTH = { "trễ":"muộn", "mắc":"đắt" };
+const northOf = vn => NORTH[String(vn||"").trim().toLowerCase()] || "";
+const northTag = vn => { const n=northOf(vn); return n ? `<span class="ntag" title="하노이(북부)에서 더 흔한 말">하노이 ${n}</span>` : ""; };
+const NORTH_N = {}; Object.keys(NORTH).forEach(k=>{ NORTH_N[normTone(NORTH[k])] = k; });   /* muộn → trễ (검색용) */
+
 /* =========================================================
    4) 도우미 함수
    ========================================================= */
@@ -2944,7 +2954,8 @@ function meaningsOverlap(a, b){ const A=new Set(meaningTokens(a)); return meanin
 function checkVnAny(promptKo, expectedVn, input){
   const target = norm(promptKo);
   const cands = new Set([expectedVn]);
-  WORDS.forEach(x=>{ if(norm(x.en)===target) cands.add(x.vn); });
+  if(northOf(expectedVn)) cands.add(northOf(expectedVn));   // 교재는 남부말(trễ)이지만 하노이말(muộn)로 써도 정답
+  WORDS.forEach(x=>{ if(norm(x.en)===target){ cands.add(x.vn); if(northOf(x.vn)) cands.add(northOf(x.vn)); } });
   let best = "no";
   for(const vn of cands){
     const r = checkVnTyped(vn, input);
@@ -3372,6 +3383,8 @@ function bindFind(){
     const rank=w=>{
       const vT=normTone(w.vn);
       if(vT===kT) return 0;
+      const n=northOf(w.vn);
+      if(n && normTone(n)===kT) return 0;              // 하노이말로 찾아도 바로 위에
       const v=norm(w.vn), e=norm(w.en), g=w.eng?norm(w.eng):"";
       if(e===k||g===k) return 1;
       if(v===k) return 2;
@@ -3394,7 +3407,8 @@ function bindFind(){
       if(t.includes(" "+k+" ")) return true;           // 낱말 통째로 (bank → bank)
       return k.length>=4 && startsHit(w.eng, k);       // 4글자 이상이면 낱말 앞부분도 (teach → teacher)
     };
-    const all=WORDS.filter(w=>startsHit(w.vn,k)||startsHit(w.en,k)||engHit(w))
+    const northHit=w=>{ const n=northOf(w.vn); return !!n && startsHit(n,k); };   // 하노이말(muộn)로 쳐도 교재 단어(trễ)가 나오게
+    const all=WORDS.filter(w=>startsHit(w.vn,k)||startsHit(w.en,k)||engHit(w)||northHit(w))
                    .map(w=>({w,r:rank(w)})).sort((a,b)=>a.r-b.r).map(x=>x.w);
     const WMAX=8;
     const hits=all.slice(0,WMAX), more=all.length-hits.length;
@@ -3413,7 +3427,7 @@ function bindFind(){
     const wordBlock = hits.length
       ? hits.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 2px;border-top:1px solid var(--line)">
           <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:var(--brand);background:var(--brandsoft);padding:2px 7px;border-radius:6px;white-space:nowrap">${esc(lessonLabel(w.lesson))}${w.num?" "+w.num+"번":""}</span>
-          <span style="flex:1 1 38%;font-weight:700">${esc(w.vn)}</span>
+          <span style="flex:1 1 38%;font-weight:700">${esc(w.vn)}${northTag(w.vn)}</span>
           <span style="flex:1 1 42%;color:var(--muted);font-size:13px">${esc(w.en)}${w.eng?`<span style="display:block;font-size:11.5px;opacity:.75">${esc(w.eng)}</span>`:""}</span>
           ${spkBtn(w.vn,"vi-VN",true)}
         </div>`).join("") + (more>0?`<div class="muted tiny" style="padding:6px 2px">비슷한 단어 ${more}개 더 있어요 — 더 정확히 입력해 보세요.</div>`:"")
@@ -4207,6 +4221,12 @@ function bulkGrade(){
     if(ok){ BULK.score++; noteRight(it); } else { noteWrong(it); }
   }
   BULK.graded=true;
+  // 채점 = 그 페이지를 다 푼 것 → 여기서 바로 저장.
+  // ('다음 →'을 눌러야만 저장하면, 채점하고 나간 사람이 그 10문제를 또 풀어야 함 — 사용자 지적)
+  if(state.sentOrder==="book" && BULK.lesson!=null){
+    const next = BULK.page+1;
+    bulkPosSet(BULK.lesson, next >= bulkPages() ? 0 : next);   // 마지막 장이면 기록 지움(처음부터)
+  }
   renderSentBulk();
 }
 function bulkToggle(i){
@@ -4218,13 +4238,9 @@ function bulkToggle(i){
   renderSentBulk();
 }
 function bulkNext(){
-  const keep = (state.sentOrder==="book" && BULK.lesson!=null);
-  if(BULK.page+1 >= bulkPages()){
-    if(keep) bulkPosSet(BULK.lesson, 0);   // 끝까지 다 풀었으면 기록 지움(다음엔 처음부터)
-    renderBulkDone(); return;
-  }
+  // 저장은 이미 bulkGrade에서 함 (채점 = 그 페이지 완료)
+  if(BULK.page+1 >= bulkPages()){ renderBulkDone(); return; }
   BULK.page++; BULK.graded=false;
-  if(keep) bulkPosSet(BULK.lesson, BULK.page);   // 여기까지 했다고 기억
   renderSentBulk();
 }
 function renderBulkDone(){
@@ -4339,7 +4355,11 @@ function gradeSent(typed, answer){
   if(aT===bT) return "ok";                                          // 성조까지 완전 일치
   const bTok=bT.split(" ").filter(Boolean), aSet=new Set(aT.split(" ").filter(Boolean));
   if(bTok.length>=2 && bTok.every(t=>aSet.has(t))) return "ok";     // 정답 단어가 성조까지 다 맞음(어순만 다름)
-  if(sentMatch(typed, answer)) return "tone";                       // 성조 빼면 맞음 → 성조·철자만 다름
+  /* '성조 차이'는 성조·dấu를 떼면 똑같을 때만. (편집거리로 판정하면 mắc↔rẻ 처럼 뜻이 정반대인 단어도 '성조 차이'가 됨) */
+  const a=normSent(typed), b=normSent(answer);
+  if(a===b) return "tone";
+  const bt=b.split(" ").filter(Boolean), as=new Set(a.split(" ").filter(Boolean));
+  if(bt.length>=2 && bt.every(t=>as.has(t))) return "tone";         // 성조 떼면 낱말이 다 맞음(어순만 다름)
   return "no";
 }
 function renderQuiz(){
@@ -4822,10 +4842,24 @@ async function cloudSync(){
   CLOUD.busy = false;
 }
 let cloudTimer = null;
-function cloudSave(){   // 데이터가 바뀔 때 호출 (잠깐 모았다가 한 번에 올림)
+/* ⚠️ 로컬에서 바뀐 걸 올릴 땐 **병합하면 안 됨**.
+   cloudSync는 '클라우드→로컬 병합(union) 후 업로드'라서, 단어를 지운 직후 이걸 부르면
+   클라우드에 남아 있던 그 단어가 **도로 살아남**(사용자 제보: "삭제가 안 돼요").
+   → 로컬 변경은 그냥 덮어쓰기만. 병합은 로그인 시(cloudSync)에만. */
+async function cloudPush(){
   if(!CLOUD.on || !CLOUD.user || CLOUD.busy) return;
+  CLOUD.busy = true;
+  try{
+    const { doc, setDoc } = CLOUD.fns;
+    await setDoc(doc(CLOUD.db, "users", CLOUD.user.uid), cloudData());
+    bkMark();
+  }catch(e){}
+  CLOUD.busy = false;
+}
+function cloudSave(){   // 데이터가 바뀔 때 호출 (잠깐 모았다가 한 번에 올림)
+  if(!CLOUD.on || !CLOUD.user) return;
   clearTimeout(cloudTimer);
-  cloudTimer = setTimeout(cloudSync, 1200);
+  cloudTimer = setTimeout(cloudPush, 1200);
 }
 
 /* ---------- 설정 (발음 · 타자 · 백업 모음) ---------- */
@@ -5176,7 +5210,7 @@ function renderList(){
       <div class="wlist" style="margin-top:8px">
         ${filt.length? filt.map(w=>`<div class="wrow">
           <span class="lz${w.lesson==="custom"?" mine":""}">${lessonLabel(w.lesson)}</span>
-          <span class="wvn">${esc(w.vn)} ${spkBtn(w.vn,"vi-VN",true)}</span>
+          <span class="wvn">${esc(w.vn)} ${spkBtn(w.vn,"vi-VN",true)}${northTag(w.vn)}</span>
           <span class="wen ${L.hide?"hide":""}">${esc(w.en)}</span>
           <button class="star ${noteHas(w)?"on":""}" data-action="starWord" data-id="${w.id}" title="오답 노트에 추가/제거">${noteHas(w)?"★":"☆"}</button>
         </div>`).join("") : `<div class="muted center" style="padding:20px">${emptyMsg}</div>`}
@@ -5188,36 +5222,10 @@ function renderList(){
 }
 
 /* ---------- 단어 추가 ---------- */
-/* 자동완성: ① 교재(WORDS 532개)에서 먼저 찾고(인터넷 X·정확) ② 없으면 인터넷 번역(MyMemory, 확인 필요) */
-let addBusy = false;
-/* 교재 단어에서 찾기. dir: vn2ko | ko2vn | eng2vn(영어 → 베트남어+한국어) */
-function lookupLocal(dir, text){
-  const t=text.toLowerCase().trim();
-  if(dir==="vn2ko"){
-    const w = WORDS.find(x=>x.vn.toLowerCase().trim()===t) || WORDS.find(x=>norm(x.vn)===norm(text));
-    return w ? w.en : null;
-  }
-  if(dir==="eng2vn"){
-    // 교재 영어 뜻으로 찾기 — 통째로 일치 → 쉼표/슬래시로 나눈 조각 일치 순
-    const w = WORDS.find(x=>x.eng && x.eng.toLowerCase().trim()===t)
-           || WORDS.find(x=>x.eng && x.eng.split(/[,;/]/).map(s=>s.trim().toLowerCase()).includes(t))
-           || WORDS.find(x=>x.eng && norm(x.eng)===norm(text));
-    return w ? {vn:w.vn, en:w.en} : null;   // 베트남어 + 한국어 뜻 같이 반환
-  }
-  const w = WORDS.find(x=>x.en.toLowerCase().trim()===t)
-         || WORDS.find(x=>x.en.split(/[,;/]/).map(s=>s.trim().toLowerCase()).includes(t))
-         || WORDS.find(x=>norm(x.en)===norm(text));
-  return w ? w.vn : null;
-}
-async function translateOnline(text, pair){
-  const url="https://api.mymemory.translated.net/get?q="+encodeURIComponent(text)+"&langpair="+encodeURIComponent(pair);
-  const r=await fetch(url);
-  const j=await r.json();
-  let t=j && j.responseData && j.responseData.translatedText;
-  if(!t) return null;
-  if(/MYMEMORY WARNING|PLEASE SELECT|INVALID|NO QUERY|QUERY LENGTH LIMIT/i.test(t)) return null;
-  return String(t).trim();
-}
+/* ⚠️ 자동완성(교재 조회 + 인터넷 번역)은 2026-07-17에 제거함 — 사용자 요청.
+   번역기가 'ghi nhớ → 기억하기'(사전형 아님)처럼 어설픈 답을 채워 넣으면
+   그걸 지우고 고치는 게 처음부터 직접 쓰는 것보다 더 번거로웠음.
+   되살릴 일이 있으면 git 이력(lookupLocal/translateOnline/doAutoFill)을 참고할 것. */
 let addStatusTimer=null;
 function setAddStatus(html, cls, autoClearMs){
   const s=document.getElementById("addStatus");
@@ -5235,78 +5243,6 @@ function setAddStatus(html, cls, autoClearMs){
   }
 }
 const _icCheck="<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg>";
-const _icAlert="<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg>";
-/* 교재에 있는 단어면 '영어 뜻'도 자동으로 채워줌 (교재 1~12과 단어엔 영어가 들어있음) */
-function fillEngFromBook(vn){
-  const el=document.getElementById("inEng");
-  if(!el || el.value.trim() || !vn) return false;
-  const k=normTone(vn);
-  const w = WORDS.find(x=>x.eng && normTone(x.vn)===k) || WORDS.find(x=>x.eng && norm(x.vn)===norm(vn));
-  if(!w) return false;
-  el.value = w.eng; el.classList.remove("needcheck");
-  return true;
-}
-async function doAutoFill(){
-  if(addBusy) return;
-  const vnEl=document.getElementById("inVn"), enEl=document.getElementById("inEn"), engEl=document.getElementById("inEng");
-  if(!vnEl||!enEl) return;
-  const vn=vnEl.value.trim(), en=enEl.value.trim(), eng=engEl?engEl.value.trim():"";
-
-  // ⓪ 영어만 넣은 경우 → 베트남어(+한국어)를 채움
-  if(!vn && eng){
-    const hit = lookupLocal("eng2vn", eng);
-    if(hit){
-      vnEl.value = hit.vn; vnEl.classList.remove("needcheck");
-      if(!en){ enEl.value = hit.en; enEl.classList.remove("needcheck"); }
-      setAddStatus(_icCheck+" 교재에서 찾았어요"+(en?"":" (한국어 뜻도 채웠어요)"),"ok");
-      return;
-    }
-    // 교재에 없으면 인터넷 번역 (영어 → 베트남어, 한국어 비었으면 영어 → 한국어도)
-    addBusy=true; setAddStatus("번역하는 중…","busy");
-    try{
-      const tvn = await translateOnline(eng, "en|vi");
-      if(tvn && !vnEl.value.trim()){ vnEl.value=tvn; vnEl.classList.add("needcheck"); }
-      if(!enEl.value.trim()){
-        const tko = await translateOnline(eng, "en|ko");
-        if(tko) { enEl.value=tko; enEl.classList.add("needcheck"); }
-      }
-      setAddStatus(tvn ? _icAlert+" 자동 번역이에요 — 맞는지 꼭 확인하세요"
-                       : "자동완성을 못 찾았어요. 직접 입력해 주세요.", tvn?"warn":"warn");
-    }catch(e){ setAddStatus("인터넷이 없어 자동 번역을 못 했어요. 직접 입력해 주세요.","warn"); }
-    finally{ addBusy=false; }
-    return;
-  }
-
-  let dir;
-  if(vn && !en) dir="vn2ko";
-  else if(en && !vn) dir="ko2vn";
-  else if(!vn && !en){ setAddStatus("먼저 베트남어·한국어·영어 중 한쪽을 입력하세요.","warn"); return; }
-  else { setAddStatus("",""); return; }   // 둘 다 채워져 있으면 할 일 없음
-  const src = dir==="vn2ko" ? vn : en;
-  const dstEl = dir==="vn2ko" ? enEl : vnEl;
-  // ① 교재에서 찾기
-  const local = lookupLocal(dir, src);
-  if(local){
-    dstEl.value = local; dstEl.classList.remove("needcheck");
-    const gotEng = fillEngFromBook(vn || dstEl.value);   // 교재 단어면 영어 뜻도 같이 채워줌
-    setAddStatus(_icCheck+" 교재에서 찾았어요"+(gotEng?" (영어 뜻도 채웠어요)":""),"ok");
-    return;
-  }
-  // ② 인터넷 번역
-  addBusy=true; setAddStatus("번역하는 중…","busy");
-  try{
-    const t = await translateOnline(src, dir==="vn2ko" ? "vi|ko" : "ko|vi");
-    if(dstEl.value.trim()){ setAddStatus("",""); return; }   // 그 사이 직접 입력했으면 안 덮음
-    if(t){
-      dstEl.value=t; dstEl.classList.add("needcheck");
-      setAddStatus(_icAlert+" 자동 번역이에요 — 맞는지 꼭 확인하세요","warn");
-    } else {
-      setAddStatus("자동완성을 못 찾았어요. 직접 입력해 주세요.","warn");
-    }
-  } catch(e){
-    setAddStatus("인터넷이 없어 자동 번역을 못 했어요. 직접 입력해 주세요.","warn");
-  } finally { addBusy=false; }
-}
 function goAdd(){ renderAdd(); }
 function renderAdd(){
   state.screen="add";
@@ -5315,7 +5251,7 @@ function renderAdd(){
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-plus'/></svg> 내 단어 추가</h2>
-      <div class="muted tiny" style="margin:-4px 0 12px"><b>베트남어 · 한국어 · 영어</b> 중 <b>한쪽만</b> 넣으면 나머지를 자동으로 채워줘요. (교재에 있으면 인터넷 없이 바로, 없으면 인터넷 번역으로 — 이땐 확인 필요)</div>
+      <div class="muted tiny" style="margin:-4px 0 12px"><b>베트남어</b>와 <b>한국어 뜻</b>을 직접 넣어주세요. 영어 뜻은 넣어도 되고 안 넣어도 돼요.</div>
       <label class="fld">베트남어 (또는 외울 단어)</label>
       <input class="search" id="inVn" placeholder="예: cảm ơn" autocomplete="off">
       <label class="fld">한국어 뜻</label>
@@ -5323,9 +5259,8 @@ function renderAdd(){
       <label class="fld">영어 뜻 <span class="muted" style="font-weight:500">— 안 넣어도 돼요</span></label>
       <input class="search" id="inEng" placeholder="예: to thank" autocomplete="off" autocapitalize="off">
       <div id="addStatus" class="addstatus"></div>
-      <div style="display:flex; gap:8px; margin-top:10px">
-        <button class="btn ghost" style="flex:1" data-action="autoFill"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg> 자동완성</button>
-        <button class="btn" style="flex:1" data-action="addWord">추가하기</button>
+      <div style="margin-top:10px">
+        <button class="btn" style="width:100%" data-action="addWord">추가하기</button>
       </div>
       <div class="muted tiny" style="margin-top:10px">추가한 단어는 이 브라우저에 저장돼요. 단어장·시험에 '내 단어'로 함께 나와요.</div>
     </div>
@@ -5342,17 +5277,14 @@ function renderAdd(){
   `);
   const vnEl=document.getElementById("inVn"), enEl=document.getElementById("inEn"), engEl=document.getElementById("inEng");
   if(vnEl && enEl){
-    // 한쪽만 입력하고 칸을 벗어나면(다른 칸이 비어 있을 때) 자동완성
-    vnEl.addEventListener("blur", ()=>{ if(vnEl.value.trim() && !enEl.value.trim()) doAutoFill(); else if(vnEl.value.trim()) fillEngFromBook(vnEl.value.trim()); });
-    enEl.addEventListener("blur", ()=>{ if(enEl.value.trim() && !vnEl.value.trim()) doAutoFill(); });
-    // 영어만 넣고 칸을 벗어나면 → 베트남어(+한국어) 자동으로
-    if(engEl) engEl.addEventListener("blur", ()=>{ if(engEl.value.trim() && !vnEl.value.trim()) doAutoFill(); });
-    // Enter: 베·한 둘 다 있으면 추가, 아니면 자동완성 (영어만 넣었을 때도 자동완성이 받아줌)
-    const onEnter=(e)=>{ if(e.key==="Enter"){ e.preventDefault();
-      if(vnEl.value.trim() && enEl.value.trim()) addWord(); else doAutoFill(); } };
+    // Enter: 베·한 둘 다 채워져 있으면 바로 추가, 아니면 다음 칸으로
+    const onEnter=(e)=>{ if(e.key!=="Enter") return;
+      e.preventDefault();
+      if(vnEl.value.trim() && enEl.value.trim()) addWord();
+      else if(!vnEl.value.trim()) vnEl.focus();
+      else enEl.focus();
+    };
     [vnEl, enEl, engEl].forEach(el=>{ if(el) el.addEventListener("keydown", onEnter); });
-    // 직접 고치면 '확인 필요' 강조 해제
-    [vnEl, enEl, engEl].forEach(el=>{ if(el) el.addEventListener("input", ()=>el.classList.remove("needcheck")); });
   }
 }
 function addWord(){
@@ -5367,9 +5299,14 @@ function addWord(){
   setAddStatus(_icCheck+" 추가됐어요", "ok", 1600);   // 잠깐 보였다 부드럽게 사라짐
 }
 function delWord(i){
-  const custom = lsGet("_custom", []); custom.splice(Number(i),1); lsSet("_custom", custom);
+  const custom = lsGet("_custom", []);
+  const w = custom[Number(i)];
+  if(!w) return;
+  if(!confirm(`'${w.vn}' 을(를) 지울까요?`)) return;   // 실수로 눌러 지우는 것 방지
+  custom.splice(Number(i),1); lsSet("_custom", custom);
   cloudSave();
   buildWords(); renderAdd();
+  setAddStatus(`'${w.vn}' 지웠어요`, "ok", 1600);
 }
 
 /* ---------- 시험지 만들기 (인쇄·여럿이 함께) ---------- */
@@ -5585,7 +5522,7 @@ const actions = {
   count:(el)=>{ state.count=el.dataset.v==="all"?"all":Number(el.dataset.v); lsSet("_count",state.count); refresh(); },
   listFilter:(el)=>{ L.lesson=el.dataset.l==="all"?"all":(el.dataset.l==="custom"?"custom":Number(el.dataset.l)); renderList(); },
   toggleHide:()=>{ L.hide=!L.hide; renderList(); },
-  addWord, autoFill:doAutoFill, exportWord:exportWordDoc, exportPicked,
+  addWord, exportWord:exportWordDoc, exportPicked,
   toggleMulti:()=>{ L.multi=!L.multi; if(L.multi && L.pick.size===0 && L.lesson!=="all") L.pick.add(L.lesson); renderList(); },
   pickLesson:(el)=>{ const l=el.dataset.l==="custom"?"custom":Number(el.dataset.l); if(L.pick.has(l)) L.pick.delete(l); else L.pick.add(l); renderList(); },
   pickAll:()=>{ L.pick=new Set(lessonsList()); renderList(); },
