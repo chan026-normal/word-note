@@ -48,7 +48,7 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   /* 폰에서 화면을 아래로 당겼다 놓으면 브라우저가 '새로고침'을 해버려서
      풀던 문제·진행상황이 다 날아감 → 당겨서 새로고침을 끔(스크롤은 그대로 됨). */
-  html,body{margin:0;padding:0}
+  html,body{margin:0;padding:0; overscroll-behavior-y:contain}
   body{
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Malgun Gothic",Segoe UI,Roboto,sans-serif;
     background:var(--bg); color:var(--ink); line-height:1.5;
@@ -4231,7 +4231,7 @@ function downloadExport(){
   try{
     const blob=new Blob([exportData()],{type:"application/json"});
     const url=URL.createObjectURL(blob);
-    const a=document.createElement("a"); a.href=url; a.download="단어시험_백업.json"; document.body.appendChild(a); a.click(); a.remove();
+    const a=document.createElement("a"); a.href=url; a.download="베트남어학습_백업.json"; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1000);
     bkMark();   // 백업함 → 넛지 리셋
   }catch(e){ alert("파일 저장이 안 되면 '복사하기'를 이용해 주세요."); }

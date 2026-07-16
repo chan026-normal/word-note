@@ -4,21 +4,21 @@
 
 ## 1. 프로젝트 개요
 - GYBM 베트남 과정 참가자(한국인, 베트남어 학습자)를 위한 **베트남어 ↔ 한국어 단어/문장 시험·암기 웹앱**.
-- **`단어시험.html` 파일 하나로 동작**하는 자기완결 앱: 프레임워크·빌드·서버 불필요, 더블클릭하면 브라우저에서 열림, **오프라인 작동**, 데이터는 브라우저 **localStorage**에 저장.
+- **`tiengviet.html` 파일 하나로 동작**하는 자기완결 앱: 프레임워크·빌드·서버 불필요, 더블클릭하면 브라우저에서 열림, **오프라인 작동**, 데이터는 브라우저 **localStorage**에 저장.
 - 순수 **바닐라 JS**(외부 라이브러리 없음). UI는 한국어.
 
 ## 2. 파일 구조
-- **`단어시험.html`** — 앱 본체(HTML+CSS+JS 한 파일). 거의 모든 작업은 여기서.
-- `index.html` — 루트 URL용 리디렉트(→ `단어시험.html`). GitHub Pages 주소를 깔끔하게 하려고 둠. 수정 거의 안 함.
+- **`tiengviet.html`** — 앱 본체(HTML+CSS+JS 한 파일). 거의 모든 작업은 여기서.
+- `index.html` — 루트 URL용 리디렉트(→ `tiengviet.html`). GitHub Pages 주소를 깔끔하게 하려고 둠. 수정 거의 안 함.
 - `README.md`, `.gitignore`, 이 `CLAUDE.md`.
 - `contents.zip` / 이미지 — 교재 사진 원본. **.gitignore로 제외**(저장소에 안 올라감).
 
 ## 3. 실행 / 미리보기 (중요)
 - 이 환경엔 **node가 없음**. JS 검증은 브라우저 미리보기로 함.
 - 미리보기 서버: `prj_code/.claude/launch.json`의 **`wordnote`** 설정(python http.server, 포트 8137, `word_note` 폴더 serve). `preview_start name=wordnote`.
-- 파일명이 한글이라 URL은 인코딩 필요: `preview_eval`로 `location.href = location.origin + '/' + encodeURIComponent('단어시험.html')`.
+- 파일명은 `tiengviet.html`(2026-07-14에 `단어시험.html`에서 변경 — 앱 내용이 단어시험을 넘어서서). URL 인코딩 불필요.
 - 검증은 `preview_eval`로 함수 직접 호출(예: `WORDS.length`, `start()`, `loadNote()`) + `preview_screenshot`.
-- **⚠️ preview 서버가 샌드박스 권한오류로 못 뜰 때(2026-06-27 지속)**: 미리보기 프로세스가 `word_note`(심지어 `prj_code`)를 못 읽어 404. 그땐 **인쇄/PDF 레이아웃은 Chrome 헤드리스로 검증** 가능(Bash는 샌드박스 아님): ①`단어시험.html`을 scratchpad에 복사하고 끝에 `<script>setTimeout(()=>{P.onePage=true;P.withKey=true;genPaper(true);},400)</script>` 주입 ②`"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --no-pdf-header-footer --print-to-pdf=out.pdf --virtual-time-budget=3000 file://.../test.html` ③PDF 페이지수 확인+Swift(PDFKit)로 페이지를 PNG 렌더해 Read로 눈으로 확인(`mdls -name kMDItemNumberOfPages`도 가능). 시험지 페이지수·압축 맞춤은 이 방식으로 실측했음.
+- **⚠️ preview 서버가 샌드박스 권한오류로 못 뜰 때(2026-06-27 지속)**: 미리보기 프로세스가 `word_note`(심지어 `prj_code`)를 못 읽어 404. 그땐 **인쇄/PDF 레이아웃은 Chrome 헤드리스로 검증** 가능(Bash는 샌드박스 아님): ①`tiengviet.html`을 scratchpad에 복사하고 끝에 `<script>setTimeout(()=>{P.onePage=true;P.withKey=true;genPaper(true);},400)</script>` 주입 ②`"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --no-pdf-header-footer --print-to-pdf=out.pdf --virtual-time-budget=3000 file://.../test.html` ③PDF 페이지수 확인+Swift(PDFKit)로 페이지를 PNG 렌더해 Read로 눈으로 확인(`mdls -name kMDItemNumberOfPages`도 가능). 시험지 페이지수·압축 맞춤은 이 방식으로 실측했음.
   - **앱 화면 스샷**(인쇄 아닌 일반 화면 검증): 같은 복사본 끝에 `<script>setTimeout(()=>{actions.goList()/*등 액션 호출*/},400)</script>` 주입 후 `chrome --headless=new --screenshot=out.png --window-size=430,1500 --force-device-scale-factor=2 file://...` → PNG를 Read. 아이콘 교체는 이 방식으로 7화면 검증함.
 
 ## 4. 데이터 구조
@@ -144,7 +144,7 @@ const SENTENCES = `베트남어 문장|한국어뜻\n...`;                      
 
 - **2026-07-10 (Cowork — 듣기를 '베트남어 받아쓰기'로 개편 + 문장 받아쓰기)**: 사용자 요청. 기존 듣기(베트남어 듣고 **한국어 뜻** 입력)를 **소리만 듣고 들은 베트남어를 그대로 쓰기**로 바꿈. 듣기 설정에 **단어/문장 토글**(`state.listenKind`, 문장은 문장단원 칩), **방향 선택 제거**(받아쓰기 고정). 문제=`{dir:'listen',dictation:true,prompt=answer=vn,meaning=en}`(`listenWordQ`/`listenSentQ`/`startListenSent`). 단어채점 `checkVnTyped`(성조까지, 그 단어만; 성조만 틀리면 "철자는 맞음" 안내), 문장채점 `sentMatch` 관대+자가채점. 정답공개 시 **뜻(한국어)** 표시. 오답재시도 `rebuildQ`로 받아쓰기 복원. jsdom 검증: 부팅 무오류·단어/문장 큐(dictation·prompt=answer=vn)·성조 toneOnly·기존 쓰기/읽기 방향 유지·홈 부팅. (섹션5 듣기 항목도 갱신.) ⚠️ 샌드박스 크롬 없어 스샷 미실행 → 실제 화면은 사용자 확인. push는 맥 Claude Code.
 
-- **2026-07-10 (Cowork — 7단원 문장 46개 + 카톡 카드 제목 개선)**: ①**7단원 문장 추가**: 교재 Bài 7 «TÔI THƯỜNG KHÔNG ĂN SÁNG»(107~121쪽, 일상생활·아침식사·빈도부사) 사진 15장에서 회화3(Dorothy/Vân·Eun Ji/Dũng·Loan/Lee, 108~109쪽)+읽기(114쪽 ĐỌC HIỂU)+문법예문(120~121쪽 sắp vs sẽ·hơi·hả·nên) 추출 → `SENT_RAW` 7단원 **75문장** = 회화3·읽기·문법예문 **46** + 쓰기연습(THỰC HÀNH VIẾT) **변환정답 29**(hơi 재작성 10·vì 전환 9·hả 의문 10, 사용자 "1~6단원처럼" 요청). **문장 총 403→478(L1~7).** 발음섹션(107쪽)은 회화와 중복이라 제외, sắp·nên **완성형(빈칸 자유응답)은 정답 확정 불가라 제외**, 받아쓰기(Chính tả, 119쪽) 지문도 이번엔 제외(요청 시 추가 가능). ⚠️ 변환정답 29개는 **교재 인쇄답이 아니라 규칙대로 생성**(1~6단원 방식) — 성조·표현 검수 대기. jsdom 부팅 무오류·형식오류0·L7=75·allSentences 478·신규중복0 검증. (이미지: outputs/dan7_fixed, contact/dan7_contact.jpg — EXIF 보정.) ②**카톡 미리보기 제목 어폐 수정**(사용자 지적 — '단어 시험'인데 실제론 문장·읽듣쓰말 4영역 다 포함): `<title>`+OG 태그를 **'베트남어 단어·문장 학습 · 베트남어 ↔ 한국어'**로(index.html·단어시험.html **둘 다**), `meta description`/`og:description`/`og:url`(Pages 루트) 추가 → 카톡 기본문구 "여기를 눌러 링크를 확인하세요" 대체. 앱 상단 홈버튼도 '단어 시험'→**'베트남어 학습'**(약 303행). **⚠️ 카톡은 미리보기 캐시 → 공유 시 `?v=2` 붙이면 즉시 갱신.** 백업 파일명(단어시험_백업.json)·기타 라벨 유지. (Cowork 편집, push는 맥 Claude Code에서.)
+- **2026-07-10 (Cowork — 7단원 문장 46개 + 카톡 카드 제목 개선)**: ①**7단원 문장 추가**: 교재 Bài 7 «TÔI THƯỜNG KHÔNG ĂN SÁNG»(107~121쪽, 일상생활·아침식사·빈도부사) 사진 15장에서 회화3(Dorothy/Vân·Eun Ji/Dũng·Loan/Lee, 108~109쪽)+읽기(114쪽 ĐỌC HIỂU)+문법예문(120~121쪽 sắp vs sẽ·hơi·hả·nên) 추출 → `SENT_RAW` 7단원 **75문장** = 회화3·읽기·문법예문 **46** + 쓰기연습(THỰC HÀNH VIẾT) **변환정답 29**(hơi 재작성 10·vì 전환 9·hả 의문 10, 사용자 "1~6단원처럼" 요청). **문장 총 403→478(L1~7).** 발음섹션(107쪽)은 회화와 중복이라 제외, sắp·nên **완성형(빈칸 자유응답)은 정답 확정 불가라 제외**, 받아쓰기(Chính tả, 119쪽) 지문도 이번엔 제외(요청 시 추가 가능). ⚠️ 변환정답 29개는 **교재 인쇄답이 아니라 규칙대로 생성**(1~6단원 방식) — 성조·표현 검수 대기. jsdom 부팅 무오류·형식오류0·L7=75·allSentences 478·신규중복0 검증. (이미지: outputs/dan7_fixed, contact/dan7_contact.jpg — EXIF 보정.) ②**카톡 미리보기 제목 어폐 수정**(사용자 지적 — '단어 시험'인데 실제론 문장·읽듣쓰말 4영역 다 포함): `<title>`+OG 태그를 **'베트남어 단어·문장 학습 · 베트남어 ↔ 한국어'**로(index.html·tiengviet.html **둘 다**), `meta description`/`og:description`/`og:url`(Pages 루트) 추가 → 카톡 기본문구 "여기를 눌러 링크를 확인하세요" 대체. 앱 상단 홈버튼도 '단어 시험'→**'베트남어 학습'**(약 303행). **⚠️ 카톡은 미리보기 캐시 → 공유 시 `?v=2` 붙이면 즉시 갱신.** 백업 파일명(단어시험_백업.json)·기타 라벨 유지. (Cowork 편집, push는 맥 Claude Code에서.)
 
 ## (이전) 현재 상태 & 미해결 (2026-07-09 세션)
 - **2026-07-09 (시험지 문장범위 다중선택 + 스크롤 유지)**: 사용자 버그제보 2건 수정. ①**문장 범위 다중선택**: `P.sentLesson`(단일값 "all"|번호)→**`P.sentPick`(Set, 빈 Set=전체)**. 칩 토글(추가/해제), '전체'=비움. `genPaper`의 `sentPool`=선택 단원들 `paperSents` 합(빈 Set이면 `allPaperSentences`). 칩 on 상태 `P.sentPick.has(l)`/전체 `size===0`. 액션 `paperSentLesson` 토글로 변경. ②**시험지 컨트롤 클릭 시 맨위로 튀는 것 수정**: `set()`이 매 렌더 `scrollTo(0,0)` 하던 걸, 헬퍼 **`paperKeep(fn)`**(스크롤 y 저장→fn→복원)로 감싸 시험지 컨트롤(`paperDir`/`paperCount`/`paperFormat`/`paperPriority`/`paperOne`/`paperSentLesson`) 재생성 때 위치 유지(첫 진입 `goPaper`는 그대로 맨위). 헤드리스 검증: 3과+5과 동시선택 pool=119, 토글/전체 정상, 다중선택 칩 하이라이트 확인.

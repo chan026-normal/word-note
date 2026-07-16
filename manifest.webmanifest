@@ -4,7 +4,7 @@
   "description": "베트남어 단어·문장을 읽기·듣기·쓰기·말하기로 공부하는 학습앱 (GYBM 베트남어 과정)",
   "lang": "ko",
   "dir": "ltr",
-  "start_url": "./단어시험.html",
+  "start_url": "./tiengviet.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
