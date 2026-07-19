@@ -419,9 +419,8 @@
   .h-banner .bbar{height:7px; background:rgba(255,255,255,.25); border-radius:999px; overflow:hidden; margin:13px 0 9px}
   .h-banner .bbar > i{display:block; height:100%; background:#fff; border-radius:999px}
   .h-banner .bsub{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; opacity:.92}
-  .lcard{background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); padding:2px 14px; margin-bottom:16px}
-  .lrow{display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line); cursor:pointer; width:100%; background:none; text-align:left; color:var(--ink); font:inherit}
-  .lrow:last-child{border-bottom:none}
+  .lcard{background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:8px 14px; margin-bottom:16px}
+  .lrow{display:flex; align-items:center; gap:12px; padding:17px 2px; cursor:pointer; width:100%; background:none; text-align:left; color:var(--ink); font:inherit}
   .lrow:active{background:var(--bg)}
   .lrow .lr-ic{color:var(--brand); font-size:19px}
   .lrow .lr-nm{font-weight:700; font-size:14.5px}
@@ -3948,6 +3947,12 @@ function renderHome(){
   const noteMeta = noteCount>0 ? `<span class="lr-meta badge2">${noteCount}</span>` : `<span class="lr-meta">비어있음</span>`;
 
   set(`
+    <button class="h-banner" data-action="goPrep">
+      <div class="bt"><span class="l"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 시험 대비</span><span class="dd">${esc(prepDlabel())}</span></div>
+      <div class="bbar"><i style="width:${mPct}%"></i></div>
+      <div class="bsub"><span>${pc.master} / ${pc.total} 마스터 · 8/1 시험</span><span style="font-weight:700">오늘 공부 시작 →</span></div>
+    </button>
+
     <div class="card">
       <div class="h-hero">
         <div class="h-ring" style="background:conic-gradient(var(--brand) ${gpct*3.6}deg, var(--brandsoft) 0)"><div><b>${tc}<small>/${goal}</small></b><span>오늘 목표</span></div></div>
@@ -3983,12 +3988,6 @@ function renderHome(){
 
     <div class="seclbl">오늘의 학습</div>
     <div class="softgrid">${softtiles}</div>
-
-    <button class="h-banner" data-action="goPrep">
-      <div class="bt"><span class="l"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 시험 대비</span><span class="dd">${esc(prepDlabel())}</span></div>
-      <div class="bbar"><i style="width:${mPct}%"></i></div>
-      <div class="bsub"><span>${pc.master} / ${pc.total} 마스터 · 8/1 시험</span><span style="font-weight:700">오늘 공부 시작 →</span></div>
-    </button>
 
     ${bkNudgeHTML()}
 
