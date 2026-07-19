@@ -380,6 +380,49 @@
   /* 인라인 SVG 라인 아이콘 (이모지 대체). 크기는 부모 font-size(1em)에 따름 */
   .ic{width:1em; height:1em; display:inline-block; vertical-align:-.14em; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:none}
   .skillcard .ic{stroke-width:1.7}
+  /* ===== 3a 홈 리디자인 ===== */
+  .seclbl{font-size:11px; font-weight:800; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); margin:0 2px 10px}
+  .h-hero{display:flex; align-items:center; gap:15px}
+  .h-ring{width:88px; height:88px; border-radius:50%; flex:none; display:flex; align-items:center; justify-content:center}
+  .h-ring > div{width:64px; height:64px; border-radius:50%; background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center}
+  .h-ring b{font-size:19px; font-weight:900; line-height:1}
+  .h-ring b small{font-size:11px; color:var(--muted); font-weight:800}
+  .h-ring > div > span{font-size:9.5px; color:var(--muted); margin-top:1px}
+  .h-cont{flex:1; min-width:0}
+  .h-cont .t{font-size:15px; font-weight:800; margin-bottom:2px}
+  .h-cont .d{font-size:12.5px; color:var(--muted); line-height:1.45; margin-bottom:11px}
+  .h-resume{display:inline-flex; align-items:center; gap:7px; background:var(--brand); color:#fff; font-weight:800; font-size:13px; padding:9px 15px; border-radius:12px; border:none; cursor:pointer}
+  .h-resume:active{transform:scale(.98)}
+  .h-week{display:flex; justify-content:space-between}
+  .h-week .dcol{display:flex; flex-direction:column; align-items:center; gap:5px}
+  .h-week .dl{font-size:10px; color:var(--muted); font-weight:700}
+  .h-week .dcol.tdy .dl{color:var(--brand)}
+  .h-week .dd{width:24px; height:24px; border-radius:8px; background:var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff}
+  .h-week .dd.on{background:var(--good)}
+  .h-week .dd.today{background:var(--brand); box-shadow:0 0 0 3px var(--brandsoft)}
+  .softgrid{display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:20px}
+  .softtile{border:1px solid var(--line); background:var(--card); border-radius:18px; padding:15px; cursor:pointer; text-align:left; display:flex; flex-direction:column; gap:9px; color:var(--ink); transition:.12s}
+  .softtile:active{background:var(--bg)}
+  .softtile .st-ic{width:42px; height:42px; border-radius:12px; background:var(--brandsoft); color:var(--brand); display:flex; align-items:center; justify-content:center; font-size:21px}
+  .softtile .st-nm{font-size:16px; font-weight:800}
+  .softtile .st-ds{font-size:12px; color:var(--muted)}
+  .h-banner{display:block; width:100%; text-align:left; background:var(--brand); color:#fff; border:none; border-radius:18px; padding:16px 18px; cursor:pointer; margin-bottom:14px}
+  .h-banner:active{transform:scale(.995)}
+  .h-banner .bt{display:flex; align-items:center; justify-content:space-between}
+  .h-banner .bt .l{display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px}
+  .h-banner .bt .dd{font-weight:800; font-size:15px; background:rgba(255,255,255,.2); padding:3px 11px; border-radius:999px}
+  .h-banner .bbar{height:7px; background:rgba(255,255,255,.25); border-radius:999px; overflow:hidden; margin:13px 0 9px}
+  .h-banner .bbar > i{display:block; height:100%; background:#fff; border-radius:999px}
+  .h-banner .bsub{display:flex; align-items:center; justify-content:space-between; font-size:12.5px; opacity:.92}
+  .lcard{background:var(--card); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); padding:2px 14px; margin-bottom:16px}
+  .lrow{display:flex; align-items:center; gap:12px; padding:13px 2px; border-bottom:1px solid var(--line); cursor:pointer; width:100%; background:none; text-align:left; color:var(--ink); font:inherit}
+  .lrow:last-child{border-bottom:none}
+  .lrow:active{background:var(--bg)}
+  .lrow .lr-ic{color:var(--brand); font-size:19px}
+  .lrow .lr-nm{font-weight:700; font-size:14.5px}
+  .lrow .lr-meta{margin-left:auto; font-size:12px; color:var(--muted)}
+  .lrow .lr-meta.badge2{color:var(--brand); background:var(--brandsoft); padding:2px 9px; border-radius:999px; font-weight:700}
+  .lrow .lr-chev{color:var(--muted); font-size:16px}
 </style>
 </head>
 <body>
@@ -414,6 +457,7 @@
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.2-4.2"/></symbol>
     <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 5H5.5v1.5A3 3 0 0 0 8 9.4"/><path d="M16 5h2.5v1.5A3 3 0 0 1 16 9.4"/><path d="M12 13v3"/><path d="M9 20h6"/><path d="M10 20l.5-4h3l.5 4"/></symbol>
     <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 11v8H4v-8z"/><path d="M7 11l3.5-7a2 2 0 0 1 2 2v3h5a1.8 1.8 0 0 1 1.8 2.2l-1.2 6A2 2 0 0 1 16.1 19H7"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
   </defs></svg>
   <header class="topbar">
     <button class="brand" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 베트남어 학습</button>
@@ -3168,6 +3212,12 @@ const SEED_NOTE = [
 const KEY = "gybm_wordnote_v1";
 function lsGet(k, fb){ try{ const v=localStorage.getItem(KEY+k); return v?JSON.parse(v):fb; }catch(e){ return fb; } }
 function lsSet(k, v){ try{ localStorage.setItem(KEY+k, JSON.stringify(v)); }catch(e){} }
+/* ---------- 학습 기록: 오늘 학습량 · 연속일 · 이어서 (홈 3a용) ---------- */
+function _dkey(dt){ return dt.getFullYear()+"-"+String(dt.getMonth()+1).padStart(2,"0")+"-"+String(dt.getDate()).padStart(2,"0"); }
+function todayCount(){ const s=lsGet("_stats",{})||{}; return s[_dkey(new Date())]||0; }
+function logStudy(n){ n=Number(n)||0; if(n<=0) return; const s=lsGet("_stats",{})||{}; const k=_dkey(new Date()); s[k]=(s[k]||0)+n; lsSet("_stats",s); }
+function studyStreak(){ const s=lsGet("_stats",{})||{}; const t=new Date(); let cur=new Date(t.getFullYear(),t.getMonth(),t.getDate()); if(!(s[_dkey(cur)]>0)) cur.setDate(cur.getDate()-1); let n=0; for(let i=0;i<400;i++){ if(s[_dkey(cur)]>0){ n++; cur.setDate(cur.getDate()-1); } else break; } return n; }
+function weekDots(){ const s=lsGet("_stats",{})||{}; const now=new Date(); const base=new Date(now.getFullYear(),now.getMonth(),now.getDate()); const dow=(base.getDay()+6)%7; const mon=new Date(base); mon.setDate(base.getDate()-dow); const labels=["월","화","수","목","금","토","일"]; const tk=_dkey(base); const out=[]; for(let i=0;i<7;i++){ const dt=new Date(mon); dt.setDate(mon.getDate()+i); const k=_dkey(dt); out.push({label:labels[i], done:(s[k]>0), today:(k===tk)}); } return out; }
 /* ---------- 데이터 지킴이: 영구저장 요청 + 백업 넛지 ---------- */
 let PERSISTED = null;   // true=승인 / false=미지원·거절 / null=미확인
 function requestPersist(){ try{ if(navigator.storage && navigator.storage.persist){ navigator.storage.persist().then(g=>{ PERSISTED=!!g; }).catch(()=>{}); } }catch(e){} }
@@ -3815,6 +3865,7 @@ function prepNext(){
 function renderPrepDone(){
   state.screen = "prepdone";
   const tot = PREP.queue.length, rate = tot?Math.round(PREP.correct/tot*100):0;
+  logStudy(tot);
   const c = prepCounts();
   set(`
     <div class="card" style="text-align:center">
@@ -3875,26 +3926,28 @@ function renderPassage(){
 function renderHome(){
   state.screen = "home";
   const noteCount = loadNote().length;
-  const cards = SKILL_ORDER.map(k=>{
-    const s=SKILLS[k];
-    return `<button class="skillcard" data-action="goSkill" data-skill="${k}">
-        ${s.emoji}
-        <span class="nm">${s.label}</span>
-        <span class="ds">${s.cardDesc}</span>
-        <span class="tg">${s.tag}</span>
-      </button>`;
+  const goal=20, tc=todayCount(), left=Math.max(0,goal-tc), gpct=Math.min(100,Math.round(tc/goal*100));
+  const strk=studyStreak(), wk=weekDots(), last=lsGet("_last",null), pc=prepCounts();
+  const mPct = pc.total?Math.round(pc.master/pc.total*100):0;
+  const heroT = tc>=goal ? "오늘 목표 달성! 🎉" : (tc>0 ? `좋아요, ${left}단어 남았어요` : "오늘 학습을 시작해요");
+  const heroD = tc>=goal ? `연속 <b style="color:var(--accent)">${strk}일</b>째 이어가는 중이에요.`
+    : tc>0 ? `오늘 ${tc}/${goal} 단어 · <b style="color:var(--accent)">연속 ${strk}일</b>`
+    : (strk>0 ? `어제까지 <b style="color:var(--accent)">연속 ${strk}일</b>! 오늘도 이어가요.` : "매일 조금씩 꾸준히 해요.");
+  const resumeBtn = last
+    ? `<button class="h-resume" data-action="goSkill" data-skill="${esc(last.skill)}"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 이어서 · ${esc(last.label)}</button>`
+    : `<button class="h-resume" data-action="goPrep"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 오늘 공부 시작</button>`;
+  const softtiles = SKILL_ORDER.map(k=>{ const s=SKILLS[k];
+    return `<button class="softtile" data-action="goSkill" data-skill="${k}"><span class="st-ic">${s.emoji}</span><span class="st-nm">${s.label}</span><span class="st-ds">${s.cardDesc.replace(/<br>/g," ")}</span></button>`;
   }).join("");
+  const weekHTML = wk.map(d=>`<div class="dcol${d.today?" tdy":""}"><span class="dl">${d.label}</span><span class="dd${d.done?" on":""}${d.today&&!d.done?" today":""}">${d.done?"✓":(d.today?"·":"")}</span></div>`).join("");
+  const noteMeta = noteCount>0 ? `<span class="lr-meta badge2">${noteCount}</span>` : `<span class="lr-meta">비어있음</span>`;
 
   set(`
-    <div class="hsearch">
-      <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-search'/></svg>
-      <input id="findInput" placeholder="단어 찾기 — 베트남어 · 뜻 · 영어" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    </div>
-    <div id="findResults"></div>
-
     <div class="card">
-      <h2>오늘 무엇을 연습할까요?</h2>
-      <div class="skillgrid">${cards}</div>
+      <div class="h-hero">
+        <div class="h-ring" style="background:conic-gradient(var(--brand) ${gpct*3.6}deg, var(--brandsoft) 0)"><div><b>${tc}<small>/${goal}</small></b><span>오늘 목표</span></div></div>
+        <div class="h-cont"><div class="t">${heroT}</div><div class="d">${heroD}</div>${resumeBtn}</div>
+      </div>
     </div>
 
     ${(()=>{ const p=ttsProblem(); if(!p) return "";
@@ -3912,32 +3965,45 @@ function renderHome(){
           <button class="chip tiny" style="margin-left:6px" data-action="goVoice">해결 방법 보기</button>
         </div></div>`; })()}
 
-    <button class="btn prepcta" data-action="goPrep">
-      <span class="prepcta-l"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 시험 대비 <span class="prepcta-sub">8/1 · 1200단어</span></span>
-      <span class="prepcta-dd">${esc(prepDlabel())}</span>
+    <div class="card" style="padding:12px 14px">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px"><span class="seclbl" style="margin:0">이번 주</span><span style="font-size:11.5px; color:var(--accent); font-weight:700">연속 ${strk}일</span></div>
+      <div class="h-week">${weekHTML}</div>
+    </div>
+
+    <div class="hsearch">
+      <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-search'/></svg>
+      <input id="findInput" placeholder="단어 찾기 — 베트남어 · 뜻 · 영어" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div id="findResults"></div>
+
+    <div class="seclbl">오늘의 학습</div>
+    <div class="softgrid">${softtiles}</div>
+
+    <button class="h-banner" data-action="goPrep">
+      <div class="bt"><span class="l"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 시험 대비</span><span class="dd">${esc(prepDlabel())}</span></div>
+      <div class="bbar"><i style="width:${mPct}%"></i></div>
+      <div class="bsub"><span>${pc.master} / ${pc.total} 마스터 · 8/1 시험</span><span style="font-weight:700">오늘 공부 시작 →</span></div>
     </button>
 
     ${bkNudgeHTML()}
 
-    <button class="btn ghost rowbtn" data-action="goNote"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> <span>오답 노트</span><span class="badge">${noteCount>0?noteCount+"개":"비어있음"}</span></button>
-
-    <button class="btn ghost rowbtn" data-action="goGrammar"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg> <span>문법 정리</span><span class="badge">단원별</span></button>
-
-    <button class="btn ghost rowbtn" data-action="goPassage"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> <span>지문 해석</span><span class="badge">대화·읽기·받아쓰기</span></button>
-
-    <div class="secrow">
-      <button class="btn soft" data-action="goSkill" data-skill="exam"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg> 실전 시험</button>
-      <button class="btn soft" data-action="goSkill" data-skill="flash"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg> 플래시카드</button>
+    <div class="seclbl">연습 더</div>
+    <div class="lcard">
+      <button class="lrow" data-action="goSkill" data-skill="exam"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg><span class="lr-nm">실전 시험</span><span class="lr-meta">단어 40 + 문장 10</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goSkill" data-skill="flash"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg><span class="lr-nm">플래시카드</span><span class="lr-meta">암기·복습</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goPassage"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">지문 해석</span><span class="lr-meta">대화·읽기·받아쓰기</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goGrammar"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg><span class="lr-nm">문법 정리</span><span class="lr-meta">단원별</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
     </div>
 
-    <button class="btn accent" style="margin-top:10px" data-action="goPaper"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-printer'/></svg> 시험지 만들기 <span style="font-weight:600;opacity:.85">(인쇄·여럿이 함께)</span></button>
-
-    <div class="secrow">
-      <button class="btn soft" data-action="goList"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> 단어장</button>
-      <button class="btn line" data-action="goSettings"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-gear'/></svg> 설정</button>
+    <div class="seclbl">복습 · 관리</div>
+    <div class="lcard">
+      <button class="lrow" data-action="goNote"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">오답 노트</span>${noteMeta}<svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goPaper"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true' style="color:var(--accent)"><use href='#i-printer'/></svg><span class="lr-nm">시험지 만들기</span><span class="lr-meta">인쇄·여럿이</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goList"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">단어장</span><span class="lr-meta">전체 단어</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goSettings"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true' style="color:var(--muted)"><use href='#i-gear'/></svg><span class="lr-nm">설정</span><span class="lr-meta">발음·백업</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
     </div>
 
-    <button class="link" style="margin-top:14px" data-action="hardReload"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 새로고침 (최신 내용 받기)</button>
+    <button class="link" style="margin-top:6px" data-action="hardReload"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 새로고침 (최신 내용 받기)</button>
   `);
   bindFind();   // 홈 단어 검색
 }
@@ -4091,7 +4157,7 @@ function bindFind(){
 }
 
 /* ---------- 영역 선택 → 설정 화면 ---------- */
-function goSkill(skill){ state.skill=skill; lsSet("_skill",skill); const sd=(SKILLS[skill]||{}).dir; if(sd && skill!=="exam") state.dir=sd; renderSetup(); }
+function goSkill(skill){ state.skill=skill; lsSet("_skill",skill); lsSet("_last",{skill:skill, label:(SKILLS[skill]||{}).label||skill}); const sd=(SKILLS[skill]||{}).dir; if(sd && skill!=="exam") state.dir=sd; renderSetup(); }
 function renderSetup(){
   state.screen="setup:"+state.skill;   // 영역이 바뀌면 맨 위로, 같은 영역 안 토글은 자리 유지
   const s=SKILLS[state.skill];
@@ -5162,6 +5228,7 @@ function quit(){
 function renderReadDone(){
   state.screen="result";
   const n = Q.queue.length;
+  logStudy(n);
   set(`
     <div class="card center" style="padding:30px 20px">
       <div class="emoji"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg></div>
@@ -5177,6 +5244,7 @@ function renderReadDone(){
 }
 function renderResult(){
   if(state.mode==="read"){ return renderReadDone(); }
+  logStudy((Q.score||0) + (Q.wrong?Q.wrong.length:0));
   const done = Q.idx + (Q.answered?1:0);
   const answered = Math.min(done, Q.queue.length) || Q.score+Q.wrong.length;
   const total = answered || Q.queue.length;
