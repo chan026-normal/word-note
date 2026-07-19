@@ -277,6 +277,7 @@
 
   /* word list */
   .search{width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:14px; font-size:15px; background:var(--card); color:var(--ink); outline:none; margin-bottom:12px}
+  textarea.pcustbox{min-height:62px; resize:vertical; font-family:inherit; font-size:14px; line-height:1.55; margin-bottom:0}
   .ta{width:100%; min-height:88px; padding:11px 12px; border:1.5px solid var(--line); border-radius:12px; font-size:12px; font-family:ui-monospace,Menlo,Consolas,monospace; background:var(--bg); color:var(--ink); outline:none; resize:vertical; word-break:break-all}
   .ta:focus{border-color:var(--brand)}
   .tgrid{display:flex; flex-wrap:wrap; gap:8px; margin-top:2px}
@@ -320,6 +321,10 @@
   .pver{font-size:13px; color:#777; font-weight:700}
   .phead{display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:14px 0; font-size:14px; color:#222}
   .pinstr{font-size:12.5px; color:#333; background:#f3f4f6; border-radius:8px; padding:9px 11px; margin-bottom:16px; line-height:1.6}
+  /* 직접 출제 표시(연필) + 범례 — 시험지·정답지에 인쇄됨 */
+  .pcust{width:.8em; height:.8em; margin-left:2px; vertical-align:baseline; opacity:.85; stroke-width:2.4}
+  .plegend{display:flex; align-items:center; gap:4px; font-size:11px; color:#444; margin:-10px 0 14px}
+  .paper.onepage .plegend{font-size:9.5px; margin:-4px 0 6px}
   .pgrid{display:grid; grid-template-columns:1fr; gap:9px 28px}
   .pq{display:flex; align-items:baseline; gap:7px; font-size:14.5px; color:#111; break-inside:avoid; padding:2px 0}
   .pqn{color:#777; font-weight:700; min-width:26px}
@@ -6074,43 +6079,84 @@ function genPaper(bump){
   }
   // 단어 문제 수: 단어+문장 구성이면 40개, 단어만이면 선택한 문제 수
   const wordLimit = P.format==="wordsent" ? 40 : (P.count==="all" ? qs.length : Number(P.count));
-  P.wordQs = qs.slice(0, Math.min(wordLimit, qs.length));
+  // 직접 출제(내가 타이핑한 문제)는 반드시 포함. 겹치는 자동문항은 빼고(중복 방지),
+  // 자동문항 순서(우선출제 ★ 정렬)는 유지한 채 직접문항만 무작위 위치에 끼워 섞음.
+  const cw = custQs(lsGet("_pcw",""));
+  const cwVn = new Set(cw.map(q=>lc(q.vn)));
+  const autoW = qs.filter(q=>!cwVn.has(lc(q.vn)));
+  const wNeed = Math.max(0, wordLimit - cw.length);
+  P.wordQs = mixCustom(autoW.slice(0, wNeed), cw);
   // 문장 문제 (단어+문장 구성일 때만 10개)
   if(P.format==="wordsent"){
     // 출처(몇 과인지)를 같이 달아둠 — 정답지에만 표시
     const withSrc = l => paperSents(l).map(s=>({...s, lesson:l}));
     const sentPool = P.sentPick.size ? sentLessons().filter(l=>P.sentPick.has(l)).flatMap(withSrc) : sentLessons().flatMap(withSrc);
-    P.sentQs = shuffle(sentPool).slice(0, Math.min(10, sentPool.length)).map(s=>{
+    const cs = custQs(lsGet("_pcs",""));
+    const csVn = new Set(cs.map(q=>lc(q.vn)));
+    const sNeed = Math.max(0, 10 - cs.length);
+    const autoPool = shuffle(sentPool).filter(s=>!csVn.has(lc(s.vn)));
+    const autoS = autoPool.slice(0, Math.min(sNeed, autoPool.length)).map(s=>{
       const d = P.dir==="random" ? (Math.random()<.5?"vn2en":"en2vn") : P.dir;
       return { dir:d, prompt:d==="vn2en"?s.vn:s.en, answer:d==="vn2en"?s.en:s.vn, src:sentSource(s.vn, s.lesson, s.page) };
     });
+    P.sentQs = mixCustom(autoS, cs);
   } else {
     P.sentQs = [];
   }
   renderPaper();
+}
+/* 직접 출제: "베트남어|한국어뜻" 한 줄에 하나. 뜻이 없으면 베→뜻 방향으로만 냄(정답칸은 비움).
+   구분자는 '|' 하나만 — 베트남어 문장에 콜론(8:30 등)이 들어가도 안 깨지도록 콜론은 안 씀. */
+function custParse(txt){
+  return String(txt||"").split("\n").map(l=>{
+    const i = l.indexOf("|");        // 구분자는 '|' 뿐(베트남어 본문의 콜론과 충돌 방지)
+    const vn = (i<0 ? l : l.slice(0,i)).trim();
+    const en = i<0 ? "" : l.slice(i+1).trim();
+    return vn ? {vn, en} : null;
+  }).filter(Boolean);
+}
+function custQs(txt){
+  return custParse(txt).map(it=>{
+    const d = it.en ? (P.dir==="random" ? (Math.random()<.5?"vn2en":"en2vn") : P.dir) : "vn2en";
+    return { vn:it.vn, en:it.en, dir:d,
+             prompt: d==="vn2en" ? it.vn : it.en,
+             answer: d==="vn2en" ? it.en : it.vn,
+             custom:true };
+  });
+}
+/* 자동 문항 순서는 그대로 두고, 직접 출제 문항만 무작위 위치에 끼워 넣는다.
+   (전체를 shuffle하면 '★ 오늘 배운 단어 먼저 출제' 정렬이 깨지므로 이렇게 섞는다.) */
+function mixCustom(auto, cust){
+  const out = auto.slice();
+  cust.forEach(c=>{ out.splice(Math.floor(Math.random()*(out.length+1)), 0, c); });
+  return out;
 }
 function renderPaper(){
   state.screen = "paper";
   const wQs = P.wordQs, sQs = P.sentQs;
   const total = wQs.length + sQs.length;
   const isWS = P.format==="wordsent";
+  // 직접 출제 문제는 번호 옆에 연필 표시 — 응시자가 자동 배치 문제와 구별할 수 있게
+  const cmark = q => q.custom ? `<svg class="ic pcust" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"/></svg>` : "";
+  const hasCustom = wQs.some(q=>q.custom) || sQs.some(q=>q.custom);
   const wordGrid = wQs.map((q,i)=>
-    `<div class="pq"><span class="pqn">${i+1}.</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline"></span></div>`
+    `<div class="pq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline"></span></div>`
   ).join("");
   const sentList = sQs.map((q,i)=>
-    `<div class="psq"><span class="pqn">${i+1}.</span><span class="psp">${esc(q.prompt)}</span><div class="psline"></div></div>`
+    `<div class="psq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="psp">${esc(q.prompt)}</span><div class="psline"></div></div>`
   ).join("");
   // 정답지: 시험지와 같은 레이아웃(같은 밑줄 칸)에 정답을 초록으로 채워 넣음
   const keyWords = wQs.map((q,i)=>
-    `<div class="pq"><span class="pqn">${i+1}.</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline answ">${esc(q.answer)}</span></div>`
+    `<div class="pq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline answ">${esc(q.answer)}</span></div>`
   ).join("");
   const keySents = sQs.map((q,i)=>
-    `<div class="psq"><span class="pqn">${i+1}.</span><span class="psp">${esc(q.prompt)}</span>${q.src?`<span class="psrc">${esc(q.src)}</span>`:""}<div class="psline answ">${esc(q.answer)}</div></div>`
+    `<div class="psq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="psp">${esc(q.prompt)}</span>${q.src?`<span class="psrc">${esc(q.src)}</span>`:""}<div class="psline answ">${esc(q.answer)}</div></div>`
   ).join("");
+  const cLegend = hasCustom ? `<div class="plegend"><svg class="ic pcust" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"/></svg> 직접 출제한 문제</div>` : "";
   const keyBlock = (wQs.length>0)
     ? `<div class="paper pkey${P.onePage?" onepage":""}">
          <div class="ptitle">정답지</div>
-         <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 10":""}</div>
+         <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 10":""}</div>${cLegend}
          ${isWS?`<div class="ppart">1부. 단어 (${wQs.length})</div>`:""}
          <div class="pgrid" style="--prows:${Math.ceil(wQs.length/2)}">${keyWords}</div>
          ${isWS?`<div class="ppart">2부. 문장 (${sQs.length})</div><div class="pslist">${keySents}</div>`:""}
@@ -6153,6 +6199,10 @@ function renderPaper(){
         <div class="seg">
           ${["all",20,30,50].map(c=>`<button class="${String(P.count)===String(c)?"on":""}" data-action="paperCount" data-v="${c}">${c==="all"?"범위 전체":c+"개"}</button>`).join("")}
         </div>`:""}
+        <label class="fld" style="margin-top:14px"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 직접 출제 <span style="font-weight:600;color:var(--muted)">(내가 낼 문제, 꼭 나와요)</span></label>
+        <div class="muted tiny" style="margin:-2px 0 6px">한 줄에 하나씩 <b>베트남어|한국어뜻</b> 으로 적으세요 (가운데 <b>|</b> 기호로 구분). 뜻은 <b>정답지에만</b> 나와요. 여기 적은 문제는 번호 옆에 <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 표시가 붙어 자동 문제와 구별돼요.</div>
+        <textarea class="search pcustbox" id="pcw" rows="3" placeholder="단어 예) cám ơn|고맙다"></textarea>
+        ${isWS ? `<textarea class="search pcustbox" id="pcs" rows="3" style="margin-top:8px" placeholder="문장 예) Anh khỏe không?|잘 지내요?"></textarea>` : ""}
         <button class="chip ${P.onePage?"on":""}" style="margin-top:14px" data-action="paperOne"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg> A4 한 장에 맞춤${P.onePage?" <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg>":""}</button>
         <div class="muted tiny" style="margin-top:6px"><b>한 장에 맞춤</b>은 글씨·여백을 줄여 시험지를 A4 한 장에 담아요. 아래 미리보기엔 시험지와 정답지가 함께 보이고, 인쇄는 아래 버튼으로 <b>따로</b> 저장돼요.</div>
         <div class="btn2" style="margin-top:14px">
@@ -6169,12 +6219,24 @@ function renderPaper(){
     <div class="paper${P.onePage?" onepage":""}">
       <div class="ptitle">베트남어 시험</div>
       <div class="phead"><span>이름 : ____________</span><span>날짜 : ____________</span><span>점수 : ______ / ${total}</span></div>
-      <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 10":""}</div>
+      <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 10":""}</div>${cLegend}
       ${paperBody}
     </div>
     ${keyBlock}
   `);
   bindSelection();
+  bindPaperCustom();
+}
+/* 직접 출제 입력칸: 타이핑 중엔 저장만(화면이 다시 그려지면 커서가 튀므로),
+   칸을 벗어날 때(change) 시험지를 다시 만든다. */
+function bindPaperCustom(){
+  [["pcw","_pcw"],["pcs","_pcs"]].forEach(([id,key])=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.value = lsGet(key,"") || "";
+    el.addEventListener("input",  ()=>{ lsSet(key, el.value); });
+    el.addEventListener("change", ()=>{ lsSet(key, el.value); paperKeep(()=>genPaper(false)); });
+  });
 }
 
 /* =========================================================
