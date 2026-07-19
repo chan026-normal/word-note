@@ -217,6 +217,44 @@
   /* 남부(교재)말 옆에 하노이말 병기 */
   .ntag{display:inline-block; margin-left:6px; font-size:10.5px; font-weight:600; color:var(--muted);
         border:1px solid var(--line); border-radius:5px; padding:0 5px; vertical-align:middle; white-space:nowrap}
+  /* 문법 정리 */
+  .gchips{margin-bottom:14px}
+  .ghead{font-weight:800; font-size:15px; color:var(--brand); margin:4px 0 10px}
+  .gcard{border:1px solid var(--line); border-radius:12px; padding:11px 13px; margin-bottom:9px; background:var(--card)}
+  .gcard .gt{font-weight:800; font-size:15px; margin-bottom:3px}
+  .gcard .gd{color:var(--muted); font-size:13.5px; line-height:1.55}
+  /* 시험 대비 */
+  .prepcta{display:flex; align-items:center; justify-content:space-between; width:100%;
+           background:var(--brand); color:#fff; border:none; margin-bottom:10px; padding:14px 16px}
+  .prepcta:hover{background:var(--brand2)}
+  .prepcta-l{display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px}
+  .prepcta-sub{font-weight:600; font-size:12px; opacity:.85}
+  .prepcta-dd{font-weight:800; font-size:17px; background:rgba(255,255,255,.2); padding:3px 10px; border-radius:999px}
+  .prepdday{text-align:center; margin:6px 0 4px}
+  .prepdday .ddbig{font-size:34px; font-weight:900; color:var(--brand); line-height:1.1}
+  .prepdday .ddsub{font-size:12.5px; color:var(--muted); margin-top:2px}
+  .prepbar{height:12px; background:var(--brandsoft); border-radius:999px; overflow:hidden}
+  .prepbar-fill{height:100%; background:var(--good); border-radius:999px; transition:width .3s}
+  .prepstat{display:flex; gap:6px; margin-top:12px}
+  .prepstat>div{flex:1; text-align:center; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 4px}
+  .prepstat .pnum{display:block; font-size:20px; font-weight:900}
+  .prepstat .pnum.good{color:var(--good)} .prepstat .pnum.muted{color:var(--muted)}
+  .prepstat .plab{display:block; font-size:11px; color:var(--muted); margin-top:1px}
+  .prephead{display:flex; justify-content:space-between; font-weight:700; font-size:13px; margin-bottom:8px}
+  .plesson{font-size:12px; color:var(--muted); margin-bottom:8px; display:flex; align-items:center; gap:6px}
+  .pdots{display:inline-flex; gap:3px}
+  .pdot{width:8px; height:8px; border-radius:50%; background:var(--line)}
+  .pdot.on{background:var(--good)}
+  .pprompt{font-size:26px; font-weight:800; text-align:center; padding:14px 8px 4px; line-height:1.3}
+  .quizbar{height:6px; background:var(--brandsoft); border-radius:999px; overflow:hidden; margin-bottom:12px}
+  .quizbar-in{height:100%; background:var(--brand); border-radius:999px; transition:width .3s}
+  .prepans{text-align:center; padding:6px 0}
+  .pres{display:inline-block; font-weight:800; font-size:14px; padding:3px 12px; border-radius:999px; margin-bottom:8px}
+  .pres.good{color:var(--good); background:var(--goodsoft)}
+  .pres.warn{color:var(--warn); background:var(--warnsoft)}
+  .pres.bad{color:var(--bad); background:var(--badsoft)}
+  .pavn{font-size:24px; font-weight:800; margin:2px 0}
+  .prepbig{font-size:40px; font-weight:900; color:var(--brand); margin:6px 0}
   /* 개수 배지 */
   .btn.rowbtn{display:flex; align-items:center; gap:9px; text-align:left}
   .badge{margin-left:auto; background:var(--brandsoft); color:var(--brand); font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px}
@@ -3247,6 +3285,266 @@ function selectionBlockHTML(showCount){
     ${showCount ? `<div class="muted tiny" style="margin-top:12px">선택한 단어 <b>${poolSelected().length}</b>개 / 전체 ${WORDS.length}개</div>` : ""}`;
 }
 
+/* =========================================================
+   문법 정리 — 각 단원 문법 포인트를 한국어로 (설명만, 예문 블록 없음)
+   ⚠️ 교재가 가르치는 포인트를 정리한 것. 데이터(SENT_RAW·RAW)는 안 건드림.
+   ========================================================= */
+const GRAMMAR = {
+  1: { name:"인사와 기본 문장", items:[
+    { t:"호칭 + 이름", d:"이름 앞에 상대에 맞는 말을 붙여요. anh(형·오빠뻘 남성) · chị(누나·언니뻘 여성) · em(손아랫사람) · ông(할아버지뻘) · bà(할머니뻘) · cô(젊은 여성·여선생) · thầy(남선생). 이름만 부르지 않아요." },
+    { t:"A là B — ~이다", d:"「A + là + 명사」 A는 B이다. 부정은 là 앞이 아니라 không phải là (2과)." },
+    { t:"có ~ không? — 의문문", d:"「A + có + 동사/형용사 + không?」 ~해요?/~인가요? 예: có khỏe không? (건강해요?)" },
+    { t:"không — 부정문", d:"동사·형용사 **앞**에 không → ~하지 않다. 예: không đi (안 가요)." },
+  ]},
+  2: { name:"소개하기 · 확인 의문", items:[
+    { t:"đây / kia / đó — 이·저·그", d:"đây(이쪽·이것) · kia(저쪽) · đó(그). 사람 소개는 「Đây là ~」 이쪽은 ~이에요." },
+    { t:"không phải là — ~이 아니다", d:"「A + không phải là + 명사」. 그냥 không이 아니라 phải là 를 붙여요." },
+    { t:"~, phải không? — ~이죠?", d:"문장 끝에 붙여 확인. 예: Anh là người Úc, phải không? (호주 사람이죠?)" },
+    { t:"A của B — B의 A", d:"소유는 「A của B」. **어순이 한국어와 반대**예요. 예: bạn của David = David의 친구." },
+    { t:"cũng — ~도", d:"동사 **앞**. 예: cũng là bạn (친구이기도 하다)." },
+  ]},
+  3: { name:"의문사 · 과거", items:[
+    { t:"đã — 과거", d:"동사 **앞**에 đã → 이미 ~했다. 문맥이 분명하면 생략하기도 해요." },
+    { t:"ai / gì — 누구 / 무엇", d:"묻는 자리에 **그대로** 넣어요(어순 안 바뀜). chào ai? (누구에게 인사해요?) · học gì? (뭘 배워요?)" },
+    { t:"thế nào — 어때", d:"「A + thế nào?」 A는 어때요? 예: Tiếng Việt thế nào?" },
+    { t:"với — ~와 함께", d:"「동사 + với + 사람」. 예: học với anh ấy (그와 배우다)." },
+  ]},
+  4: { name:"직업 · 진행과 정도", items:[
+    { t:"đang — ~하는 중", d:"동사 **앞**에 đang → 현재진행. 예: đang dạy (가르치고 있어요)." },
+    { t:"rất vs lắm — 매우", d:"뜻은 같고 **위치가 반대**. rất은 앞(rất khó), lắm은 뒤(khó lắm). 둘 다 '아주 어렵다'." },
+    { t:"nào — 어느", d:"「명사 + nào?」 여럿 중 '어느 ~?'(선택). 예: phòng nào? (어느 방?) — '몇 호실?'(수)은 phòng số mấy?" },
+    { t:"bao nhiêu — 얼마 / 몇", d:"**큰 수**(대략 10 이상·값·인원)를 물을 때. 예: bao nhiêu nhân viên? (직원 몇 명?)" },
+    { t:"làm nghề gì? — 무슨 일 해요?", d:"직업 묻기. 「A + làm nghề gì?」" },
+  ]},
+  5: { name:"방향·장소 · 미래와 감탄", items:[
+    { t:"sẽ — ~할 것이다", d:"동사 **앞**에 sẽ → 미래. 예: sẽ đi (갈 거예요)." },
+    { t:"chúng ta vs chúng tôi — 우리", d:"chúng ta는 **듣는 사람 포함**(우리 함께), chúng tôi는 **제외**(듣는 사람 뺀 우리)." },
+    { t:"quá — 너무·정말 (감탄)", d:"「형용사 + quá!」 예: giỏi quá! (정말 잘한다!)" },
+    { t:"à? / đấy — 확인·강조", d:"문장 끝 à?(가벼운 확인) · đấy(강조·환기)." },
+    { t:"큰 숫자", d:"nghìn(1,000) · triệu(백만) · tỷ(십억)." },
+  ]},
+  6: { name:"복습 (의문사·수)", items:[
+    { t:"의문사 총정리", d:"ai(누구)·gì(무엇)·đâu(어디)·nào(어느)·thế nào(어때)·mấy/bao nhiêu(몇/얼마). 모두 **묻는 자리에 그대로** 넣어요." },
+    { t:"mấy vs bao nhiêu — 몇 / 얼마", d:"mấy는 **작은 수**(대략 10 이하 예상), bao nhiêu는 **큰 수·모를 때**. mấy giờ? (몇 시?) / bao nhiêu tiền? (얼마?)" },
+    { t:"6과는 복습 단원", d:"1~5과 문법을 다시 정리하는 단원이에요." },
+  ]},
+  7: { name:"일상·빈도 · 가까운 미래", items:[
+    { t:"빈도부사", d:"동사 **앞**. luôn luôn(항상)·thường(보통)·hay(자주)·thỉnh thoảng(가끔)·ít khi(드물게)·không bao giờ(전혀 안)." },
+    { t:"sắp — 곧 ~하려 한다", d:"「sắp + 동사」 가까운 미래. 예: sắp đi (곧 가요). ↔ sẽ는 막연한 미래." },
+    { t:"hơi — 좀·약간", d:"「hơi + 형용사」 예: hơi trễ (좀 늦다)." },
+    { t:"nên — 그래서", d:"「A nên B」 A해서 B하다(원인→결과). 'nên'은 '~하는 게 좋다' 뜻도 있어요." },
+    { t:"vì — 왜냐하면 / hả? — ~지?", d:"vì A → A 때문에. 문장 끝 hả?는 친근한 확인('그렇지?')." },
+  ]},
+  8: { name:"능력 · 권유와 금지", items:[
+    { t:"được — ~할 수 있다", d:"「동사 + được」 가능·능력. 부정은 「không + 동사 + được」 또는 「동사 + không được」 — **두 어순 다 써요**(교재도 섞어 씀)." },
+    { t:"bao lâu — 얼마나 오래", d:"「~ bao lâu?」 얼마 동안? 예: học bao lâu? (얼마나 배웠어요?)" },
+    { t:"mới — 이제 막", d:"동사 **앞**에 mới → 막·방금 ~하다. 예: mới học (막 배우기 시작했다)." },
+    { t:"~ đi! — ~해요 (권유)", d:"문장 끝 đi로 가벼운 권유. 예: Xem đi! (봐요!)" },
+    { t:"đừng — ~하지 마", d:"「đừng + 동사」 금지. 예: Đừng lo! (걱정 마!)" },
+  ]},
+  9: { name:"요일·날짜 · 완료 여부", items:[
+    { t:"đã ~ chưa? — 했어요?", d:"「A đã + 동사 + chưa?」 이미 ~했나요? 대답은 rồi(했다) / chưa(아직)." },
+    { t:"bao giờ — 언제", d:"**문장 앞**이면 미래(Bao giờ đi? 언제 가요?), **문장 뒤**면 과거(đi bao giờ? 언제 갔어요?)." },
+    { t:"xong — 다 ~하다", d:"「동사 + xong」 끝내다. 예: làm xong (다 했다) · đặt xong rồi (예약 다 했다)." },
+    { t:"요일·날짜", d:"thứ hai(월)~thứ bảy(토), chủ nhật(일). ngày(일)·tuần(주)·tháng(달)." },
+  ]},
+};
+const gramLessons = () => Object.keys(GRAMMAR).map(Number).sort((a,b)=>a-b);
+function goGrammar(){ renderGrammar(); }
+function renderGrammar(){
+  let L = Number(lsGet("_gramL", 1));
+  if(!GRAMMAR[L]) L = gramLessons()[0];
+  state.screen = "grammar:"+L;
+  const g = GRAMMAR[L];
+  const chips = gramLessons().map(l=>
+    `<button class="chip${l===L?" on":""}" data-action="gramLesson" data-l="${l}">${l}과</button>`
+  ).join("");
+  const cards = g.items.map(it=>`
+    <div class="gcard">
+      <div class="gt">${esc(it.t)}</div>
+      <div class="gd">${esc(it.d)}</div>
+    </div>`).join("");
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg> 문법 정리</h2>
+      <div class="muted tiny" style="margin:-4px 0 10px">각 단원의 핵심 문법이에요. 교재 순서대로 훑어보세요.</div>
+      <div class="chips gchips">${chips}</div>
+      <div class="ghead">Lesson ${L} · ${esc(g.name)}</div>
+      ${cards}
+    </div>
+    <button class="btn line" style="margin-top:10px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
+  `);
+}
+
+/* =========================================================
+   시험 대비 (8/1 1200단어 시험) — 간격 반복 + 생산형(한→베) 연습
+   · 단어마다 숙련도 0~3(3=마스터). 맞히면 +1, 틀리면 0 → 약한 단어에 시간이 저절로 몰림.
+   · 진도(_srs)는 각자 폰에 저장(개인). 단어 자체는 코드라 동기 전원 공유.
+   ========================================================= */
+const PREP_EXAM = { y:2026, m:8, d:1 };   // 시험일 2026-08-01(토)
+const SRS_MAX = 3;                        // 3번 연속 맞히면 '마스터'
+function prepDaysLeft(){
+  const exam = new Date(PREP_EXAM.y, PREP_EXAM.m-1, PREP_EXAM.d);
+  const n = new Date(); const t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  return Math.round((exam - t)/86400000);
+}
+function prepDlabel(){ const d=prepDaysLeft(); return d>0?("D-"+d):(d===0?"D-DAY":"시험 후"); }
+const srsKey = w => w.lesson + "|" + normTone(w.vn);
+const srsAll = () => lsGet("_srs", {}) || {};
+const srsLv = w => Number(srsAll()[srsKey(w)] || 0);
+function srsRec(w, ok){
+  const a = srsAll(), k = srsKey(w), cur = Number(a[k]||0);
+  const lv = ok ? Math.min(SRS_MAX, cur+1) : 0;
+  if(lv>0) a[k]=lv; else delete a[k];
+  lsSet("_srs", a);
+}
+const prepDeck = () => WORDS;                         // 전체 단어장(교재 609 + 내 단어)
+const prepCounts = () => { const d=prepDeck(); let m=0,f=0,z=0;
+  d.forEach(w=>{ const l=srsLv(w); if(l>=SRS_MAX) m++; else if(l>0) f++; else z++; });
+  return { total:d.length, master:m, familiar:f, fresh:z }; };
+
+const PREP = { queue:[], idx:0, typed:"", graded:false, res:"", correct:0, leveled:0, sessN:20 };
+function goPrep(){ renderPrep(); }
+function renderPrep(){
+  state.screen = "prep";
+  const c = prepCounts();
+  const pct = c.total ? Math.round(c.master/c.total*100) : 0;
+  const dleft = prepDaysLeft();
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 시험 대비</h2>
+      <div class="prepdday">
+        <div class="ddbig">${esc(prepDlabel())}</div>
+        <div class="ddsub">8월 1일(토) 1200단어 시험까지${dleft>0?` · ${dleft}일 남음`:""}</div>
+      </div>
+      <div class="muted tiny" style="margin:4px 0 12px">한국어 뜻을 보고 <b>베트남어를 성조까지 직접 써내는</b> 연습이에요. 실제 시험처럼요.</div>
+
+      <div class="prepbar" title="마스터 진도">
+        <div class="prepbar-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="prepstat">
+        <div><span class="pnum good">${c.master}</span><span class="plab">마스터</span></div>
+        <div><span class="pnum">${c.familiar}</span><span class="plab">익히는 중</span></div>
+        <div><span class="pnum muted">${c.fresh}</span><span class="plab">아직</span></div>
+        <div><span class="pnum">${c.total}</span><span class="plab">전체</span></div>
+      </div>
+
+      <button class="btn" style="width:100%;margin-top:14px" data-action="prepStart"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 오늘 공부 시작 (${PREP.sessN}단어)</button>
+      <div class="muted tiny" style="margin-top:9px">약한 단어부터 나와요. 맞히면 마스터에 가까워지고, 틀리면 다시 나옵니다. <b>매일 한 번씩</b>만 해도 큰 차이가 나요.</div>
+    </div>
+    ${c.master>=c.total && c.total>0 ? `<div class="card" style="text-align:center">🎉 전체 단어를 마스터했어요! 이제 복습만 반복하면 돼요.</div>` : ""}
+    <button class="btn line" style="margin-top:6px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
+  `);
+}
+function prepStart(){
+  const deck = prepDeck();
+  if(!deck.length){ alert("먼저 단어가 있어야 해요."); return; }
+  const weak = deck.filter(w=>srsLv(w)<SRS_MAX);
+  const base = weak.length ? weak : deck.slice();     // 다 마스터했으면 전체에서 복습
+  const byLevel = base.slice().sort((a,b)=>srsLv(a)-srsLv(b));   // 약한(낮은 숙련도) 우선
+  PREP.queue = shuffle(byLevel.slice(0, Math.min(PREP.sessN, byLevel.length)));
+  PREP.idx=0; PREP.typed=""; PREP.graded=false; PREP.res=""; PREP.correct=0; PREP.leveled=0;
+  renderPrepQuiz();
+}
+function renderPrepQuiz(){
+  const w = PREP.queue[PREP.idx];
+  if(!w){ renderPrepDone(); return; }
+  state.screen = "prepq:"+PREP.idx;
+  const n = PREP.idx+1, tot = PREP.queue.length;
+  const lvNow = srsLv(w);
+  const dots = Array.from({length:SRS_MAX},(_,i)=>`<span class="pdot${i<lvNow?" on":""}"></span>`).join("");
+  let body;
+  if(!PREP.graded){
+    body = `
+      <input class="search" id="prepInput" placeholder="베트남어로 (성조까지)" autocomplete="off" autocapitalize="off">
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn" style="flex:2" data-action="prepGrade">채점하기</button>
+        <button class="btn ghost" style="flex:1" data-action="prepSkip">모르겠어요</button>
+      </div>`;
+  } else {
+    const ok = PREP.res==="ok";
+    const badge = ok ? `<span class="pres good">✓ 정답</span>`
+      : PREP.res==="tone" ? `<span class="pres warn">⚠ 성조가 달라요</span>`
+      : `<span class="pres bad">✗ 다시 나올 거예요</span>`;
+    const mine = (PREP.typed && !ok) ? `<div class="muted tiny" style="margin-top:6px">내가 쓴 답: ${esc(PREP.typed)}</div>` : "";
+    body = `
+      <div class="prepans">
+        ${badge}
+        <div class="pavn">${esc(w.vn)} ${spkBtn(w.vn,"vi-VN",true)}${northTag(w.vn)}</div>
+        ${w.eng?`<div class="muted tiny">${esc(w.eng)}</div>`:""}
+        ${mine}
+      </div>
+      <button class="btn" style="width:100%;margin-top:12px" data-action="prepNext">${n>=tot?"결과 보기 →":"다음 →"}</button>`;
+  }
+  set(`
+    <div class="quizbar"><div class="quizbar-in" style="width:${Math.round(n/tot*100)}%"></div></div>
+    <div class="prephead"><span>${n} / ${tot}</span><span class="muted">${esc(prepDlabel())} · 맞은 개수 ${PREP.correct}</span></div>
+    <div class="card">
+      <div class="plesson">${esc(lessonLabel(w.lesson))} · 숙련도 <span class="pdots">${dots}</span></div>
+      <div class="pprompt">${esc(w.en)}</div>
+      ${body}
+    </div>
+    <button class="link" style="margin-top:10px" data-action="quitPrep">그만두기</button>
+  `);
+  if(!PREP.graded){
+    const inp = document.getElementById("prepInput");
+    if(inp){ inp.focus();
+      inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); prepGrade(); } });
+    }
+  } else {
+    // 채점 후 Enter로 다음
+    const go = e=>{ if(e.key==="Enter"){ e.preventDefault(); prepNext(); document.removeEventListener("keydown", go); } };
+    document.addEventListener("keydown", go);
+  }
+}
+function prepGrade(){
+  if(PREP.graded) return;
+  const inp = document.getElementById("prepInput");
+  PREP.typed = inp ? inp.value.trim() : "";
+  const w = PREP.queue[PREP.idx];
+  const g = PREP.typed ? checkVnAny(w.en, w.vn, PREP.typed) : "no";
+  PREP.res = g;
+  if(g==="ok"){ PREP.correct++; if(srsLv(w)<SRS_MAX) PREP.leveled++; srsRec(w,true); }
+  else if(g==="tone"){ /* 성조만 틀림 = 마스터 진행 안 함(시험엔 성조 필요), 리셋도 안 함 */ }
+  else { srsRec(w,false); }
+  PREP.graded = true;
+  renderPrepQuiz();
+}
+function prepSkip(){
+  if(PREP.graded) return;
+  const w = PREP.queue[PREP.idx];
+  PREP.typed=""; PREP.res="no"; srsRec(w,false); PREP.graded=true;
+  renderPrepQuiz();
+}
+function prepNext(){
+  PREP.idx++; PREP.typed=""; PREP.graded=false; PREP.res="";
+  if(PREP.idx>=PREP.queue.length) renderPrepDone(); else renderPrepQuiz();
+}
+function renderPrepDone(){
+  state.screen = "prepdone";
+  const tot = PREP.queue.length, rate = tot?Math.round(PREP.correct/tot*100):0;
+  const c = prepCounts();
+  set(`
+    <div class="card" style="text-align:center">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-trophy'/></svg> 오늘 공부 끝!</h2>
+      <div class="prepbig">${PREP.correct} / ${tot}</div>
+      <div class="muted">정답률 ${rate}% · 새로 마스터에 가까워진 단어 ${PREP.leveled}개</div>
+      <div class="prepstat" style="margin-top:14px">
+        <div><span class="pnum good">${c.master}</span><span class="plab">마스터</span></div>
+        <div><span class="pnum">${c.familiar}</span><span class="plab">익히는 중</span></div>
+        <div><span class="pnum muted">${c.fresh}</span><span class="plab">아직</span></div>
+      </div>
+      <div class="muted tiny" style="margin-top:12px">${esc(prepDlabel())} · 내일 또 한 번 하면 훨씬 오래 기억돼요.</div>
+    </div>
+    <button class="btn" style="width:100%" data-action="prepStart"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 한 번 더 (${PREP.sessN}단어)</button>
+    <button class="btn line" style="margin-top:10px" data-action="goPrep">시험 대비 화면으로</button>
+    <button class="btn line" style="margin-top:10px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
+  `);
+}
+function quitPrep(){ if(PREP.correct>0 || PREP.idx>0){ if(!confirm("여기까지 한 걸로 하고 시험 대비 화면으로 갈까요? (푼 만큼은 저장돼요)")) return; } goPrep(); }
+
 function renderHome(){
   state.screen = "home";
   const noteCount = loadNote().length;
@@ -3287,9 +3585,16 @@ function renderHome(){
           <button class="chip tiny" style="margin-left:6px" data-action="goVoice">해결 방법 보기</button>
         </div></div>`; })()}
 
+    <button class="btn prepcta" data-action="goPrep">
+      <span class="prepcta-l"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 시험 대비 <span class="prepcta-sub">8/1 · 1200단어</span></span>
+      <span class="prepcta-dd">${esc(prepDlabel())}</span>
+    </button>
+
     ${bkNudgeHTML()}
 
     <button class="btn ghost rowbtn" data-action="goNote"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg> <span>오답 노트</span><span class="badge">${noteCount>0?noteCount+"개":"비어있음"}</span></button>
+
+    <button class="btn ghost rowbtn" data-action="goGrammar"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg> <span>문법 정리</span><span class="badge">단원별</span></button>
 
     <div class="secrow">
       <button class="btn soft" data-action="goSkill" data-skill="exam"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg> 실전 시험</button>
@@ -5481,7 +5786,10 @@ function renderPaper(){
    6) 클릭 이벤트 연결
    ========================================================= */
 const actions = {
-  goHome, goList, goAdd, start, retryLast, retryWrong, retryWrongQ:retryWrong,
+  goHome, goList, goAdd, goGrammar,
+  gramLesson:(el)=>{ lsSet("_gramL", Number(el.dataset.l)); renderGrammar(); },
+  goPrep, prepStart, prepGrade, prepSkip, prepNext, quitPrep,
+  start, retryLast, retryWrong, retryWrongQ:retryWrong,
   openExternal,   // 카톡 등 앱 안 브라우저 → 크롬·사파리로 다시 열기 (거기서만 소리가 남)
   hardReload,     // 최신 내용 받기 (캐시 무시)
   // 결과 화면 → 그 영역의 설정(범위·단원 고르는 곳)으로. 영역이 없으면(오답노트 등) 홈으로
