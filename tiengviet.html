@@ -4168,7 +4168,8 @@ function renderPrepQuiz(){
         ${w.eng?`<div class="muted tiny">${esc(w.eng)}</div>`:""}
         ${mine}
       </div>
-      <button class="btn" style="width:100%;margin-top:12px" data-action="prepNext">${n>=tot?"결과 보기 →":"다음 →"}</button>`;
+      <input class="search" id="prepInput" style="margin-top:12px" placeholder="Enter로 다음 단어 →" autocomplete="off" autocapitalize="off">
+      <button class="btn" style="width:100%;margin-top:10px" data-action="prepNext">${n>=tot?"결과 보기 →":"다음 →"}</button>`;
   }
   set(`
     <div class="quizbar"><div class="quizbar-in" style="width:${Math.round(n/tot*100)}%"></div></div>
@@ -4180,15 +4181,15 @@ function renderPrepQuiz(){
     </div>
     <button class="link" style="margin-top:10px" data-action="quitPrep">그만두기</button>
   `);
-  if(!PREP.graded){
-    const inp = document.getElementById("prepInput");
-    if(inp){ inp.focus();
+  const inp = document.getElementById("prepInput");
+  if(inp){
+    inp.focus();
+    if(!PREP.graded){
       inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); prepGrade(); } });
+    } else {
+      // 채점 직후의 반사적 연타로 정답을 놓치지 않게 살짝 지연한 뒤, Enter로 다음 단어
+      setTimeout(()=>{ const el=document.getElementById("prepInput"); if(el){ el.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); prepNext(); } }); } }, 250);
     }
-  } else {
-    // 채점 후 Enter로 다음
-    const go = e=>{ if(e.key==="Enter"){ e.preventDefault(); prepNext(); document.removeEventListener("keydown", go); } };
-    document.addEventListener("keydown", go);
   }
 }
 function prepGrade(){
