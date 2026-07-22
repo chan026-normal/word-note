@@ -3780,10 +3780,46 @@ function acceptableTone(answer){
   answer.split(/[,;/]/).map(x=>x.trim()).filter(Boolean).concat(answer).forEach(v=>{ add(v); add(v.replace(/\([^)]*\)/g," ").trim()); });
   return set;
 }
-function checkVnTyped(answer, input){
+/* 대문자(고유명사) 검사 — 나라·지명·언어 이름 등은 대문자로 써야 함.
+   Anh(영국)↔anh(형/오빠), Mỹ·Việt·Hàn Quốc … 처럼 대문자 자리에 소문자를 쓰면 오답.
+   규칙: 정답이 대문자인 자리에 입력이 소문자면 실패. 입력에 대문자가 '더' 있는 건 봐줌(문장 첫 글자 습관). */
+function normCase(s){ return canonTone(String(s)).replace(/[().,/;:!?'"’]/g," ").replace(/\s+/g," ").trim(); }
+function capForms(answer){
+  const arr=[];
+  String(answer).split(/[,;/]/).map(x=>x.trim()).filter(Boolean).forEach(v=>{ arr.push(v); const p=v.replace(/\([^)]*\)/g," ").trim(); if(p) arr.push(p); });
+  return arr;
+}
+function needsCap(answer){ return capForms(answer).some(f => f !== f.toLowerCase()); }
+function capOk(answer, input){
+  const I = normCase(input), Il = normTone(input);
+  for(const form of capForms(answer)){
+    if(normTone(form) !== Il) continue;      // 이 형태와 철자·성조가 일치할 때만 대문자 비교
+    const A = normCase(form);
+    if(A.length !== I.length) return true;    // 글자 수가 안 맞으면(정렬 불가) 관대하게 통과
+    let ok=true;
+    for(let i=0;i<A.length;i++){
+      if(A[i] !== A[i].toLowerCase() && I[i] === I[i].toLowerCase()){ ok=false; break; }  // 정답=대문자, 입력=소문자
+    }
+    if(ok) return true;                        // 대문자까지 맞는 형태가 하나라도 있으면 정답
+  }
+  return false;
+}
+/* 채점이 '오답'일 때, 철자·성조는 맞고 대문자만 틀린 경우면 올바른 표기를 돌려줌(안내용). 아니면 "". */
+function vnCaseHint(answer, input){
+  if(!input || !normTone(input) || !needsCap(answer)) return "";
+  const Il = normTone(input);
+  for(const form of capForms(answer)){
+    if(normTone(form)===Il){ return capOk(answer, input) ? "" : form; }  // 철자 맞음 → 대문자 틀렸으면 안내
+  }
+  return "";
+}
+function checkVnTyped(answer, input, strictCase){
   if(!normTone(input)) return "no";
-  if(acceptableTone(answer).has(normTone(input))) return "ok";   // 성조까지 정확
-  if(isCorrectTyped(answer, input)) return "tone";               // 성조 빼면 맞음 → 성조만 틀림
+  if(acceptableTone(answer).has(normTone(input))){
+    if(strictCase && !capOk(answer, input)) return "no";   // 대문자 틀림 = 오답(고유명사)
+    return "ok";                                            // 성조까지 정확
+  }
+  if(isCorrectTyped(answer, input)) return "tone";          // 성조 빼면 맞음 → 성조만 틀림
   return "no";
 }
 /* 뜻 조각(콤마/슬래시로 구분)을 각각 정규화해서 반환 */
@@ -3798,7 +3834,7 @@ function checkVnAny(promptKo, expectedVn, input){
   WORDS.forEach(x=>{ if(norm(x.en)===target){ cands.add(x.vn); if(northOf(x.vn)) cands.add(northOf(x.vn)); } });
   let best = "no";
   for(const vn of cands){
-    const r = checkVnTyped(vn, input);
+    const r = checkVnTyped(vn, input, true);   // 단어 시험은 대문자까지 채점
     if(r==="ok") return "ok";
     if(r==="tone") best = "tone";
   }
@@ -3806,7 +3842,7 @@ function checkVnAny(promptKo, expectedVn, input){
   for(const x of WORDS){
     if(cands.has(x.vn)) continue;
     if(!meaningsOverlap(x.en, promptKo)) continue;
-    const r = checkVnTyped(x.vn, input);
+    const r = checkVnTyped(x.vn, input, true);
     if(r==="ok") return "ok";
     if(r==="tone") best = "tone";
   }
@@ -3845,14 +3881,25 @@ function viVoices(){ return VOICES.filter(v => (v.lang||"").toLowerCase().replac
 function ttsRate(){ const r = Number(lsGet("_rate", 0.9)); return (r>=0.5 && r<=2) ? r : 0.9; }
 /* 베트남어일 때만 사용자가 고른 음성 적용. 한국어 등은 OS 기본 음성 사용.
    ⚠️ 자동 선택은 '기기에 설치된(오프라인)' 음성 우선 — 온라인(network) 음성은 버퍼링으로 끊길 수 있음 */
+/* 음성 음질 점수 — premium > neural > enhanced > natural > 기본. (맥·아이폰의 '향상된/프리미엄' 음성을 자동으로 고름) */
+function voiceScore(v){
+  const n = ((v.name||"")+" "+(v.voiceURI||""));
+  if(/premium/i.test(n)) return 5;
+  if(/neural/i.test(n)) return 4;
+  if(/enhanced|nâng cao/i.test(n)) return 3;
+  if(/natural/i.test(n)) return 2;
+  return 1;
+}
+function isEnhancedVoice(v){ return voiceScore(v) >= 3; }
 function pickedVoice(lang){
   if(!(lang||"").toLowerCase().startsWith("vi")) return null;
   const vs = viVoices(); if(!vs.length) return null;
   const uri = lsGet("_voiceURI","");
   if(uri){ const f = vs.find(v=>v.voiceURI===uri); if(f) return f; }
-  const enh = v => /enhanced|premium|neural|natural|nâng cao/i.test(v.name);
-  const local = v => v.localService !== false;
-  return vs.find(v=>local(v) && enh(v)) || vs.find(local) || vs.find(enh) || vs[0];
+  const byScore = (a,b)=>voiceScore(b)-voiceScore(a);
+  const locals = vs.filter(v=>v.localService!==false).sort(byScore);   // 로컬(오프라인) 우선 = 끊김 없음
+  if(locals.length) return locals[0];                                  // 그 중 최고 음질(향상된/프리미엄)
+  return vs.slice().sort(byScore)[0] || vs[0];                         // 로컬이 없으면 온라인이라도 최고 음질
 }
 /* TTS 전용 발음 교정 — 화면 글자는 그대로 두고 '소리'만 바꿈.
    베트남어 음성이 외국 이름(한국·영어)을 이상하게 읽는 걸 완화. 필요하면 여기 줄만 추가하면 됨. */
@@ -3877,6 +3924,7 @@ let TTS_KEEP = null, TTS_SEQ = 0;
 const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test((navigator.userAgent||""));
 /* 아이폰/아이패드 감지 — 사파리는 인쇄 시 @page margin:0을 무시해 여백을 강제하므로, 한 장 압축이 넘쳐 2장이 됨. iOS에서만 인쇄를 살짝 축소해 1장 유지(html.ios). */
 const IS_IOS = /iPad|iPhone|iPod/i.test(navigator.userAgent||"") || (navigator.platform==="MacIntel" && (navigator.maxTouchPoints||0)>1);
+const IS_MAC = /Mac/i.test(navigator.platform||navigator.userAgent||"") && !IS_IOS;   // 맥(아이패드 제외) — 발음 음성 설치 안내용
 try{ if(IS_IOS) document.documentElement.classList.add("ios"); }catch(e){}
 function ttsKeepStop(){
   if(TTS_KEEP){ clearInterval(TTS_KEEP); TTS_KEEP = null; }
@@ -4267,11 +4315,13 @@ function renderPrepQuiz(){
       <div style="display:flex;gap:8px;margin-top:10px">
         <button class="btn" style="flex:2" data-action="prepGrade">채점하기</button>
         <button class="btn ghost" style="flex:1" data-action="prepSkip">모르겠어요</button>
-      </div>`;
+      </div>
+      ${IS_MOBILE?"":`<div class="muted tiny" style="margin-top:8px;text-align:center">Enter 채점 · Esc 모르겠어요</div>`}`;
   } else {
     const ok = PREP.res==="ok";
     const badge = ok ? `<span class="pres good">✓ 정답</span>`
       : PREP.res==="tone" ? `<span class="pres warn">⚠ 성조가 달라요</span>`
+      : PREP.caseHint ? `<span class="pres bad">✗ 대문자로 써야 해요</span>`
       : `<span class="pres bad">✗ 다시 나올 거예요</span>`;
     const mine = (PREP.typed && !ok) ? `<div class="muted tiny" style="margin-top:6px">내가 쓴 답: ${esc(PREP.typed)}</div>` : "";
     body = `
@@ -4312,6 +4362,7 @@ function prepGrade(){
   const w = PREP.queue[PREP.idx];
   const g = PREP.typed ? checkVnAny(w.en, w.vn, PREP.typed) : "no";
   PREP.res = g;
+  PREP.caseHint = (g==="no") ? vnCaseHint(w.vn, PREP.typed) : "";   // 철자는 맞고 대문자만 틀림
   if(g==="ok"){ PREP.correct++; if(srsLv(w)<SRS_MAX) PREP.leveled++; srsRec(w,true); }
   else if(g==="tone"){ /* 성조만 틀림 = 마스터 진행 안 함(시험엔 성조 필요), 리셋도 안 함 */ }
   else { srsRec(w,false); }
@@ -4321,11 +4372,11 @@ function prepGrade(){
 function prepSkip(){
   if(PREP.graded) return;
   const w = PREP.queue[PREP.idx];
-  PREP.typed=""; PREP.res="no"; srsRec(w,false); PREP.graded=true;
+  PREP.typed=""; PREP.res="no"; PREP.caseHint=""; srsRec(w,false); PREP.graded=true;
   renderPrepQuiz();
 }
 function prepNext(){
-  PREP.idx++; PREP.typed=""; PREP.graded=false; PREP.res="";
+  PREP.idx++; PREP.typed=""; PREP.graded=false; PREP.res=""; PREP.caseHint="";
   if(PREP.idx>=PREP.queue.length) renderPrepDone(); else renderPrepQuiz();
 }
 function renderPrepDone(){
@@ -4346,6 +4397,7 @@ function renderPrepDone(){
       <div class="muted tiny" style="margin-top:12px">${esc(prepDlabel())} · 내일 또 한 번 하면 훨씬 오래 기억돼요.</div>
     </div>
     <button class="btn" style="width:100%" data-action="prepStart"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 한 번 더 (${PREP.sessN}단어)</button>
+    ${IS_MOBILE?"":`<div class="muted tiny" style="margin-top:6px;text-align:center">Enter 로 '한 번 더'</div>`}
     <button class="btn line" style="margin-top:10px" data-action="goPrep">시험 대비 화면으로</button>
     <button class="btn line" style="margin-top:10px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
   `);
@@ -5606,10 +5658,11 @@ function renderQuiz(){
     body = `<input class="answer" id="ansInput" placeholder="정답 입력 후 Enter" ${Q.answered?"disabled":""} value="${esc(Q.typed||"")}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       ${!Q.answered?`<button class="btn" style="margin-top:12px" data-action="check">확인</button>`:""}`;
     if(Q.answered){
-      const head = Q.lastOk ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 정답이에요!" : (Q.toneOnly ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg> 성조가 틀려요 (철자는 맞아요!)" : "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-x'/></svg> 아쉬워요");
+      const head = Q.lastOk ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg> 정답이에요!" : (Q.toneOnly ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg> 성조가 틀려요 (철자는 맞아요!)" : (Q.caseHint ? "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg> 대문자로 써야 해요!" : "<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-x'/></svg> 아쉬워요"));
       const meaningLine = (q.dictation && q.meaning) ? `<div class="promptsub" style="margin-top:8px">뜻: <b>${esc(q.meaning)}</b></div>` : "";
+      const caseLine = Q.caseHint ? `<div class="promptsub" style="margin-top:6px">나라·지명 등은 대문자로: <b>${esc(Q.caseHint)}</b></div>` : "";
       fb = `<div class="feedback ${Q.lastOk?"ok":"no"}">${head}
-        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${meaningLine}${nextBtn}`;
+        <span class="ans">${esc(q.answer)} ${spkBtn(q.answer, ansLang, true)}</span></div>${caseLine}${meaningLine}${nextBtn}`;
     }
   } else if(kind==="read"){   // 읽기: 입력 없이 읽고 '뜻 보기'로 확인
     if(!Q.revealed){
@@ -5692,16 +5745,17 @@ function checkTyped(){
   const inp = document.getElementById("ansInput");
   Q.typed = inp ? inp.value : "";
   const q = Q.queue[Q.idx];
-  Q.toneOnly = false;
-  if(q.dictation){   // 받아쓰기: 들은 베트남어 그대로 (성조까지 채점, 그 단어만 정답)
-    const r = checkVnTyped(q.answer, Q.typed);
+  Q.toneOnly = false; Q.caseHint = "";
+  if(q.dictation){   // 받아쓰기: 들은 베트남어 그대로 (성조·대문자까지 채점, 그 단어만 정답)
+    const r = checkVnTyped(q.answer, Q.typed, true);
     Q.lastOk = (r==="ok"); Q.toneOnly = (r==="tone");
-  } else if(q.dir==="en2vn"){   // 답이 베트남어 → 성조까지 채점 (같은 뜻의 다른 베트남어도 정답 인정)
+  } else if(q.dir==="en2vn"){   // 답이 베트남어 → 성조·대문자까지 채점 (같은 뜻의 다른 베트남어도 정답 인정)
     const r = checkVnAny(q.prompt, q.answer, Q.typed);
     Q.lastOk = (r==="ok"); Q.toneOnly = (r==="tone");
   } else {
     Q.lastOk = isCorrectTyped(q.answer, Q.typed);
   }
+  if(!Q.lastOk && !Q.toneOnly) Q.caseHint = vnCaseHint(q.answer, Q.typed);   // 철자는 맞고 대문자만 틀림 → 안내
   Q.answered = true;
   if(Q.lastOk){ Q.score++; noteRight(q.word); } else { Q.wrong.push(wrongItem()); noteWrong(q.word); }
   renderQuiz();
@@ -6101,8 +6155,12 @@ function renderVoice(){
   const rate = ttsRate();
   const now = pickedVoice("vi-VN");
   const voiceRows = vs.length
-    ? vs.map(v=>`<button class="chip ${curURI && v.voiceURI===curURI ? "on":""}" data-action="pickVoice" data-uri="${esc(v.voiceURI)}">${esc(v.name)} <small>${esc(v.lang)}${v.localService===false?" · 온라인":""}</small></button>`).join("")
+    ? vs.map(v=>`<button class="chip ${curURI && v.voiceURI===curURI ? "on":""}" data-action="pickVoice" data-uri="${esc(v.voiceURI)}">${esc(v.name)}${isEnhancedVoice(v)?" ★":""} <small>${esc(v.lang)}${v.localService===false?" · 온라인":""}</small></button>`).join("")
     : `<div class="muted tiny">이 기기에 설치된 <b>베트남어 음성</b>을 찾지 못했어요. 아래 안내로 음성을 설치한 뒤 이 화면을 다시 열어주세요. (그 전까지는 기기 기본 음성으로 읽어요)</div>`;
+  const enhCount = vs.filter(isEnhancedVoice).length;
+  const nowNudge = now && isEnhancedVoice(now)
+    ? ' · <b style="color:var(--good)">향상된 음성 ★</b>'
+    : (vs.length ? ' · <span style="color:var(--warn)">아래 안내로 ★ 향상된 음성을 설치하면 더 자연스러워요</span>' : "");
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
@@ -6123,7 +6181,7 @@ function renderVoice(){
         <button class="chip ${curURI?"":"on"}" data-action="pickVoice" data-uri="">기본(자동)</button>
         ${voiceRows}
       </div>
-      <div class="muted tiny" style="margin-top:8px">지금 읽는 목소리: <b>${now?esc(now.name):"(기기 기본)"}</b></div>
+      <div class="muted tiny" style="margin-top:8px">지금 읽는 목소리: <b>${now?esc(now.name):"(기기 기본)"}</b>${nowNudge}</div>
     </div>
     <div class="card">
       <h2>속도</h2>
@@ -6131,11 +6189,13 @@ function renderVoice(){
       <div class="muted tiny" style="margin-top:6px">느리게 ← <b id="rateLbl">${rate.toFixed(2)}배</b> → 빠르게</div>
     </div>
     <button class="btn lg" data-action="testVoice"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 테스트 듣기 — "${esc(TTS_SAMPLE)}"</button>
-    <div class="card" style="margin-top:12px">
+    <div class="card" style="margin-top:12px${IS_MAC?";background:var(--brandsoft);border-color:var(--brand)":""}">
       <h2>발음이 어색하면 (더 좋은 음성 설치)</h2>
-      <div class="muted tiny" style="line-height:1.7">
+      <div class="muted tiny" style="line-height:1.75">
+        <b>맥</b>: 시스템 설정 → 손쉬운 사용 → 읽어주기 콘텐츠 → 시스템 음성 → <b>음성 관리…</b> → <b>Tiếng Việt(베트남어)</b> → <b>Linh</b>의 <b>'향상된(Enhanced)' 또는 '프리미엄'</b> 내려받기. 그다음 이 화면을 다시 열면 위 목록에 <b>★</b>로 뜨고 자동으로 선택돼요.<br>
         <b>아이폰</b>: 설정 → 손쉬운 사용 → 읽어주기 콘텐츠 → 음성 → 베트남어 → <b>'향상된/프리미엄'</b> 다운로드<br>
-        <b>안드로이드</b>: 설정 → 언어 → 음성 출력(TTS) → Google 음성 선택 + <b>베트남어</b> 데이터 설치
+        <b>안드로이드</b>: 설정 → 언어 → 음성 출력(TTS) → Google 음성 선택 + <b>베트남어</b> 데이터 설치<br>
+        <span style="opacity:.85">설치 후에도 목소리가 여러 개면, 위 <b>목소리</b> 목록에서 ★ 표시된 것을 직접 골라도 돼요.</span>
       </div>
     </div>
   `);
@@ -6867,6 +6927,21 @@ bindZoom(); applyZoom();
 bindBrand();        // 좌상단 '베트남어 학습' → 어느 화면에서든 홈으로
 requestPersist();   // 브라우저에 '데이터 자동 삭제 하지 마' 요청
 cloudInit();        // 클라우드 동기화(설정돼 있고 로그인돼 있으면 자동 복원) — 설정 없으면 아무 일도 안 함
+
+/* 시험대비 키보드 조작 — 전역 keydown 하나만 달아 화면(state.screen)으로 분기(리스너 누수·이중발동 없음).
+   문제 화면의 Enter(채점/다음)는 입력칸 리스너가 처리하고, 여기선 그와 겹치지 않는 키만 다룸. */
+document.addEventListener("keydown", e=>{
+  if(e.isComposing) return;                       // 한글·베트남어 조합 중이면 무시
+  const scr = String(state.screen||"");
+  if(scr==="prepdone"){                           // 결과 화면: Enter = 한 번 더
+    const t = e.target && e.target.tagName;
+    if(e.key==="Enter" && t!=="BUTTON" && t!=="A"){ e.preventDefault(); prepStart(); }
+    return;
+  }
+  if(scr.indexOf("prepq")===0 && !PREP.graded){   // 문제(채점 전): Esc = 모르겠어요
+    if(e.key==="Escape"){ e.preventDefault(); prepSkip(); }
+  }
+});
 </script>
 </body>
 </html>
