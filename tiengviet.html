@@ -4257,13 +4257,31 @@ const prepCounts = () => { const d=prepDeck(); let m=0,f=0,z=0;
   d.forEach(w=>{ const l=srsLv(w); if(l>=SRS_MAX) m++; else if(l>0) f++; else z++; });
   return { total:d.length, master:m, familiar:f, fresh:z }; };
 
-const PREP = { queue:[], idx:0, typed:"", graded:false, res:"", correct:0, leveled:0, sessN:20 };
+const PREP = { queue:[], idx:0, typed:"", graded:false, res:"", correct:0, leveled:0, sessN:50, gradedAt:0 };
+/* 이어서 풀기 — 세션(문제 목록 + 지금 위치)을 저장해 중간에 멈춰도 나중에 이어서 함. 단어는 srsKey로 저장/복원. */
+function prepSessSave(){
+  try{
+    if(PREP.idx<=0 || PREP.idx>=PREP.queue.length){ return; }   // 시작 직후·완료면 저장 안 함
+    lsSet("_prepsess", { keys: PREP.queue.map(srsKey), idx: PREP.idx, correct: PREP.correct, leveled: PREP.leveled });
+  }catch(e){}
+}
+function prepSessClear(){ lsSet("_prepsess", null); }
+function prepSessLoad(){
+  const s = lsGet("_prepsess", null);
+  if(!s || !Array.isArray(s.keys) || !s.keys.length) return null;
+  const byKey = {}; prepDeck().forEach(w=>{ byKey[srsKey(w)] = w; });
+  const queue = s.keys.map(k=>byKey[k]).filter(Boolean);
+  const idx = Math.min(Number(s.idx)||0, queue.length);
+  if(!queue.length || idx<=0 || idx>=queue.length) return null;   // 남은 문제가 없으면 무효
+  return { queue, idx, correct:Number(s.correct)||0, leveled:Number(s.leveled)||0, total:queue.length };
+}
 function goPrep(){ renderPrep(); }
 function renderPrep(){
   state.screen = "prep";
   const c = prepCounts();
   const pct = c.total ? Math.round(c.master/c.total*100) : 0;
   const dleft = prepDaysLeft();
+  const saved = prepSessLoad();   // 이어서 풀 세션이 있으면
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
@@ -4284,8 +4302,14 @@ function renderPrep(){
         <div><span class="pnum">${c.total}</span><span class="plab">전체</span></div>
       </div>
 
+      ${saved ? `
+      <button class="btn" style="width:100%;margin-top:14px" data-action="prepResume"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 이어서 풀기 (${saved.idx+1}번째부터 · 총 ${saved.total}단어)</button>
+      <button class="btn line" style="width:100%;margin-top:8px" data-action="prepStart"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 처음부터 새로 (${PREP.sessN}단어)</button>
+      <div class="muted tiny" style="margin-top:9px">지난번에 멈춘 곳부터 이어서 풀 수 있어요. 약한 단어부터 나오고, 맞히면 마스터에 가까워집니다.</div>
+      ` : `
       <button class="btn" style="width:100%;margin-top:14px" data-action="prepStart"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 오늘 공부 시작 (${PREP.sessN}단어)</button>
-      <div class="muted tiny" style="margin-top:9px">약한 단어부터 나와요. 맞히면 마스터에 가까워지고, 틀리면 다시 나옵니다. <b>매일 한 번씩</b>만 해도 큰 차이가 나요.</div>
+      <div class="muted tiny" style="margin-top:9px">약한 단어부터 나와요. 맞히면 마스터에 가까워지고, 틀리면 다시 나옵니다. 중간에 멈춰도 다음에 <b>이어서</b> 풀 수 있어요.</div>
+      `}
     </div>
     ${c.master>=c.total && c.total>0 ? `<div class="card" style="text-align:center">🎉 전체 단어를 마스터했어요! 이제 복습만 반복하면 돼요.</div>` : ""}
     <button class="btn line" style="margin-top:6px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
@@ -4294,11 +4318,19 @@ function renderPrep(){
 function prepStart(){
   const deck = prepDeck();
   if(!deck.length){ alert("먼저 단어가 있어야 해요."); return; }
+  prepSessClear();                                    // 처음부터 새로 = 저장된 세션 버림
   const weak = deck.filter(w=>srsLv(w)<SRS_MAX);
   const base = weak.length ? weak : deck.slice();     // 다 마스터했으면 전체에서 복습
   const byLevel = base.slice().sort((a,b)=>srsLv(a)-srsLv(b));   // 약한(낮은 숙련도) 우선
   PREP.queue = shuffle(byLevel.slice(0, Math.min(PREP.sessN, byLevel.length)));
-  PREP.idx=0; PREP.typed=""; PREP.graded=false; PREP.res=""; PREP.correct=0; PREP.leveled=0;
+  PREP.idx=0; PREP.typed=""; PREP.graded=false; PREP.res=""; PREP.correct=0; PREP.leveled=0; PREP.caseHint="";
+  renderPrepQuiz();
+}
+function prepResume(){                                 // 이어서 풀기 — 저장된 세션 복원
+  const s = prepSessLoad();
+  if(!s){ prepStart(); return; }
+  PREP.queue = s.queue; PREP.idx = s.idx; PREP.correct = s.correct; PREP.leveled = s.leveled;
+  PREP.typed=""; PREP.graded=false; PREP.res=""; PREP.caseHint="";
   renderPrepQuiz();
 }
 function renderPrepQuiz(){
@@ -4331,8 +4363,8 @@ function renderPrepQuiz(){
         ${w.eng?`<div class="muted tiny">${esc(w.eng)}</div>`:""}
         ${mine}
       </div>
-      <input class="search" id="prepInput" style="margin-top:12px" placeholder="Enter로 다음 단어 →" autocomplete="off" autocapitalize="off">
-      <button class="btn" style="width:100%;margin-top:10px" data-action="prepNext">${n>=tot?"결과 보기 →":"다음 →"}</button>`;
+      <button class="btn" style="width:100%;margin-top:12px" data-action="prepNext">${n>=tot?"결과 보기 →":"다음 →"}</button>
+      ${IS_MOBILE?"":`<div class="muted tiny" style="margin-top:8px;text-align:center">Enter 로 다음 단어</div>`}`;
   }
   set(`
     <div class="quizbar"><div class="quizbar-in" style="width:${Math.round(n/tot*100)}%"></div></div>
@@ -4344,16 +4376,12 @@ function renderPrepQuiz(){
     </div>
     <button class="link" style="margin-top:10px" data-action="quitPrep">그만두기</button>
   `);
-  const inp = document.getElementById("prepInput");
-  if(inp){
+  const inp = document.getElementById("prepInput");   // 채점 전 화면에만 있음
+  if(inp && !PREP.graded){
     inp.focus();
-    if(!PREP.graded){
-      inp.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); prepGrade(); } });
-    } else {
-      // 채점 직후의 반사적 연타로 정답을 놓치지 않게 살짝 지연한 뒤, Enter로 다음 단어
-      setTimeout(()=>{ const el=document.getElementById("prepInput"); if(el){ el.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); prepNext(); } }); } }, 250);
-    }
+    inp.addEventListener("keydown", e=>{ if(e.key==="Enter" && !e.isComposing){ e.preventDefault(); prepGrade(); } });
   }
+  // 채점 후 'Enter로 다음'은 전역 keydown(부팅부)에서 처리 — 입력칸 없이도 동작
 }
 function prepGrade(){
   if(PREP.graded) return;
@@ -4366,21 +4394,23 @@ function prepGrade(){
   if(g==="ok"){ PREP.correct++; if(srsLv(w)<SRS_MAX) PREP.leveled++; srsRec(w,true); }
   else if(g==="tone"){ /* 성조만 틀림 = 마스터 진행 안 함(시험엔 성조 필요), 리셋도 안 함 */ }
   else { srsRec(w,false); }
-  PREP.graded = true;
+  PREP.graded = true; PREP.gradedAt = Date.now();   // 채점 직후 반사적 Enter가 '다음'을 건너뛰지 않게(전역 keydown에서 가드)
   renderPrepQuiz();
 }
 function prepSkip(){
   if(PREP.graded) return;
   const w = PREP.queue[PREP.idx];
-  PREP.typed=""; PREP.res="no"; PREP.caseHint=""; srsRec(w,false); PREP.graded=true;
+  PREP.typed=""; PREP.res="no"; PREP.caseHint=""; srsRec(w,false); PREP.graded=true; PREP.gradedAt = Date.now();
   renderPrepQuiz();
 }
 function prepNext(){
   PREP.idx++; PREP.typed=""; PREP.graded=false; PREP.res=""; PREP.caseHint="";
-  if(PREP.idx>=PREP.queue.length) renderPrepDone(); else renderPrepQuiz();
+  if(PREP.idx>=PREP.queue.length){ prepSessClear(); renderPrepDone(); }   // 세션 완료 → 저장 세션 지움
+  else { prepSessSave(); renderPrepQuiz(); }                              // 진행 상황 저장(이어서 풀기)
 }
 function renderPrepDone(){
   state.screen = "prepdone";
+  prepSessClear();   // 세션 끝 = 이어서풀기 저장 삭제
   const tot = PREP.queue.length, rate = tot?Math.round(PREP.correct/tot*100):0;
   logStudy(tot);
   const c = prepCounts();
@@ -6797,7 +6827,7 @@ const actions = {
   goHome, goList, goAdd, goGrammar, goPassage,
   gramLesson:(el)=>{ lsSet("_gramL", Number(el.dataset.l)); renderGrammar(); },
   passageLesson:(el)=>{ lsSet("_passL", Number(el.dataset.l)); renderPassage(); },
-  goPrep, prepStart, prepGrade, prepSkip, prepNext, quitPrep,
+  goPrep, prepStart, prepResume, prepGrade, prepSkip, prepNext, quitPrep,
   start, retryLast, retryWrong, retryWrongQ:retryWrong,
   openExternal,   // 카톡 등 앱 안 브라우저 → 크롬·사파리로 다시 열기 (거기서만 소리가 남)
   hardReload,     // 최신 내용 받기 (캐시 무시)
@@ -6938,8 +6968,13 @@ document.addEventListener("keydown", e=>{
     if(e.key==="Enter" && t!=="BUTTON" && t!=="A"){ e.preventDefault(); prepStart(); }
     return;
   }
-  if(scr.indexOf("prepq")===0 && !PREP.graded){   // 문제(채점 전): Esc = 모르겠어요
-    if(e.key==="Escape"){ e.preventDefault(); prepSkip(); }
+  if(scr.indexOf("prepq")===0){                   // 문제 화면
+    if(!PREP.graded){
+      if(e.key==="Escape"){ e.preventDefault(); prepSkip(); }        // 채점 전: Esc = 모르겠어요
+    } else if(e.key==="Enter"){                                       // 채점 후: Enter = 다음 단어
+      if(Date.now()-(PREP.gradedAt||0) < 250) return;                // 채점한 그 Enter가 연달아 '다음'을 누르는 것 방지
+      e.preventDefault(); prepNext();
+    }
   }
 });
 </script>
