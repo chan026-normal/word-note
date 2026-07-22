@@ -4626,11 +4626,13 @@ function renderSetup(){
     </div>`:"";
   // 쓰기 + 문장: 문제 순서 (교재 순서면 '이어서 풀기'가 됨)
   const isBulk = state.skill==="write" && studySent && state.sentMode==="bulk";
+  const isOrder = state.skill==="write" && studySent && state.sentMode==="order";
   const bookOrder = state.sentOrder==="book";
   const orderSeg = (state.skill==="write" && studySent) ? (()=>{
     const l = state.sentLesson || sentLessons()[0];
     const pos = bookOrder && isBulk ? bulkPosGet(l) : 0;
     const from = pos*10 + 1;
+    const oPos = bookOrder && isOrder ? ordPosGet(l) : 0;
     return `<div class="card">
       <h2>문제 순서</h2>
       <div class="seg">
@@ -4648,6 +4650,17 @@ function renderSetup(){
         : `<div class="muted tiny" style="margin-top:8px">${bookOrder
              ? "교재 순서대로 10개씩 풀어요. <b>어디까지 했는지 기억</b>해서 다음에 이어서 풀 수 있어요."
              : "섞어서 나와요. (이어서 풀기는 <b>교재 순서</b>일 때만 돼요)"}</div>`) : ""}
+      ${isOrder ? (oPos>0
+        ? `<div class="card" style="background:var(--brandsoft); border:0; margin:10px 0 0; padding:10px 12px">
+             <div class="tiny" style="color:var(--brand); font-weight:800">
+               <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pin'/></svg>
+               ${lessonLabel(l)} — <b>${oPos+1}번째</b> 문장부터 이어서 배치해요.
+               <button class="chip tiny" style="margin-left:6px" data-action="ordReset" data-l="${l}">처음부터</button>
+             </div>
+           </div>`
+        : `<div class="muted tiny" style="margin-top:8px">${bookOrder
+             ? "교재 순서대로 배치해요. <b>어디까지 했는지 기억</b>해서 다음에 이어서 할 수 있어요."
+             : "섞어서 나와요. (이어서 하기는 <b>교재 순서</b>일 때만 돼요)"}</div>`) : ""}
     </div>`;
   })() : "";
   // 범위: 문장이면 문장 단원 칩, 아니면 단어 범위 선택
@@ -4681,7 +4694,7 @@ function renderSetup(){
     ${lsLevel}
     ${dirSeg}
     ${countSeg}
-    <button class="btn lg" data-action="startSkill">${s.emoji} ${(isBulk && bookOrder && bulkPosGet(state.sentLesson||sentLessons()[0])>0)?`${bulkPosGet(state.sentLesson||sentLessons()[0])*10+1}번부터 이어서 풀기`:studyCt?"받아쓰기 시작":studyDlg?(dlgFull?"대화 받아쓰기 시작":"대화 빈칸 채우기 시작"):listenSentCloze?"문장 빈칸 채우기 시작":s.label+" 시작하기"}</button>
+    <button class="btn lg" data-action="startSkill">${s.emoji} ${(isBulk && bookOrder && bulkPosGet(state.sentLesson||sentLessons()[0])>0)?`${bulkPosGet(state.sentLesson||sentLessons()[0])*10+1}번부터 이어서 풀기`:(isOrder && bookOrder && ordPosGet(state.sentLesson||sentLessons()[0])>0)?`${ordPosGet(state.sentLesson||sentLessons()[0])+1}번째부터 이어서 배치`:studyCt?"받아쓰기 시작":studyDlg?(dlgFull?"대화 받아쓰기 시작":"대화 빈칸 채우기 시작"):listenSentCloze?"문장 빈칸 채우기 시작":s.label+" 시작하기"}</button>
   `);
   bindSelection();
 }
@@ -4727,8 +4740,9 @@ function startSentQueue(skill){
   if(skill==="write" && state.sentMode==="bulk"){
     startSentBulk(arr, lbl, l, keepOrder ? bulkPosGet(l) : 0); return;
   }
+  // 쓰기: 단어 순서 배치 — 교재 순서면 지난번 멈춘 곳부터 이어서(진행상황 기억). 전체 arr를 넘겨 안에서 잘라 씀
+  if(skill==="write" && state.sentMode==="order"){ startSentOrder(arr, lbl, l, keepOrder); return; }
   if(state.count!=="all") arr = arr.slice(0, Math.min(Number(state.count), arr.length));
-  if(skill==="write" && state.sentMode==="order"){ startSentOrder(arr, lbl); return; }  // 쓰기: 단어 순서 배치
   if(skill==="speak"){ startSpeak(arr.map(x=>({vn:x.vn, en:x.en, lesson:lbl})), true); return; }   // 말하기: SP 사용
   if(skill==="listen" && state.listenSent==="cloze"){ startSentCloze(arr, l, lbl); return; }   // 듣기: 문장 빈칸 채우기
   if(skill==="listen"){ state.mode="listen"; Q.queue=arr.map(x=>listenSentQ(x, lbl)); }
@@ -5087,17 +5101,24 @@ function dlgNextDialog(){
    단어 순서 배치 (쓰기 → 문장 → 순서 배치)
    한국어 뜻을 보고, 흩어진 베트남어 단어를 눌러 순서대로 배열해 문장을 완성.
    ========================================================= */
-const ORD = { items:[], idx:0, score:0, wrong:[], words:[], pool:[], placed:[], answered:false, ok:false, lbl:"" };
+const ORD = { items:[], idx:0, score:0, wrong:[], words:[], pool:[], placed:[], answered:false, ok:false, lbl:"", lessonKey:null, keepOrder:false, basePos:0, total:0 };
 /* 문장을 낱말로 쪼갬 (구두점은 붙어 있는 그대로 — 교재 표기 유지) */
 const ordWords = s => String(s).trim().split(/\s+/).filter(Boolean);
-function startSentOrder(arr, lbl){
+function startSentOrder(arr, lbl, l, keepOrder){
   // 너무 짧거나(3개 미만) 너무 긴(14개 초과) 문장은 순서 배치에 안 맞아 제외
   let pool = arr.filter(x => { const n = ordWords(x.vn).length; return n>=3 && n<=14; });
   if(pool.length < 3) pool = arr;                      // 남는 게 거의 없으면 그냥 다 씀
   if(!pool.length){ alert("이 단원에 순서 배치로 낼 문장이 없어요."); return; }
+  // 교재 순서면 지난번 멈춘 자리(진행상황)부터 이어서 — 랜덤은 매번 순서가 달라 기억 안 함
+  const total = pool.length;
+  let base = 0;
+  if(keepOrder){ base = ordPosGet(l); if(base >= total) base = 0; }   // 끝까지 다 했으면 처음부터
+  let chunk = pool.slice(base);
+  if(state.count!=="all") chunk = chunk.slice(0, Math.min(Number(state.count), chunk.length));
   state.mode="order";
-  ORD.items = pool.map(x=>({vn:x.vn, en:x.en, lesson:lbl, type:"sentence"}));
+  ORD.items = chunk.map(x=>({vn:x.vn, en:x.en, lesson:lbl, type:"sentence"}));
   ORD.idx=0; ORD.score=0; ORD.wrong=[]; ORD.lbl=lbl;
+  ORD.lessonKey = (l==null?null:l); ORD.keepOrder = !!keepOrder; ORD.basePos = base; ORD.total = total;
   ordSetup();
   renderOrder();
 }
@@ -5168,6 +5189,11 @@ function ordCheck(){
   ORD.answered = true;
   if(ORD.ok){ ORD.score++; noteRight(it); }
   else { ORD.wrong.push(it); noteWrong(it); }
+  // 진행상황 기억(교재 순서일 때만): 방금 푼 문제까지 완료로 저장, 끝까지 다 했으면 처음부터
+  if(ORD.keepOrder && ORD.lessonKey!=null){
+    const donePos = ORD.basePos + ORD.idx + 1;
+    ordPosSet(ORD.lessonKey, donePos >= ORD.total ? 0 : donePos);
+  }
   renderOrder();
 }
 function ordNext(){
@@ -5203,6 +5229,10 @@ const BULK = { items:[], page:0, per:10, ans:{}, res:{}, graded:false, score:0, 
 const bulkPosAll = () => lsGet("_bulkpos", {}) || {};
 const bulkPosGet = l => Number(bulkPosAll()[String(l)] || 0);
 function bulkPosSet(l, page){ const a=bulkPosAll(); if(page>0) a[String(l)]=page; else delete a[String(l)]; lsSet("_bulkpos", a); }
+/* 순서 배치 진행 기억: _ordpos = {단원: 다음에 배치할 문장 번호(0부터)} — 교재 순서일 때만 */
+const ordPosAll = () => lsGet("_ordpos", {}) || {};
+const ordPosGet = l => Number(ordPosAll()[String(l)] || 0);
+function ordPosSet(l, pos){ const a=ordPosAll(); if(pos>0) a[String(l)]=pos; else delete a[String(l)]; lsSet("_ordpos", a); }
 function startSentBulk(arr, lbl, lesson, resumeFrom){
   state.mode="bulk";
   BULK.items = arr.map(x=>({vn:x.vn, en:x.en, lesson:lbl, type:"sentence", dir:dirOf(state.dir)}));
@@ -6674,6 +6704,7 @@ const actions = {
   sentMode:(el)=>{ state.sentMode = el.dataset.v; lsSet("_sbulk", state.sentMode); renderSetup(); },
   sentOrder:(el)=>{ state.sentOrder = el.dataset.v; lsSet("_sord", state.sentOrder); renderSetup(); },
   bulkReset:(el)=>{ bulkPosSet(Number(el.dataset.l), 0); renderSetup(); },   // 이어서 풀기 기록 지우기
+  ordReset:(el)=>{ ordPosSet(Number(el.dataset.l), 0); renderSetup(); },   // 순서 배치 이어서 기록 지우기
   ordPick:(el)=>{ if(ORD.answered) return; const k=Number(el.dataset.k); const x=ORD.pool[k];
     if(!x || ORD.placed.some(p=>p.i===x.i)) return; ORD.placed.push(x); renderOrder(); },
   ordUnpick:(el)=>{ if(ORD.answered) return; ORD.placed.splice(Number(el.dataset.k),1); renderOrder(); },
