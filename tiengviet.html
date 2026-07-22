@@ -362,7 +362,7 @@
     .paper.onepage{ padding:7mm 11mm }   /* 한 장에 맞춤: 인쇄 여백도 축소 */
     html.ios .paper.onepage{ zoom:0.9 }   /* 아이폰 사파리: @page margin:0 무시로 여백이 강제돼 2장이 되는 것 방지 — 살짝 축소해 1장 유지(갤럭시·크롬은 무영향) */
     /* 따로 인쇄: 한쪽만 보이게 */
-    body.ponly-paper .pkey{ display:none !important }
+    body.ponly-paper .pkey{ display:none !important; break-before:auto !important; page-break-before:auto !important }   /* 시험지만 인쇄 시: 정답지의 강제 페이지나눔까지 없애 빈 뒷장 방지(아이폰 사파리) */
     body.ponly-key .paper:not(.pkey){ display:none !important }
     body.ponly-key .pkey{ break-before:auto !important; page-break-before:auto !important; margin-top:0 !important }  /* 정답지만 인쇄 시 빈 첫 장 방지 */
   }
