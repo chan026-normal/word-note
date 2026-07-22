@@ -3663,7 +3663,14 @@ function isCorrectTyped(answer, input){
   return set.has(ni.replace(/^(to|a|an|the)\s+/,""));
 }
 /* 베트남어 답은 성조(đ/d 포함)까지 채점 — "ok"=완전정답 / "tone"=철자는 맞고 성조만 틀림 / "no"=오답 */
-function normTone(s){ return String(s).toLowerCase().replace(/[().,/;:!?'"’]/g," ").replace(/\s+/g," ").trim(); }
+/* 성조 부호 위치 통일: khoẻ=khỏe, hoà=hòa, thuý=thúy 처럼 부호를 어느 모음에 찍든 같은 단어로 봄. 성조 자체는 유지. */
+const TONEPOS = {
+  "oà":"òa","oá":"óa","oả":"ỏa","oã":"õa","oạ":"ọa",
+  "oè":"òe","oé":"óe","oẻ":"ỏe","oẽ":"õe","oẹ":"ọe",
+  "uỳ":"ùy","uý":"úy","uỷ":"ủy","uỹ":"ũy","uỵ":"ụy"
+};
+function canonTone(s){ return String(s).normalize("NFC").replace(/o[àáảãạèéẻẽẹ]|u[ỳýỷỹỵ]/g, m => TONEPOS[m] || m); }
+function normTone(s){ return canonTone(String(s).toLowerCase()).replace(/[().,/;:!?'"’]/g," ").replace(/\s+/g," ").trim(); }
 function acceptableTone(answer){
   const set=new Set();
   const add=v=>{ const n=normTone(v); if(n) set.add(n); };
@@ -5431,7 +5438,7 @@ function sentMatch(typed, answer){
   return false;
 }
 /* 성조까지 채점 — ok(성조·철자 정확) / tone(글자는 맞는데 성조·dấu만 달라 시험 감점) / no(내용도 다름) */
-function normSentTone(s){ return String(s).toLowerCase().replace(/[.,!?;:'"“”‘’…()\-–]/g," ").replace(/\s+/g," ").trim(); }  /* 성조 유지, 대소문자·부호·띄어쓰기만 무시 */
+function normSentTone(s){ return canonTone(String(s).toLowerCase()).replace(/[.,!?;:'"“”‘’…()\-–]/g," ").replace(/\s+/g," ").trim(); }  /* 성조 유지(부호 위치 통일), 대소문자·부호·띄어쓰기만 무시 */
 function gradeSent(typed, answer){
   const aT=normSentTone(typed), bT=normSentTone(answer);
   if(!aT) return "no";
