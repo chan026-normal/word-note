@@ -360,6 +360,7 @@
     .pq{break-inside:avoid}
     .pkey{ break-before:page; page-break-before:always; margin-top:0 }   /* 정답지는 새 페이지에 */
     .paper.onepage{ padding:7mm 11mm }   /* 한 장에 맞춤: 인쇄 여백도 축소 */
+    html.ios .paper.onepage{ zoom:0.9 }   /* 아이폰 사파리: @page margin:0 무시로 여백이 강제돼 2장이 되는 것 방지 — 살짝 축소해 1장 유지(갤럭시·크롬은 무영향) */
     /* 따로 인쇄: 한쪽만 보이게 */
     body.ponly-paper .pkey{ display:none !important }
     body.ponly-key .paper:not(.pkey){ display:none !important }
@@ -3772,6 +3773,9 @@ let TTS_KEEP = null, TTS_SEQ = 0;
    폰에서 pause()/resume()을 돌리면 오히려 '멈춤 상태로 굳어' 그 뒤로 전부 무음이 됨
    (동기들 제보: "되다가 갑자기 안 돼"). → 그래서 keep-alive는 PC에서만 씀. */
 const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test((navigator.userAgent||""));
+/* 아이폰/아이패드 감지 — 사파리는 인쇄 시 @page margin:0을 무시해 여백을 강제하므로, 한 장 압축이 넘쳐 2장이 됨. iOS에서만 인쇄를 살짝 축소해 1장 유지(html.ios). */
+const IS_IOS = /iPad|iPhone|iPod/i.test(navigator.userAgent||"") || (navigator.platform==="MacIntel" && (navigator.maxTouchPoints||0)>1);
+try{ if(IS_IOS) document.documentElement.classList.add("ios"); }catch(e){}
 function ttsKeepStop(){
   if(TTS_KEEP){ clearInterval(TTS_KEEP); TTS_KEEP = null; }
   // 혹시 '멈춤'으로 굳었으면 반드시 풀어줌 — 안 풀면 이후 speak()이 전부 조용히 쌓이기만 함
