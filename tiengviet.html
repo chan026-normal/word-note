@@ -6610,10 +6610,22 @@ function rangeTitle(){
 function printOnly(which){
   const cls = which==="key" ? "ponly-key" : "ponly-paper";
   document.body.classList.add(cls);
-  const cleanup = ()=>{ document.body.classList.remove(cls); window.removeEventListener("afterprint", cleanup); };
-  window.addEventListener("afterprint", cleanup);
+  let done = false;
+  const cleanup = ()=>{
+    if(done) return; done = true;
+    document.body.classList.remove(cls);
+    window.removeEventListener("afterprint", cleanup);
+    window.removeEventListener("focus", cleanup);
+    document.removeEventListener("visibilitychange", onVis);
+  };
+  const onVis = ()=>{ if(document.visibilityState === "visible") cleanup(); };
+  // 격리(한쪽만 보이기)를 '저장이 끝나고 화면으로 돌아올 때까지' 유지.
+  // 모바일은 저장 흐름이 길어 예전의 1.5초 백업이 중간에 격리를 풀어 정답지가 딸려올 수 있었음.
+  window.addEventListener("afterprint", cleanup);         // PC: 인쇄창 닫힘
+  window.addEventListener("focus", cleanup);              // 모바일: 저장 끝내고 앱으로 복귀
+  document.addEventListener("visibilitychange", onVis);   // 모바일: 인쇄시트 닫혀 화면이 다시 보임
   window.print();
-  setTimeout(cleanup, 1500);   // afterprint 미발화 브라우저 대비 백업
+  setTimeout(cleanup, 30000);   // 최후 백업(30초) — 위 이벤트가 안 오는 드문 경우 대비
 }
 /* 문장이 교재 어디에 있는지 — 정답지에 표시.
    단원은 데이터에 있고, 회화(HỘI THOẠI)는 DIALOG_RAW와 대조해 대화 번호까지 알아냄.
@@ -6626,6 +6638,20 @@ function sentSource(vn, lesson, page){
   }
   return lessonLabel(lesson) + (page?" · "+page+"쪽":"");
 }
+/* 교재 부록(번호 매긴) 목록엔 없지만 발음(PHÁT ÂM)·문법 섹션에서 가르치는 낱말 35개 —
+   그 낱말이 교재에 나오는 쪽을 정답지에만 회색으로 표시. (단원 키 → 낱말 → 교재 쪽) */
+const WORD_SRC_RAW = {
+  2:{ "nó":15, "dạ":17, "ơi":17 },
+  3:{ "mười":34, "bốn":36 },
+  4:{ "cho":51, "cần":51, "đang":53, "tiền":64, "thế nào":66 },
+  5:{ "quá":69, "khách sạn":69, "sẽ":70, "đấy":70, "sao":70, "à":71 },
+  6:{ "chỗ":90, "hoặc":90 },
+  7:{ "sắp":108, "hả":108, "nên":108, "vì":114 },
+  8:{ "được":122,"giùm":122,"ngoại ngữ":122,"thứ tiếng":122,"nghe nói":122,"hình như":122,"đọc":122,"xin":122,"nói được":122,"mới":134,"đừng":135,"thảo luận":134,"khóc":134 }
+};
+const WORD_SRC = {};
+Object.keys(WORD_SRC_RAW).forEach(L=>{ Object.keys(WORD_SRC_RAW[L]).forEach(vn=>{ WORD_SRC[L+"|"+normTone(vn)] = L+"과 "+WORD_SRC_RAW[L][vn]+"쪽"; }); });
+function wordSource(w){ return (w && w.lesson!=null) ? (WORD_SRC[w.lesson+"|"+normTone(w.vn)]||"") : ""; }
 function genPaper(bump){
   const rawPool = poolSelected();
   const lc = s => s.trim().toLowerCase();
@@ -6656,7 +6682,7 @@ function genPaper(bump){
       else continue;                                                        // 그래도 겹치면 제외
     }
     seenPrompt.add(lc(prompt));
-    qs.push({ vn:w.vn, en:w.en, dir:d, prompt, answer:d==="vn2en"?w.en:w.vn });
+    qs.push({ vn:w.vn, en:w.en, dir:d, prompt, answer:d==="vn2en"?w.en:w.vn, src:wordSource(w) });
   }
   // 단어 문제 수: 단어+문장 구성이면 40개, 단어만이면 선택한 문제 수
   const wordLimit = P.format==="wordsent" ? 40 : (P.count==="all" ? qs.length : Number(P.count));
@@ -6728,7 +6754,7 @@ function renderPaper(){
   ).join("");
   // 정답지: 시험지와 같은 레이아웃(같은 밑줄 칸)에 정답을 초록으로 채워 넣음
   const keyWords = wQs.map((q,i)=>
-    `<div class="pq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline answ">${esc(q.answer)}</span></div>`
+    `<div class="pq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline answ">${esc(q.answer)}${q.src?`<span class="psrc">${esc(q.src)}</span>`:""}</span></div>`
   ).join("");
   const keySents = sQs.map((q,i)=>
     `<div class="psq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="psp">${esc(q.prompt)}</span>${q.src?`<span class="psrc">${esc(q.src)}</span>`:""}<div class="psline answ">${esc(q.answer)}</div></div>`
