@@ -3586,7 +3586,7 @@ const dialogLessons = () => Object.keys(DIALOGS).map(Number).sort((a,b)=>a-b);
 
 
 /* ── 듣기 대본(TAPESCRIPT) — 교재 부록 3, 200~208쪽 (1~10과) ────────────────
-   CD가 없어도 듣기 연습을 할 수 있게 대본을 그대로 담고, 줄마다 한국어 해석을 붙였음.
+   교재엔 대본만 있고 음원이 없어서, 대본을 그대로 담고 앱이 읽어 주게 했음. 줄마다 한국어 해석도 붙였음.
    한 줄 = "번호|화자|베트남어|한국어" (막대 4칸).
      번호 "#" → 문제 지시문(제목 줄)
      번호 1,2,3… → 새 문항 시작 (그 아래 번호 빈 줄은 같은 문항에 이어짐)
@@ -4779,7 +4779,7 @@ function renderPassage(){
 
 /* =========================================================
    듣기 연습 — 교재 부록 3 듣기 대본(1~10과, 200~208쪽).
-   CD가 없어도 앱이 베트남어를 읽어 줌. 대본은 처음엔 흐리게 가려 두고(먼저 듣기),
+   교재에 음원이 없으므로 앱이 베트남어를 읽어 줌. 대본은 처음엔 흐리게 가려 두고(먼저 듣기),
    '대본 보기'를 누르면 확인. 문항마다 '듣기' 버튼, 줄마다 작은 발음 버튼.
    ========================================================= */
 let LIS_SHOW = new Set();     // 이 화면에서 펼쳐 둔 문항 (화면 나가면 초기화)
@@ -4839,7 +4839,7 @@ function renderListen(){
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> 듣기 연습</h2>
-      <div class="muted tiny" style="margin:-4px 0 10px">교재 <b>듣기 대본</b>(부록 3)이에요. CD가 없어도 <b>듣기</b>를 누르면 앱이 베트남어를 읽어 줘요. 대본은 흐리게 가려 두었으니 <b>먼저 듣고</b> 나서 <b>대본 보기</b>로 확인해요.</div>
+      <div class="muted tiny" style="margin:-4px 0 10px">교재 <b>듣기 대본</b>(부록 3)이에요. <b>듣기</b>를 누르면 앱이 베트남어를 읽어 줘요. 대본은 흐리게 가려 두었으니 <b>먼저 듣고</b> 나서 <b>대본 보기</b>로 확인해요.</div>
       <div class="chips gchips">${chips}</div>
       <div class="row" style="margin:-6px 0 10px">
         <button class="chip tiny${showAll?" on":""}" data-action="lisAllToggle"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-${showAll?"eye":"eye-off"}'/></svg> 대본 항상 보기</button>
