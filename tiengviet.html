@@ -4201,8 +4201,19 @@ const GRAMMAR = {
     { t:"xong — 다 ~하다", d:"「동사 + xong」 끝내다. 예: làm xong (다 했다) · đặt xong rồi (예약 다 했다)." },
     { t:"요일·날짜", d:"thứ hai(월)~thứ bảy(토), chủ nhật(일). ngày(일)·tuần(주)·tháng(달)." },
   ]},
+  10: { name:"가족 · 대조·정도·확언", items:[
+    { t:"còn (그런데, ~는요?)", d:"앞 문장과 **대조**하거나 다른 경우를 덧붙일 때 뒷 문장 맨 앞에 붙여요. 예: Bố tôi mất rồi. Còn mẹ tôi mới về hưu năm ngoái. (아버지는 돌아가셨어요. 어머니는 작년에 막 은퇴하셨고요.) 질문에서 「Còn + 사람?」이면 '그럼 ~는요?'" },
+    { t:"cùng (함께, 다 같이)", d:"「주어 + cùng + 동사/형용사」 여러 사람이 **같은 행동·같은 상태**임을 나타내요. 예: Bố mẹ tôi cùng nghỉ hưu. (부모님이 함께 은퇴하셨어요) · Ba mẹ tôi cùng tuổi. (부모님은 동갑이에요)" },
+    { t:"cùng vs cũng (헷갈림 주의)", d:"글자가 비슷하지만 뜻이 달라요. cùng은 **함께·동일**(둘이 같이 하는 것), cũng은 **~도**(앞사람에 더해서). Tôi sẽ cùng đi với em trai. (동생과 **함께** 갈 거예요) / Mẹ chị ấy cũng 68 tuổi. (그분 어머니**도** 68세예요)" },
+    { t:"khá (꽤, 제법)", d:"「khá + 형용사」 보통보다 높지만 아주 심하지는 않은 정도. rất(매우)보다 **약해요**. 예: Nhà anh ấy khá xa công ty. (그의 집은 회사에서 꽤 멀어요) · Gia đình chị ấy khá đông anh em. (그 집은 형제가 꽤 많아요)" },
+    { t:"chứ (그럼요, 당연하죠)", d:"대답 끝에 붙여 앞에서 말한 것을 **확신 있게 긍정**해요. 예: Có chứ! (그럼요!) · Bố mẹ tôi còn làm việc chứ. (부모님은 당연히 아직 일하시죠)" },
+    { t:"가족·나이 말하기", d:"Gia đình chị có mấy người? (가족이 몇 명이에요?) · Anh là con thứ mấy? (몇째예요?) → con cả(맏이) · con thứ hai(둘째) · con út(막내) · con một(외동). 나이 비교는 「A + lớn hơn / nhỏ hơn + B + 숫자 + tuổi」, 동갑이면 cùng tuổi(=bằng tuổi). 예: Em tôi nhỏ hơn tôi 4 tuổi." },
+  ]},
 };
 const gramLessons = () => Object.keys(GRAMMAR).map(Number).sort((a,b)=>a-b);
+/* 설명 속 **강조**를 굵게. esc()로 먼저 안전하게 바꾼 뒤에 ** 만 태그로 → 태그 주입 걱정 없음.
+   (그동안 별표가 화면에 그대로 보였음) */
+function gramMd(s){ return esc(s).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>"); }
 function goGrammar(){ renderGrammar(); }
 function renderGrammar(){
   let L = Number(lsGet("_gramL", 1));
@@ -4215,7 +4226,7 @@ function renderGrammar(){
   const cards = g.items.map(it=>`
     <div class="gcard">
       <div class="gt">${esc(it.t)}</div>
-      <div class="gd">${esc(it.d)}</div>
+      <div class="gd">${gramMd(it.d)}</div>
     </div>`).join("");
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>
