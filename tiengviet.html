@@ -234,6 +234,23 @@
   .pgtxt{flex:1 1 auto; min-width:0}
   .pgvn{font-weight:600; line-height:1.45}
   .pgko{color:var(--muted); font-size:13px; line-height:1.4; margin-top:1px}
+  /* 듣기 연습 (교재 듣기 대본) */
+  .lssec{margin-top:16px}
+  .lshead{font-weight:800; font-size:13.5px; color:var(--brand); line-height:1.5}
+  .lsheadko{color:var(--muted); font-size:12.5px; font-weight:600; margin:2px 0 8px; line-height:1.45}
+  .lsblk{border:1px solid var(--line); border-radius:12px; padding:2px 12px 8px; margin-bottom:10px; background:var(--card)}
+  .lsbar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:9px 0 7px}
+  .lsno{flex:0 0 auto; min-width:24px; height:24px; padding:0 7px; border-radius:8px; background:var(--brandsoft); color:var(--brand);
+        font-size:12px; font-weight:800; display:inline-flex; align-items:center; justify-content:center}
+  .lsbar .lsgap{flex:1 1 auto}
+  .lsline{display:flex; gap:8px; align-items:flex-start; padding:7px 2px; border-top:1px solid var(--line)}
+  .lsline.now{background:var(--brandsoft); border-radius:8px}
+  .lswho{flex:0 0 auto; min-width:32px; font-size:12px; font-weight:700; color:var(--accent); padding-top:2px}
+  .lstxt{flex:1 1 auto; min-width:0}
+  .lsvn{font-weight:600; line-height:1.45}
+  .lsko{color:var(--muted); font-size:13px; line-height:1.4; margin-top:1px}
+  .lsblk.hid .lstxt{filter:blur(5px); user-select:none}
+  .lshint{font-size:12.5px; color:var(--muted); padding:6px 2px 2px; line-height:1.5}
   /* 시험 대비 */
   .prepcta{display:flex; align-items:center; justify-content:space-between; width:100%;
            background:var(--brand); color:#fff; border:none; margin-bottom:10px; padding:14px 16px}
@@ -3566,6 +3583,284 @@ Object.keys(DIALOG_RAW).forEach(L=>{
   }));
 });
 const dialogLessons = () => Object.keys(DIALOGS).map(Number).sort((a,b)=>a-b);
+
+
+/* ── 듣기 대본(TAPESCRIPT) — 교재 부록 3, 200~208쪽 (1~10과) ────────────────
+   CD가 없어도 듣기 연습을 할 수 있게 대본을 그대로 담고, 줄마다 한국어 해석을 붙였음.
+   한 줄 = "번호|화자|베트남어|한국어" (막대 4칸).
+     번호 "#" → 문제 지시문(제목 줄)
+     번호 1,2,3… → 새 문항 시작 (그 아래 번호 빈 줄은 같은 문항에 이어짐)
+     화자 "Q" → 교재의 "Câu hỏi:"(질문) 줄, 빈칸이면 화자 없는 줄(서술문·글)
+   ⚠️ 막대(|)는 칸 구분용이라 본문에 쓰면 안 됨. */
+const LISTEN_RAW = {
+1: `#||1. Nghe các câu sau đây, điền từ ngữ còn thiếu vào chỗ trống.|다음 문장을 듣고, 빠진 말을 빈칸에 채우세요.
+1||Tôi xin tự giới thiệu. Tôi tên là Tom.|제 소개를 하겠습니다. 제 이름은 Tom입니다.
+2||A-lô, đây là Lee. Chào chị Vân. Chị có khỏe không?|여보세요, 저는 Lee예요. 번 씨 안녕하세요. 잘 지내세요?
+3||Tôi tên là Lệ. Xin giới thiệu với ông Năm. Đây là thầy Tú.|제 이름은 레예요. 남 선생님께 소개해 드릴게요. 이분은 뚜 선생님이세요.
+#||2. Nghe đoạn hội thoại sau đây, điền từ ngữ còn thiếu vào chỗ trống.|다음 대화를 듣고, 빠진 말을 빈칸에 채우세요.
+1|A|Chào chị.|안녕하세요.
+|B|Chào chị. Xin lỗi, chị tên là gì?|안녕하세요. 실례지만, 이름이 뭐예요?
+|A|Tôi tên là Mai. Tôi là bạn anh Tom. Còn chị, chị tên là gì?|제 이름은 마이예요. 저는 Tom 씨의 친구예요. 그런데 그쪽은 이름이 뭐예요?
+|B|Tôi tên là Mariko. Tôi cũng là bạn anh Tom. Anh Tom có khỏe không chị?|제 이름은 마리코예요. 저도 Tom 씨의 친구예요. Tom 씨는 잘 지내나요?
+|A|Anh Tom khỏe. Còn chị, chị có khỏe không, Mariko?|Tom 씨는 잘 지내요. 그런데 마리코 씨는 잘 지내요?
+|B|Cám ơn chị. Tôi khỏe. Rất vui được gặp chị Mai.|고마워요. 저는 잘 지내요. 마이 씨를 만나서 정말 반가워요.
+|A|Rất vui được gặp chị.|만나서 정말 반가워요.`,
+
+2: `#||1. Nghe và chọn câu trả lời đúng.|듣고 알맞은 답을 고르세요.
+1||Chào các bạn, tôi tên là Harumi. Tôi là người Nhật.|여러분 안녕하세요, 제 이름은 하루미예요. 저는 일본 사람이에요.
+|Q|Chị ấy là người nước nào?|그녀는 어느 나라 사람인가요?
+2|A|Chào ông Kim. Ông có khỏe không?|김 선생님 안녕하세요. 잘 지내세요?
+|B|Chào cô. Cám ơn cô, tôi khỏe.|안녕하세요. 고마워요, 저는 잘 지내요.
+|A|Bạn ông Kim là người nước nào?|김 선생님의 친구는 어느 나라 사람이에요?
+|B|Bạn tôi là người Hàn Quốc, người Mỹ và người Nhật.|제 친구들은 한국 사람, 미국 사람 그리고 일본 사람이에요.
+|Q|Bạn của ông Kim là người nước nào?|김 선생님의 친구는 어느 나라 사람인가요?
+3||Tên anh ấy không phải là Jack. Anh ấy tên là Thomas. Anh Thomas không phải là người Mỹ. Anh ấy là người Canada.|그의 이름은 Jack이 아니에요. 그의 이름은 Thomas예요. Thomas 씨는 미국 사람이 아니에요. 그는 캐나다 사람이에요.
+|Q|Anh Thomas là người nước nào?|Thomas 씨는 어느 나라 사람인가요?
+4||Xin giới thiệu với anh, đây là cô Mili. Cô ấy là người Singapore. Còn đây là bạn cô Mili. Cô ấy tên là Linda, người Úc.|소개해 드릴게요, 이분은 밀리 씨예요. 그녀는 싱가포르 사람이에요. 그리고 이분은 밀리 씨의 친구예요. 그녀의 이름은 린다이고, 호주 사람이에요.
+|Q|Chị ấy giới thiệu ai?|그녀는 누구를 소개했나요?
+#||2. Nghe một đoạn hội thoại. Điền thông tin còn thiếu vào chỗ trống.|대화를 듣고, 빠진 정보를 빈칸에 채우세요.
+1|TOÀN|Chào chị. Tôi tên là Toàn. Tôi là người Việt.|안녕하세요. 제 이름은 또안이에요. 저는 베트남 사람이에요.
+|LINDA|Chào anh. Tôi tên là Linda. Tôi là người Úc. Rất vui được gặp anh.|안녕하세요. 제 이름은 린다예요. 저는 호주 사람이에요. 만나서 반가워요.
+|TOÀN|Tôi cũng rất vui được gặp chị. Xin lỗi, chị có biết anh James không?|저도 만나서 정말 반가워요. 실례지만, James 씨를 아세요?
+|LINDA|Anh James, người Úc phải không?|James 씨, 호주 사람 맞죠?
+|TOÀN|Vâng, anh ấy là người Úc. Anh James là bạn tôi.|네, 그는 호주 사람이에요. James 씨는 제 친구예요.
+|LINDA|Tôi cũng là bạn anh James.|저도 James 씨의 친구예요.`,
+
+3: `#||1. Nghe và chọn câu trả lời đúng.|듣고 알맞은 답을 고르세요.
+1|A|Trước đây anh có học tiếng Việt không, Tom?|Tom, 예전에 베트남어를 배웠어요?
+|B|Tôi không học tiếng Việt. Tôi học tiếng Thái Lan.|저는 베트남어를 안 배웠어요. 태국어를 배웠어요.
+|A|Anh học tiếng Thái ở đâu?|태국어를 어디에서 배웠어요?
+|B|Tôi học ở Anh.|저는 영국에서 배웠어요.
+|Q|Trước đây Tom học tiếng gì?|예전에 Tom은 무슨 언어를 배웠나요?
+2|A|Chào cô. Đây là bạn của em. Bạn em muốn đăng ký học tiếng Việt.|선생님 안녕하세요. 이 사람은 제 친구예요. 제 친구가 베트남어 수업을 등록하고 싶어 해요.
+|B|Bạn em muốn đăng ký mấy tháng?|친구는 몇 달 등록하고 싶어 하나요?
+|A|Dạ, bạn em muốn học 3 tháng.|네, 제 친구는 3개월 배우고 싶어 해요.
+|Q|Bạn em ấy muốn gì?|그 학생의 친구는 무엇을 원하나요?
+3|A|Lớp tiếng Việt của chị có mấy sinh viên?|당신의 베트남어 반에는 학생이 몇 명 있어요?
+|B|Lớp tôi có 5 sinh viên.|우리 반에는 학생이 5명 있어요.
+|A|Họ là người nước nào?|그들은 어느 나라 사람이에요?
+|B|Họ đều là người Hàn Quốc.|그들은 모두 한국 사람이에요.
+|Q|Sinh viên lớp chị ấy là người nước nào?|그녀의 반 학생들은 어느 나라 사람인가요?
+4|A|Anh học tiếng Việt ở trường Đại học Sư Phạm phải không?|사범대학교에서 베트남어를 배우죠?
+|B|Không. Tôi học tiếng Việt ở Trường Đại học Khoa học Xã hội và Nhân văn.|아니요. 저는 인문사회과학대학교에서 베트남어를 배워요.
+|Q|Anh ấy học tiếng Việt ở đâu?|그는 어디에서 베트남어를 배우나요?
+#||2. Nghe một hội thoại, điền từ ngữ còn thiếu vào chỗ trống.|대화를 듣고, 빠진 말을 빈칸에 채우세요.
+1|A|Tôi đã học tiếng Anh, tiếng Hàn Quốc và tiếng Nhật.|저는 영어, 한국어 그리고 일본어를 배웠어요.
+|B|Chị học tiếng Anh ở Anh, phải không chị Loan?|로안 씨, 영어는 영국에서 배웠죠?
+|A|Không. Tôi học ở Việt Nam. Nhưng giáo viên của tôi là người Mỹ, người Anh và người Úc.|아니요. 저는 베트남에서 배웠어요. 하지만 제 선생님들은 미국 사람, 영국 사람 그리고 호주 사람이었어요.
+|B|Chị đã học tiếng Anh mấy năm?|영어를 몇 년 배웠어요?
+|A|Năm năm.|5년이요.
+|B|Còn tiếng Hàn Quốc và tiếng Nhật, chị học ở đâu?|그러면 한국어와 일본어는 어디에서 배웠어요?
+|A|Tôi học tiếng Hàn Quốc ở Seoul, Hàn Quốc. Còn tiếng Nhật tôi học ở Việt Nam. Một bạn người Nhật dạy tôi. Bạn tôi là sinh viên của anh.|저는 한국어를 한국 서울에서 배웠어요. 그리고 일본어는 베트남에서 배웠어요. 일본인 친구 한 명이 저를 가르쳐 줬어요. 제 친구는 당신의 학생이에요.
+|B|Sinh viên của tôi? À, chị Keiko phải không?|제 학생이요? 아, 케이코 씨 맞죠?
+|A|Vâng.|네.`,
+
+4: `#||1. Nghe hội thoại sau đây, chọn câu trả lời đúng.|다음 대화를 듣고, 알맞은 답을 고르세요.
+1|A|Hôm qua tôi đã đến trường Nhân văn đăng ký học tiếng Việt.|어제 저는 인문대학교에 가서 베트남어 수업을 등록했어요.
+|B|Anh học mấy ngày một tuần, anh Jinwan?|진완 씨, 일주일에 며칠 배워요?
+|A|Năm ngày một tuần. Tôi học buổi chiều, từ 1 giờ đến 5 giờ.|일주일에 5일이요. 저는 오후에 1시부터 5시까지 배워요.
+|B|Trước đây, ở Hàn Quốc anh có làm việc không?|예전에 한국에서 일했어요?
+|A|Có. Tôi làm nhân viên ở một công ty nhỏ.|네. 저는 작은 회사에서 직원으로 일했어요.
+|B|Ở Hàn Quốc, anh làm việc từ mấy giờ đến mấy giờ?|한국에서는 몇 시부터 몇 시까지 일했어요?
+|A|Từ 9 giờ sáng đến 5 giờ chiều.|아침 9시부터 오후 5시까지요.
+|B|Ở Việt Nam anh có đi làm không?|베트남에서는 일하러 다녀요?
+|A|Không. Ở Việt Nam tôi không làm việc.|아니요. 베트남에서 저는 일하지 않아요.
+#||2. Nghe đoạn văn sau đây, chọn thông tin đúng.|다음 글을 듣고, 알맞은 정보를 고르세요.
+1||Tên anh ấy là Ryan.|그의 이름은 Ryan이에요.
+||Ryan là kỹ sư.|Ryan은 엔지니어예요.
+||Ở Anh, anh ấy làm việc ở một công ty máy tính.|영국에서 그는 컴퓨터 회사에서 일했어요.
+||Anh ấy đã làm ở đó 8 năm.|그는 거기에서 8년 동안 일했어요.
+||Hiện nay Ryan đang làm việc ở Việt Nam.|지금 Ryan은 베트남에서 일하고 있어요.
+||Anh ấy cũng làm 40 giờ một tuần nhưng không đến công ty.|그도 일주일에 40시간 일하지만 회사에 가지는 않아요.
+||Anh ấy làm việc ở nhà.|그는 집에서 일해요.`,
+
+5: `#||1. Nghe các mẫu hội thoại sau đây, chọn câu trả lời đúng.|다음 대화를 듣고, 알맞은 답을 고르세요.
+1|A|Ga Sài Gòn ở đâu vậy, anh?|사이공역이 어디에 있어요?
+|B|Ở Quận 3.|3군에 있어요.
+|A|Cám ơn anh. Ngày mai tôi sẽ đến đó.|고마워요. 내일 저는 거기에 갈 거예요.
+|Q|Cô ấy hỏi gì?|그녀는 무엇을 물어봤나요?
+2|A|Hôm nay anh không khỏe à?|오늘 몸이 안 좋아요?
+|B|Ừ. Hôm nay tôi hơi mệt vì hôm qua tôi uống bia nhiều quá.|응. 어제 맥주를 너무 많이 마셔서 오늘 좀 피곤해요.
+|Q|Tại sao hôm nay anh ấy không khỏe?|왜 그는 오늘 몸이 안 좋은가요?
+3|A|Bây giờ tôi đi mua sách. Chị đi không?|지금 저는 책을 사러 가요. 같이 갈래요?
+|B|Đi mua ở nhà sách à?|서점에 사러 가요?
+|A|Không. Ở văn phòng Khoa Việt Nam học.|아니요. 베트남학과 사무실에서요.
+|Q|Họ sẽ mua sách ở đâu?|그들은 어디에서 책을 살 건가요?
+4|A|Anh có biết địa chỉ của Quán Nem không?|'꽌 냄' 주소를 아세요?
+|B|Quán Nem nào, anh?|어느 '꽌 냄'이요?
+|A|Quán Nem ở gần Trường Nhân văn.|인문대학교 근처에 있는 '꽌 냄'이요.
+|B|À, tôi biết.|아, 알아요.
+|Q|Anh ấy hỏi về địa chỉ của nơi nào?|그는 어느 곳의 주소를 물어봤나요?
+#||2. Nghe hội thoại sau đây, chọn thông tin đúng.|다음 대화를 듣고, 알맞은 정보를 고르세요.
+1|A|Ở Thành phố Hồ Chí Minh, tôi có thể đi tham quan ở đâu, anh?|호찌민시에서 저는 어디를 구경하러 갈 수 있어요?
+|B|Bưu điện Thành phố, Nhà thờ Đức Bà, chợ Bến Thành. Nhiều nơi lắm. Chị có thể đi bằng xe buýt hay tắc xi.|시 우체국, 노트르담 성당, 벤탄 시장이요. 아주 많아요. 버스나 택시로 갈 수 있어요.
+|A|Tôi thích đi bằng xe buýt. Xe buýt sẽ đi đâu anh?|저는 버스로 가는 걸 좋아해요. 버스는 어디로 가나요?
+|B|Xe buýt đi Quận 1, Quận 3.|버스는 1군, 3군으로 가요.
+|A|Đi tham quan một tiếng hay hai tiếng vậy, anh?|구경하는 데 한 시간 걸려요, 두 시간 걸려요?
+|B|Khoảng 30, 35 phút.|30분에서 35분쯤이요.
+|A|Xe buýt có đi buổi chiều không?|버스는 오후에도 다녀요?
+|B|Có, có xe buổi sáng và xe buổi chiều.|네, 아침 차도 있고 오후 차도 있어요.`,
+
+6: `#||1. Nghe các câu, các mẫu hội thoại sau đây. Chọn đáp án đúng.|다음 문장과 대화를 듣고, 알맞은 답을 고르세요.
+#||Nghe các câu từ 1 đến 5. Chọn đáp án đúng.|1번부터 5번까지 문장을 듣고, 알맞은 답을 고르세요.
+1||Tôi tên là Hai.|제 이름은 하이예요.
+2||Hôm nay nó không đi học.|오늘 걔는 학교에 안 가요.
+3||Anh học tiếng Việt từ mấy giờ?|베트남어를 몇 시부터 배워요?
+4||Em là người nước nào?|너는 어느 나라 사람이니?
+5||Chị đi đâu vậy?|어디 가세요?
+#||Nghe các mẫu hội thoại sau đây. Chọn đáp án đúng.|다음 대화를 듣고, 알맞은 답을 고르세요.
+6|A|Hôm qua tôi gặp ông Lê.|어제 저는 레 씨를 만났어요.
+|B|Thế à? Ông Lê có khỏe không anh?|그래요? 레 씨는 잘 지내세요?
+|A|Dạo này ông ấy không khỏe.|요즘 그분은 건강이 안 좋으세요.
+7|A|Tôi đã gặp bạn anh Keener.|저는 Keener 씨의 친구들을 만났어요.
+|B|Họ cũng là giáo viên tiếng Anh à?|그들도 영어 선생님이에요?
+|A|Không. Họ là sinh viên Trường Đại học Khoa học Xã hội và Nhân văn.|아니요. 그들은 인문사회과학대학교 학생이에요.
+8|A|Đây là sách của ông phải không?|이것은 선생님 책 맞죠?
+|B|Vâng, sách của tôi.|네, 제 책이에요.
+|A|Sách này bao nhiêu tiền?|이 책은 얼마예요?
+|B|Hai trăm tám mươi ngàn.|28만 동이요.
+9|A|Chào cô.|선생님 안녕하세요.
+|B|Chào chị. Hôm nay chị đến sớm quá! Bây giờ là 7 giờ rưỡi. Lớp chúng ta bắt đầu lúc 8 giờ.|안녕하세요. 오늘 정말 일찍 오셨네요! 지금 7시 반이에요. 우리 수업은 8시에 시작해요.
+|A|Vâng.|네.
+#||2. Nghe đoạn văn sau đây. Chọn câu trả lời đúng.|다음 글을 듣고, 알맞은 답을 고르세요.
+1||Xin chào, tôi tên là Thomas.|안녕하세요, 제 이름은 Thomas예요.
+||Còn đây là bạn tôi.|그리고 이 사람은 제 친구예요.
+||Anh ấy tên là Henry.|그의 이름은 Henry예요.
+||Henry đến Thành phố Hồ Chí Minh để du lịch trong ba ngày.|Henry는 3일 동안 여행하려고 호찌민시에 왔어요.
+||Tôi và Henry đã đi tham quan Bưu điện Trung tâm Thành phố, Nhà thờ Đức Bà và Bảo tàng Lịch sử.|저와 Henry는 시 중앙우체국, 노트르담 성당 그리고 역사박물관을 구경했어요.
+||Ở bưu điện tôi thấy nhiều người Việt Nam và người nước ngoài.|우체국에서 저는 베트남 사람과 외국인을 많이 봤어요.
+||Bưu điện ở gần Nhà thờ Đức Bà.|우체국은 노트르담 성당 근처에 있어요.
+||Tôi cũng mời Henry đến Trường Đại học Khoa học Xã hội và Nhân văn.|저는 Henry를 인문사회과학대학교에도 초대했어요.
+||Tôi đang học tiếng Việt ở đó.|저는 거기에서 베트남어를 배우고 있어요.
+||Bạn tôi hỏi: “Học tiếng Việt có khó không?”.|제 친구가 물었어요. “베트남어 배우는 거 어려워?”
+||Tôi trả lời là: “Không khó lắm.”|저는 대답했어요. “별로 안 어려워.”`,
+
+7: `#||1. Nghe các mẫu hội thoại, chọn câu trả lời đúng.|다음 대화를 듣고, 알맞은 답을 고르세요.
+1|A|Chị có thường ăn sáng ở nhà không?|보통 집에서 아침을 먹어요?
+|B|Có, tôi thường ăn sáng ở nhà rồi đi học.|네, 저는 보통 집에서 아침을 먹고 학교에 가요.
+|Q|Sau khi ăn sáng chị ấy thường làm gì?|아침을 먹은 뒤에 그녀는 보통 무엇을 하나요?
+2|A|Anh thường ăn trưa ở căng tin hay về nhà ăn cơm?|보통 구내식당에서 점심을 먹어요, 아니면 집에 가서 먹어요?
+|B|Tôi thường ăn trưa ở một nhà hàng gần trường đại học.|저는 보통 대학교 근처 식당에서 점심을 먹어요.
+|Q|Anh ấy thường ăn trưa ở đâu?|그는 보통 어디에서 점심을 먹나요?
+3|A|Chiều nay rảnh không? Chúng ta đi xem phim đi!|오늘 오후에 시간 있어요? 우리 영화 보러 가요!
+|B|Xin lỗi, chiều nay tôi bận. Tối mai được không?|미안해요, 오늘 오후에는 바빠요. 내일 저녁은 괜찮아요?
+|Q|Cô ấy có thể đi xem phim vào ngày nào?|그녀는 어느 날에 영화를 보러 갈 수 있나요?
+4|A|Em mệt hả, An?|안, 피곤하니?
+|B|Dạ, không. Sáng nay thức dậy sớm quá nên bây giờ em buồn ngủ.|아니요. 오늘 아침에 너무 일찍 일어나서 지금 졸려요.
+|Q|Tại sao em An buồn ngủ?|안은 왜 졸린가요?
+5|A|Chị uống cà phê không?|커피 드실래요?
+|B|Cám ơn anh. Tôi không uống cà phê.|고마워요. 저는 커피를 안 마셔요.
+|A|Ồ! Tôi uống nhiều cà phê lắm. Buổi sáng, buổi chiều, buổi tối, tôi đều uống cà phê.|오! 저는 커피를 아주 많이 마셔요. 아침, 오후, 저녁 모두 커피를 마셔요.
+|Q|Anh ấy nói gì?|그는 무엇이라고 말했나요?
+#||2. Nghe một hội thoại, chọn thông tin đúng.|대화를 듣고, 알맞은 정보를 고르세요.
+1|A|Trước đây, buổi sáng bà thức dậy sớm, tập thể dục, ăn sáng, uống cà phê rồi đi làm. Bà thường đến công ty sớm 15 phút.|예전에 할머니는 아침에 일찍 일어나서 운동하고, 아침을 먹고, 커피를 마신 뒤 일하러 갔어요. 할머니는 보통 회사에 15분 일찍 도착했어요.
+|B|Bà ăn trưa ở đâu?|할머니는 어디에서 점심을 드셨어요?
+|A|Ở căng tin của công ty. Buổi chiều, bà làm việc từ 1 giờ đến 5 giờ.|회사 구내식당에서요. 오후에는 1시부터 5시까지 일하셨어요.
+|B|Dạo này bà có đi làm không?|요즘 할머니는 일하러 다니세요?
+|A|Không, bà không đi làm.|아니요, 할머니는 일하러 다니지 않으세요.
+|B|Vậy, buổi sáng bà làm gì?|그러면 아침에 할머니는 무엇을 하세요?
+|A|Bà thức dậy sớm, tập thể dục, ăn sáng, uống cà phê, đọc báo. Buổi trưa bà ăn cơm ở nhà.|할머니는 일찍 일어나서 운동하고, 아침을 먹고, 커피를 마시고, 신문을 읽으세요. 점심에는 집에서 식사하세요.
+|B|Còn buổi chiều bà làm gì?|그러면 오후에는 무엇을 하세요?
+|A|Cũng đọc báo, cháu ạ.|역시 신문을 읽으신단다.`,
+
+8: `#||1. Nghe các hội thoại sau đây. Chọn câu trả lời đúng.|다음 대화를 듣고, 알맞은 답을 고르세요.
+1|A|Chị nói tiếng Tây Ban Nha được không?|스페인어를 할 수 있어요?
+|B|Không được. Tôi nói được tiếng Đức và tiếng Ý.|못 해요. 저는 독일어와 이탈리아어를 할 수 있어요.
+|Q|Chị ấy nói được tiếng gì?|그녀는 무슨 언어를 할 수 있나요?
+2|A|Em học tiếng Nhật bao lâu rồi, Sơn?|선, 일본어를 배운 지 얼마나 됐니?
+|B|Dạ, em học tiếng Nhật tám tháng rồi.|네, 저는 일본어를 배운 지 8개월 됐어요.
+|Q|Em Sơn học tiếng Nhật bao lâu rồi?|선은 일본어를 배운 지 얼마나 됐나요?
+3|A|Chị biết mấy ngoại ngữ?|외국어를 몇 개 아세요?
+|B|Tôi biết hai ngoại ngữ, tiếng Nhật và tiếng Việt.|저는 외국어를 두 개 알아요, 일본어와 베트남어요.
+|A|Tôi không biết tiếng Nhật. Học tiếng Nhật có khó không chị?|저는 일본어를 몰라요. 일본어 배우는 거 어려워요?
+|B|Hơi khó.|조금 어려워요.
+|Q|Chị ấy biết ngoại ngữ gì?|그녀는 무슨 외국어를 아나요?
+4|A|Tôi thường lên mạng để xem tin tức.|저는 뉴스를 보려고 자주 인터넷에 접속해요.
+|B|Anh xem tin tức tiếng Việt hay tiếng Anh?|베트남어 뉴스를 봐요, 영어 뉴스를 봐요?
+|A|Tôi xem tin tức tiếng Anh.|저는 영어 뉴스를 봐요.
+|B|Tôi cũng thường lên mạng nhưng tôi không xem tin tức.|저도 자주 인터넷을 하지만 뉴스는 안 봐요.
+|A|Chị xem gì?|무엇을 보세요?
+|B|Xem phim Hàn Quốc.|한국 영화를 봐요.
+|Q|Anh ấy lên mạng để làm gì?|그는 무엇을 하려고 인터넷에 접속하나요?
+#||2. Nghe một đoạn văn. Điền từ ngữ còn thiếu vào chỗ trống.|글을 듣고, 빠진 말을 빈칸에 채우세요.
+1||Đây là Mây, Sơn và Hoàng.|이 사람들은 머이, 선 그리고 호앙이에요.
+||Mây giỏi ngoại ngữ, thích nghe nhạc tiếng Pháp, đọc báo tiếng Anh và xem phim trên Netflix.|머이는 외국어를 잘하고, 프랑스어 노래 듣기, 영어 신문 읽기, 넷플릭스로 영화 보기를 좋아해요.
+||Sơn cũng giỏi ngoại ngữ.|선도 외국어를 잘해요.
+||Sơn đã học ở Hàn Quốc hai năm, học tiếng Anh ở Úc ba năm.|선은 한국에서 2년 공부했고, 호주에서 영어를 3년 배웠어요.
+||Hoàng không biết nhiều ngoại ngữ nhưng anh ấy thích xem phim Hàn Quốc và thường nghe nhạc K-pop.|호앙은 외국어를 많이 알지는 못하지만 한국 영화 보는 것을 좋아하고 K팝을 자주 들어요.
+||Hoàng mới học tiếng Hàn Quốc khoảng 2 tháng.|호앙은 한국어를 배운 지 이제 2개월쯤 됐어요.`,
+
+9: `#||1. Nghe các mẫu hội thoại, chọn câu trả lời đúng.|다음 대화를 듣고, 알맞은 답을 고르세요.
+1|A|Sắp đến sinh nhật của Emily đấy!|곧 Emily의 생일이야!
+|B|Bao giờ?|언제?
+|A|Ngày 25, thứ sáu tuần sau.|다음 주 금요일, 25일이야.
+|Q|Bao giờ đến sinh nhật của Emily?|Emily의 생일은 언제인가요?
+2|A|Hôm nay là thứ hai hả, chị?|오늘 월요일이에요?
+|B|Ừ. Hôm nay thứ hai.|응. 오늘 월요일이야.
+|A|Anh David và chị Loan đi công tác bao giờ vậy chị?|David 씨와 로안 씨는 언제 출장 갔어요?
+|B|Hai ngày trước.|이틀 전에.
+|Q|Anh David và chị Loan đi công tác bao giờ?|David 씨와 로안 씨는 언제 출장을 갔나요?
+3|A|Em đặt tour du lịch chưa?|여행 상품 예약했니?
+|B|Dạ, rồi. Em đặt rồi, 5 ngày 4 đêm.|네, 했어요. 4박 5일로 예약했어요.
+|Q|Em ấy đã làm gì?|그 아이는 무엇을 했나요?
+4|A|Tôi gặp ba mẹ chị Hà rồi. Ba mẹ chị ấy lớn tuổi nhưng khỏe lắm.|저는 하 씨의 부모님을 만났어요. 그분들은 연세가 많으시지만 아주 건강하세요.
+|B|Thế à? Ba mẹ chị ấy sinh năm nào?|그래요? 그분들은 몇 년생이세요?
+|A|Hai người đều sinh năm 1964.|두 분 모두 1964년생이세요.
+|Q|Ba mẹ chị Hà sinh năm bao nhiêu?|하 씨의 부모님은 몇 년에 태어났나요?
+#||2. Nghe cuộc hội thoại giữa hai người bạn. Chọn thông tin đúng.|두 친구의 대화를 듣고, 알맞은 정보를 고르세요.
+1|A|Tháng 12 năm nay tôi sẽ đi Thái Lan.|올해 12월에 저는 태국에 갈 거예요.
+|B|Anh đi du lịch hả?|여행 가는 거예요?
+|A|Không. Tôi đi Thái để làm việc.|아니요. 저는 일하러 태국에 가요.
+|B|Sao anh không làm ở Việt Nam nữa?|왜 더 이상 베트남에서 일하지 않아요?
+|A|Tôi đã làm ở Việt Nam 3 năm rồi. Hiện nay công ty tôi có một văn phòng ở Thái. Tôi sẽ đến đó làm việc.|저는 베트남에서 3년 일했어요. 지금 우리 회사는 태국에 사무실이 하나 있어요. 저는 거기에 가서 일할 거예요.
+|B|Ở Thái khi làm việc anh sẽ dùng tiếng Anh hay tiếng Thái?|태국에서 일할 때 영어를 쓸 거예요, 태국어를 쓸 거예요?
+|A|Tiếng Anh. Vì nhân viên ở văn phòng đó đều nói được tiếng Anh nên tôi không cần nói tiếng Thái.|영어요. 그 사무실 직원들이 모두 영어를 할 수 있어서 저는 태국어를 할 필요가 없어요.
+|B|Anh nói được tiếng Thái à?|태국어를 할 수 있어요?
+|A|Được. Trước đây tôi đã học tiếng Thái gần một năm rưỡi.|할 수 있어요. 예전에 저는 태국어를 1년 반 가까이 배웠어요.`,
+
+10: `#||1. Nghe cuộc hội thoại sau đây, chọn câu trả lời đúng.|다음 대화를 듣고, 알맞은 답을 고르세요.
+1|A|Người đang nói chuyện với chị Loan là ai vậy, chị?|로안 씨와 이야기하고 있는 사람은 누구예요?
+|B|Em gái của anh Dũng đấy!|융 씨의 여동생이야!
+|A|Em anh Dũng bao nhiêu tuổi?|융 씨의 동생은 몇 살이에요?
+|B|21 tuổi.|21살이야.
+|A|Đang là sinh viên à?|학생이에요?
+|B|Không. Cô ấy làm nhân viên siêu thị.|아니. 그녀는 마트 직원으로 일해.
+|A|Cô ấy có gia đình chưa?|그녀는 결혼했어요?
+|B|Rồi. Có gia đình 2 năm rồi, lúc 19 tuổi. Có 1 con trai rồi đấy!|했어. 결혼한 지 2년 됐어, 19살 때. 벌써 아들이 하나 있어!
+|A|Chồng cô ấy làm gì?|그녀의 남편은 무슨 일을 해요?
+|B|Bác sĩ bệnh viện Sài Gòn.|사이공 병원 의사야.
+#||2. Nghe một đoạn văn, điền thông tin thích hợp vào chỗ trống.|글을 듣고, 알맞은 정보를 빈칸에 채우세요.
+1||Toàn có hai chị gái.|또안은 누나가 두 명 있어요.
+||Chị cả của anh ấy năm nay 34 tuổi.|그의 큰누나는 올해 34살이에요.
+||Chị thứ hai nhỏ hơn chị cả 2 tuổi.|둘째 누나는 큰누나보다 2살 어려요.
+||Ba mẹ của họ đã lớn tuổi.|그들의 부모님은 연세가 많으세요.
+||Trước đây ba của Toàn là giáo viên tiếng Pháp.|예전에 또안의 아버지는 프랑스어 선생님이었어요.
+||Mẹ anh ấy làm nội trợ.|그의 어머니는 주부예요.
+||Bà ấy thường ở nhà nấu ăn, dọn dẹp, xem tivi, đi ngủ sớm và thức dậy sớm.|어머니는 보통 집에서 요리하고, 청소하고, 텔레비전을 보고, 일찍 자고 일찍 일어나세요.
+||Chị cả của Toàn là nhân viên văn phòng.|또안의 큰누나는 회사원이에요.
+||Chị có một con gái và một con trai.|큰누나는 딸 하나와 아들 하나가 있어요.
+||Chị thứ hai của Toàn lập gia đình khá trẻ.|또안의 둘째 누나는 꽤 어린 나이에 결혼했어요.
+||Chị ấy cũng là nhân viên văn phòng.|그녀도 회사원이에요.`
+};
+/* 대본 문자열 → 화면에서 쓰기 쉬운 모양으로. LISTEN[과] = [ {d:지시문, dk:해석, groups:[{no, lines:[{who,vn,ko}]}]} ] */
+const LISTEN = {};
+Object.keys(LISTEN_RAW).forEach(L=>{
+  const secs = [];
+  let sec = null, grp = null;
+  String(LISTEN_RAW[L]).trim().split("\n").forEach(row=>{
+    const p = row.split("|");
+    const num=(p[0]||"").trim(), who=(p[1]||"").trim(), vn=(p[2]||"").trim(), ko=(p[3]||"").trim();
+    if(num === "#"){ sec = { d:vn, dk:ko, groups:[] }; secs.push(sec); grp = null; return; }
+    if(!vn) return;
+    if(!sec){ sec = { d:"", dk:"", groups:[] }; secs.push(sec); }
+    if(num || !grp){ grp = { no:num, lines:[] }; sec.groups.push(grp); }
+    grp.lines.push({ who, vn, ko });
+  });
+  LISTEN[Number(L)] = secs;
+});
+const listenLessons = () => Object.keys(LISTEN).map(Number).sort((a,b)=>a-b);
+/* 대본 쪽수(교재 부록 3) — 어느 쪽을 보고 있는지 표시용 */
+const LISTEN_PAGE = { 1:200, 2:200, 3:201, 4:202, 5:203, 6:204, 7:205, 8:206, 9:207, 10:208 };
 /* 빈칸 후보에서 뺄 고유명사(등장인물·지명·상호) — 뚫어봐야 학습에 도움 안 됨 */
 const DLG_NAMES = new Set(["david","van","vân","eun","ji","brian","kate","hiroki","loan","lee","toan","toàn","dorothy","dung","dũng","min","fahasa","google","youtube","ila","c308","nguyen","nguyễn","hue","huệ","dinh","đinh","tien","tiên","hoang","hoàng","singapore"]);
 
@@ -4482,6 +4777,83 @@ function renderPassage(){
   `);
 }
 
+/* =========================================================
+   듣기 연습 — 교재 부록 3 듣기 대본(1~10과, 200~208쪽).
+   CD가 없어도 앱이 베트남어를 읽어 줌. 대본은 처음엔 흐리게 가려 두고(먼저 듣기),
+   '대본 보기'를 누르면 확인. 문항마다 '듣기' 버튼, 줄마다 작은 발음 버튼.
+   ========================================================= */
+let LIS_SHOW = new Set();     // 이 화면에서 펼쳐 둔 문항 (화면 나가면 초기화)
+let LIS_PLAYK = null;         // 지금 재생 중인 문항 키 "섹션-문항"
+function lisLesson(){
+  const Ls = listenLessons();
+  let L = Number(lsGet("_lisL", Ls[0] || 1));
+  if(!Ls.includes(L)) L = Ls[0];
+  return L;
+}
+function lisGroup(s, g){
+  const sec = (LISTEN[lisLesson()] || [])[s];
+  return sec ? sec.groups[g] : null;
+}
+function lisHighlight(i){
+  view.querySelectorAll(".lsline.now").forEach(el=>el.classList.remove("now"));
+  if(!LIS_PLAYK) return;
+  const blk = view.querySelector('.lsblk[data-k="'+LIS_PLAYK+'"]');
+  if(!blk) return;
+  const el = blk.querySelectorAll(".lsline")[i];
+  if(el) el.classList.add("now");
+}
+function lisClearPlay(){
+  LIS_PLAYK = null;
+  view.querySelectorAll(".lsline.now").forEach(el=>el.classList.remove("now"));
+}
+function goListen(){ LIS_SHOW = new Set(); LIS_PLAYK = null; renderListen(); }
+function renderListen(){
+  const Ls = listenLessons();
+  const L = lisLesson();
+  state.screen = "listen:" + L;
+  const showAll = lsGet("_lisAll", false) === true;
+  const showKo  = lsGet("_lisKo", true) !== false;
+  const chips = Ls.map(l=>`<button class="chip${l===L?" on":""}" data-action="listenLesson" data-l="${l}">${esc(lessonName(l))}</button>`).join("");
+  const secs = LISTEN[L] || [];
+  const body = secs.map((sec, si)=>{
+    const groups = sec.groups.map((grp, gi)=>{
+      const k = si + "-" + gi;
+      const open = showAll || LIS_SHOW.has(k);
+      const lines = grp.lines.map(x=>`<div class="lsline">${x.who?`<span class="lswho">${esc(x.who==="Q"?"질문":x.who)}</span>`:`<span class="lswho"></span>`}<div class="lstxt"><div class="lsvn">${esc(x.vn)}</div>${showKo?`<div class="lsko">${esc(x.ko)}</div>`:""}</div>${spkBtn(x.vn,"vi-VN",true)}</div>`).join("");
+      return `<div class="lsblk${open?"":" hid"}" data-k="${k}">
+        <div class="lsbar">
+          ${grp.no?`<span class="lsno">${esc(grp.no)}</span>`:""}
+          <button class="chip tiny" data-action="lisPlay" data-s="${si}" data-g="${gi}"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 듣기</button>
+          <span class="lsgap"></span>
+          <button class="chip tiny" data-action="lisOpen" data-k="${k}"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-${open?"eye-off":"eye"}'/></svg> ${open?"가리기":"대본 보기"}</button>
+        </div>
+        ${lines}
+      </div>`;
+    }).join("");
+    const head = sec.d ? `<div class="lshead">${esc(sec.d)}</div>${sec.dk?`<div class="lsheadko">${esc(sec.dk)}</div>`:""}` : "";
+    return `<div class="lssec">${head}${groups}</div>`;
+  }).join("");
+  const empty = secs.length ? "" : `<div class="muted center" style="padding:16px">이 단원엔 아직 대본이 없어요.</div>`;
+  const page = LISTEN_PAGE[L];
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> 듣기 연습</h2>
+      <div class="muted tiny" style="margin:-4px 0 10px">교재 <b>듣기 대본</b>(부록 3)이에요. CD가 없어도 <b>듣기</b>를 누르면 앱이 베트남어를 읽어 줘요. 대본은 흐리게 가려 두었으니 <b>먼저 듣고</b> 나서 <b>대본 보기</b>로 확인해요.</div>
+      <div class="chips gchips">${chips}</div>
+      <div class="row" style="margin:-6px 0 10px">
+        <button class="chip tiny${showAll?" on":""}" data-action="lisAllToggle"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-${showAll?"eye":"eye-off"}'/></svg> 대본 항상 보기</button>
+        <button class="chip tiny${showKo?" on":""}" data-action="lisKoToggle">한국어 해석</button>
+        <button class="chip tiny" data-action="lisStop">소리 끄기</button>
+      </div>
+      <div class="ghead">${esc(lessonName(L))}${page?` · ${page}쪽`:""}</div>
+      ${body}${empty}
+      <div class="lshint">문항의 <b>듣기</b>는 그 문항을 처음부터 끝까지 이어서 읽어 주고, 줄 옆 작은 버튼은 그 한 줄만 읽어 줘요.</div>
+    </div>
+    <button class="btn line" style="margin-top:10px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
+  `);
+}
+
 function renderHome(){
   state.screen = "home";
   const noteCount = loadNote().length;
@@ -4551,6 +4923,7 @@ function renderHome(){
       <button class="lrow" data-action="goSkill" data-skill="exam"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg><span class="lr-nm">실전 시험</span><span class="lr-meta">단어 40 + 문장 10</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goSkill" data-skill="flash"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg><span class="lr-nm">플래시카드</span><span class="lr-meta">암기·복습</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goPassage"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">지문 해석</span><span class="lr-meta">대화·읽기·받아쓰기</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goListen"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg><span class="lr-nm">듣기 연습</span><span class="lr-meta">교재 듣기 대본 · 1~10과</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goGrammar"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg><span class="lr-nm">문법 정리</span><span class="lr-meta">단원별</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
     </div>
 
@@ -6861,9 +7234,22 @@ function bindPaperCustom(){
    6) 클릭 이벤트 연결
    ========================================================= */
 const actions = {
-  goHome, goList, goAdd, goGrammar, goPassage,
+  goHome, goList, goAdd, goGrammar, goPassage, goListen,
   gramLesson:(el)=>{ lsSet("_gramL", Number(el.dataset.l)); renderGrammar(); },
   passageLesson:(el)=>{ lsSet("_passL", Number(el.dataset.l)); renderPassage(); },
+  listenLesson:(el)=>{ stopSpeak(); LIS_SHOW = new Set(); LIS_PLAYK = null; lsSet("_lisL", Number(el.dataset.l)); renderListen(); },
+  lisPlay:(el)=>{
+    const s = Number(el.dataset.s), g = Number(el.dataset.g);
+    const grp = lisGroup(s, g);
+    if(!grp) return;
+    LIS_PLAYK = s + "-" + g;
+    /* ⚠️ 아이폰은 '누른 그 순간' 재생돼야 소리가 남 → 여기서 바로 호출(미루지 않기) */
+    speakLines(grp.lines.map(x=>x.vn), lisHighlight, lisClearPlay);
+  },
+  lisOpen:(el)=>{ const k = el.dataset.k; if(LIS_SHOW.has(k)) LIS_SHOW.delete(k); else LIS_SHOW.add(k); renderListen(); },
+  lisAllToggle:()=>{ const on = lsGet("_lisAll", false) === true; lsSet("_lisAll", !on); if(on) LIS_SHOW = new Set(); renderListen(); },
+  lisKoToggle:()=>{ lsSet("_lisKo", !(lsGet("_lisKo", true) !== false)); renderListen(); },
+  lisStop:()=>{ stopSpeak(); lisClearPlay(); },
   goPrep, prepStart, prepResume, prepGrade, prepSkip, prepNext, quitPrep,
   start, retryLast, retryWrong, retryWrongQ:retryWrong,
   openExternal,   // 카톡 등 앱 안 브라우저 → 크롬·사파리로 다시 열기 (거기서만 소리가 남)
