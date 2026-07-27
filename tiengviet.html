@@ -5236,7 +5236,12 @@ function lessonsList(){
   if(WORDS.some(w=>w.lesson==="custom")) nums.push("custom");
   return nums;
 }
-const LESSON_NAMES = { 13: "오늘 배운 ★", 14: "7/2 복습",
+const LESSON_NAMES = {
+  /* 1~12 = 교재 1권 BÀI 1~12. 33~44(교재2)와 나란히 놓였을 때 어느 책 단어인지 바로 알게 "교재1"을 앞에 붙임.
+     (예전엔 이름이 없어 "Lesson 1"로 새어 나왔고, 옆의 "교재2 · 1과"와 짝이 안 맞아 헷갈렸음) */
+  1: "교재1 · 1과", 2: "교재1 · 2과", 3: "교재1 · 3과", 4: "교재1 · 4과", 5: "교재1 · 5과", 6: "교재1 · 6과",
+  7: "교재1 · 7과", 8: "교재1 · 8과", 9: "교재1 · 9과", 10: "교재1 · 10과", 11: "교재1 · 11과", 12: "교재1 · 12과",
+  13: "오늘 배운 ★", 14: "7/2 복습",
   /* 15~26 = 《Useful Vietnamese for Expats》 — 원교재와 별개 자료라 "Expats · 주제"로 표기(같은 시리즈 오해 방지) */
   15: "Expats · 분류사", 16: "Expats · 생활용품",
   17: "Expats · 오토바이", 18: "Expats · 위치", 19: "Expats · 집과 방", 20: "Expats · 집안 물건",
@@ -5249,6 +5254,23 @@ const lessonLabel = l => l==="custom" ? "내 단어" : (typeof l==="number" ? (L
 /* 한국어 '과' 표기용: 이름이 있으면 이름(오늘 배운 ★ · 2권 1과 …), 없으면 "N과".
    → 13·14(개인)·15~26(2권)이 맨숫자 "15과"로 새지 않게(교재 연장선 오해 방지). */
 const lessonName = l => l==="custom" ? "내 단어" : (LESSON_NAMES[l] ? LESSON_NAMES[l] : (l+"과"));
+/* 시험지 정답지처럼 자리가 좁은 곳에 쓰는 짧은 꼬리표: "교재1 · 2과" → "교재1 2과" (가운뎃점만 뺌) */
+const lessonSrcTag = l => lessonName(l).replace(" · ", " ");
+/* 고른 단원이 많으면 제목이 한없이 길어지므로 이어지는 과를 묶어서 표기.
+   [1,2,3,33,34] → "교재1 1~3과, 교재2 1~2과" */
+function compactLessons(ls){
+  const part = l => { const m = (LESSON_NAMES[l]||"").match(/^(.+) · (\d+)과$/); return m ? {book:m[1], n:Number(m[2])} : null; };
+  const out = []; let i = 0;
+  while(i < ls.length){
+    const p = part(ls[i]);
+    if(!p){ out.push(lessonName(ls[i])); i++; continue; }
+    let j = i, last = p.n, q;
+    while(j+1 < ls.length && (q = part(ls[j+1])) && q.book===p.book && q.n===last+1){ j++; last = q.n; }
+    out.push(j>i ? `${p.book} ${p.n}~${last}과` : `${p.book} ${p.n}과`);
+    i = j+1;
+  }
+  return out.join(", ");
+}
 
 /* 남부(호치민)말 → 북부(하노이)말 병기.
    교재가 호치민에서 만든 것이라 남부말만 실린 단어가 있음. 표준어(하노이)도 같이 알아두라고 보여줌.
@@ -5774,7 +5796,17 @@ function selectionBlockHTML(showCount){
       </div>
       <div class="rsum"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pin'/></svg> ${lessonLabel(WORDS[a].lesson)} ${WORDS[a].num}번 <b>${esc(WORDS[a].vn)}</b> ~ ${lessonLabel(WORDS[b].lesson)} ${WORDS[b].num}번 <b>${esc(WORDS[b].vn)}</b></div>
     </div>`;
+  /* 단원 칩이 40개가 넘어 교재 단위로 한 번에 고를 수 있게(단어 리스트 화면의 '빠른 선택'과 같은 묶음) */
+  const bundles = `
+      <div class="muted tiny" style="margin-bottom:6px">교재별로 한 번에 고르기</div>
+      <div class="row" style="margin-bottom:10px">
+        <button class="chip" data-action="selBundle" data-g="t1">교재1권 전체</button>
+        <button class="chip" data-action="selBundle" data-g="t2">교재2권 전체</button>
+        <button class="chip" data-action="selBundle" data-g="ex">Expats 전체</button>
+        <button class="chip" data-action="selBundle" data-g="th">주제별 전체</button>
+      </div>`;
   const selBlock = state.selMode==="range" ? rangeBlock : `
+      ${bundles}
       <div class="row">${chips}</div>
       <div class="row" style="margin-top:10px">
         <button class="chip" data-action="allLessons">전체 선택</button>
@@ -5885,7 +5917,7 @@ function renderGrammar(){
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg> 문법 정리</h2>
       <div class="muted tiny" style="margin:-4px 0 10px">각 단원의 핵심 문법이에요. 교재 순서대로 훑어보세요.</div>
       <div class="chips gchips">${chips}</div>
-      <div class="ghead">Lesson ${L} · ${esc(g.name)}</div>
+      <div class="ghead">${esc(lessonName(L))} · ${esc(g.name)}</div>
       ${cards}
     </div>
     <button class="btn line" style="margin-top:10px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
@@ -5921,6 +5953,8 @@ const prepDeck = () => WORDS;                         // 전체 단어장(교재
 const PREP_PICK = new Set(lsGet("_prepPick", []) || []);
 function prepPickSave(){ lsSet("_prepPick", [...PREP_PICK]); }
 function prepPool(){ return PREP_PICK.size ? WORDS.filter(w=>PREP_PICK.has(w.lesson)) : WORDS; }
+/* 교재 묶음의 단원 번호 — 시험 대비 '공부 범위'(prepRange), 단어 리스트 '빠른 선택'(plBundle),
+   시험지·시험 대비 범위 고르기(selBundle) 세 곳이 같이 씀. 단원이 늘면 여기만 고치면 됨. */
 const PREP_RANGES = { t1:[1,12], ex:[15,26], th:[27,32], t2:[33,44] };   // 교재1권 · Expats · 흔한어휘 · 교재2권
 const inBook2 = l => typeof l==="number" && l>=33 && l<=44;
 function prepRangeLessons(g){                          // g="all"이면 빈 배열(= 전체)
@@ -6755,7 +6789,7 @@ function renderSetup(){
   const rangeCard = (studyDlg||studyCt) ? ""
     : studySent
     ? `<div class="card"><h2>① 단원 (문장)</h2>
-         <div class="row">${sentLessons().map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="studySentLesson" data-l="${l}">Lesson ${l} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
+         <div class="row">${sentLessons().map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="studySentLesson" data-l="${l}">${esc(lessonLabel(l))} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
        </div>`
     : `<div class="card"><h2>① 공부할 범위</h2>${selectionBlockHTML(true)}</div>`;
   const countSeg = (s.count && !studyDlg && !studyCt && !isBulk) ? `
@@ -8520,7 +8554,7 @@ const P = { dir:"random", count:"all", format:"wordsent", version:0, wordQs:[], 
 function rangeTitle(){
   if(state.selMode==="range"){ const [a,b]=rangeBounds(); return `${lessonLabel(WORDS[a].lesson)} ${WORDS[a].num}번 ~ ${lessonLabel(WORDS[b].lesson)} ${WORDS[b].num}번`; }
   const ls=[...state.lessons].filter(l=>l!=="custom").sort((a,b)=>a-b);
-  return ls.length ? ls.map(l=> lessonName(l)).join(", ")+(state.lessons.has("custom")?", 내 단어":"") : "선택 범위";
+  return ls.length ? compactLessons(ls)+(state.lessons.has("custom")?", 내 단어":"") : "선택 범위";
 }
 // 시험지 / 정답지 따로 인쇄: body에 클래스 잠깐 붙여 한쪽만 보이게 한 뒤 print
 function printOnly(which){
@@ -8550,9 +8584,9 @@ function sentSource(vn, lesson, page){
   const k = norm(vn);
   for(const d of (DIALOGS[lesson]||[])){            // 회화면 대화 번호 + 그 쪽
     if(d.lines.some(ln=>norm(ln.vn)===k))
-      return lessonLabel(lesson)+" 회화"+d.no + (d.page?" · "+d.page+"쪽":"");
+      return lessonSrcTag(lesson)+" 회화"+d.no + (d.page?" · "+d.page+"쪽":"");
   }
-  return lessonLabel(lesson) + (page?" · "+page+"쪽":"");
+  return lessonSrcTag(lesson) + (page?" · "+page+"쪽":"");
 }
 /* 교재 부록(번호 매긴) 목록엔 없지만 발음(PHÁT ÂM)·문법 섹션에서 가르치는 낱말 35개 —
    그 낱말이 교재에 나오는 쪽을 정답지에만 회색으로 표시. (단원 키 → 낱말 → 교재 쪽) */
@@ -8566,8 +8600,11 @@ const WORD_SRC_RAW = {
   8:{ "được":122,"giùm":122,"ngoại ngữ":122,"thứ tiếng":122,"nghe nói":122,"hình như":122,"đọc":122,"xin":122,"nói được":122,"mới":134,"đừng":135,"thảo luận":134,"khóc":134 }
 };
 const WORD_SRC = {};
-Object.keys(WORD_SRC_RAW).forEach(L=>{ Object.keys(WORD_SRC_RAW[L]).forEach(vn=>{ WORD_SRC[L+"|"+normTone(vn)] = L+"과 "+WORD_SRC_RAW[L][vn]+"쪽"; }); });
-function wordSource(w){ return (w && w.lesson!=null) ? (WORD_SRC[w.lesson+"|"+normTone(w.vn)]||"") : ""; }
+Object.keys(WORD_SRC_RAW).forEach(L=>{ Object.keys(WORD_SRC_RAW[L]).forEach(vn=>{ WORD_SRC[L+"|"+normTone(vn)] = lessonSrcTag(Number(L))+" "+WORD_SRC_RAW[L][vn]+"쪽"; }); });
+/* 정답지에 "이 단어가 어디서 나온 건지" 표시.
+   쪽번호를 아는 35개는 "교재1 2과 15쪽", 나머지는 최소한 어느 교재 몇 과인지("교재1 2과")라도 보여준다.
+   직접 출제한 문제는 lesson이 없어 빈 값 → 아무것도 안 붙음. */
+function wordSource(w){ return (w && w.lesson!=null) ? (WORD_SRC[w.lesson+"|"+normTone(w.vn)] || lessonSrcTag(w.lesson)) : ""; }
 function genPaper(bump){
   const rawPool = poolSelected();
   const lc = s => s.trim().toLowerCase();
@@ -8710,7 +8747,7 @@ function renderPaper(){
         ${isWS ? `<label class="fld">문장 범위 <span style="font-weight:600;color:var(--muted)">(2부 문장)</span></label>
         <div class="row">
           <button class="chip ${P.sentPick.size===0?"on":""}" data-action="paperSentLesson" data-l="all">전체 <small>${allPaperSentences().length}</small></button>
-          ${sentLessons().map(l=>`<button class="chip ${P.sentPick.has(l)?"on":""}" data-action="paperSentLesson" data-l="${l}">Lesson ${l} <small>${paperSents(l).length}</small></button>`).join("")}
+          ${sentLessons().map(l=>`<button class="chip ${P.sentPick.has(l)?"on":""}" data-action="paperSentLesson" data-l="${l}">${esc(lessonLabel(l))} <small>${paperSents(l).length}</small></button>`).join("")}
         </div>`:""}
         <label class="fld">출제 방향</label>
         <div class="seg">
@@ -8798,7 +8835,7 @@ const actions = {
   plAll:()=>{ PL.pick.clear(); renderPrepList(); },
   /* 자주 쓰는 묶음을 한 번에 고르기(단원 칩이 40개가 넘어 하나씩 누르기 번거로움) */
   plBundle:(el)=>{
-    const R = { t1:[1,12], t2:[33,44], ex:[15,26], th:[27,32] }[el.dataset.g];
+    const R = PREP_RANGES[el.dataset.g];              // 묶음 범위는 PREP_RANGES 한 곳에만 적어둠
     if(!R) return;
     PL.pick.clear();
     lessonsList().forEach(l=>{ if(typeof l==="number" && l>=R[0] && l<=R[1]) PL.pick.add(l); });
@@ -8836,6 +8873,14 @@ const actions = {
   toggleLesson:(el)=>{ const l=el.dataset.l==="custom"?"custom":Number(el.dataset.l); if(state.lessons.has(l)) state.lessons.delete(l); else state.lessons.add(l); refresh(); },
   allLessons:()=>{ lessonsList().forEach(l=>state.lessons.add(l)); refresh(); },
   noLessons:()=>{ state.lessons.clear(); refresh(); },
+  /* 교재 단위 빠른 선택: 그 교재의 단원만 남기고 나머지는 해제(칩을 12번 누르지 않아도 되게) */
+  selBundle:(el)=>{
+    const R = PREP_RANGES[el.dataset.g];              // 묶음 범위는 PREP_RANGES 한 곳에만 적어둠
+    if(!R) return;
+    state.lessons.clear();
+    lessonsList().forEach(l=>{ if(typeof l==="number" && l>=R[0] && l<=R[1]) state.lessons.add(l); });
+    refresh();
+  },
   selMode:(el)=>{ state.selMode=el.dataset.v; lsSet("_selMode",state.selMode); refresh(); },
   goPaper:()=>genPaper(false),
   paperDir:(el)=>{ P.dir=el.dataset.v; paperKeep(()=>genPaper(false)); },
