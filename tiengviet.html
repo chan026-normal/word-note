@@ -366,6 +366,22 @@
   .pkq b{color:#777; font-weight:700}
   .pkq i{font-style:normal; color:#1a7a4f; font-weight:700}   /* 정답 강조 */
   .pkey{ margin-top:14px }
+  /* 필기용 단어 리스트(인쇄): 베트남어와 뜻이 둘 다 보이는 목록. 보고 공책에 옮겨 적는 용도.
+     칸(column-count)으로 흘려서 단어가 많으면 A4 여러 장으로 알아서 넘어감. */
+  .plsub{font-size:12px; color:#555; text-align:center; margin:6px 0 14px}
+  .plist{column-count:2; column-gap:24px}
+  .plist.c1{column-count:1}
+  .plist.c3{column-count:3; column-gap:15px}
+  .plrow{display:flex; align-items:baseline; gap:6px; font-size:13px; color:#111; padding:3.5px 0;
+         border-bottom:1px dotted #ddd; break-inside:avoid; page-break-inside:avoid; -webkit-column-break-inside:avoid}
+  .plnum{flex:none; min-width:23px; text-align:right; color:#999; font-weight:700; font-size:10.5px}
+  .plvn{font-weight:800}
+  .plko{margin-left:auto; text-align:right; color:#444; font-size:11.5px; overflow-wrap:anywhere}
+  .plist.c3 .plrow{font-size:11.5px; padding:2.5px 0}
+  .plist.c3 .plko{font-size:10.5px}
+  .plist.c1 .plrow{font-size:14px; padding:5px 0}
+  .pllz{font-size:12.5px; font-weight:800; color:#111; background:#f1f2f4; border-radius:6px;
+        padding:4px 8px; margin:10px 0 4px; break-inside:avoid; break-after:avoid}
   @media (min-width:560px){ .pgrid{grid-template-columns:1fr 1fr; grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)} }
   @page{ margin:0; }   /* 브라우저 자동 머리글·바닥글(날짜·페이지번호·주소) 제거 */
   @media print{
@@ -1725,7 +1741,612 @@ cuộc họp|회의
 giấy tờ|서류
 kế hoạch|계획
 lương|월급, 급여
-việc|일, 용무`
+việc|일, 용무`,
+/* 33~44 = 교재2권 부록 단어표(BẢNG TỪ VIỆT - ANH, 160~170쪽) BÀI 1~12.
+   사진 11장을 두 번 따로 옮겨 적어 대조 확인함(602개, 불일치 1건은 원본 확인 후 정정).
+   한국어 뜻은 교재의 영어 뜻을 바탕으로 붙임(영어 원문은 아래 ENG_RAW 33~44에 그대로 보관). */
+33:`bán|팔다
+bánh mì|빵, 반미(베트남식 바게트)
+bánh xèo|반쎄오(베트남식 부침개)
+bữa ăn|식사, 끼니
+cá|생선, 물고기
+cay|맵다
+chả cá|짜까(구운 생선 요리)
+chả giò|짜조(튀긴 스프링롤)
+chanh|라임, 레몬
+chai|병
+chấm|찍다, 찍어 먹다
+chén|공기, 작은 그릇
+chiên|튀기다, 부치다
+chủ quán|가게 주인
+chua|시다, 새콤하다
+cơm sen|껌센(연잎밥)
+đặc sản|특산물, 특산품
+đàn ông|남자, 남성
+đĩa|접시
+đối với|~에 대해, ~에게 있어
+đường|설탕
+gia vị|양념, 조미료
+giá cả|가격, 물가
+giống|닮다, 비슷하다
+gỏi cá|고이까(생선회 무침)
+gọi|주문하다, 부르다
+hải sản|해산물
+hằng ngày|매일, 날마다
+lẩu cua|게 전골
+loại|종류
+miền Bắc|북부, 북부 지방
+miền Nam|남부, 남부 지방
+mùi vị|맛, 풍미
+ngò|고수
+người bán|판매자, 파는 사람
+nhân viên phục vụ|종업원, 서빙 직원
+nhất|가장, 제일
+no|배부르다
+nước chấm|느억짬(찍어 먹는 소스)
+nước mắm|느억맘(생선 액젓)
+ớt|고추
+phụ nữ|여자, 여성
+phục vụ|서빙하다, 시중들다
+rau thơm|향채, 향신 채소
+sầu riêng|두리안
+thịt|고기
+theo|~에 따르면, 따르다
+thế giới|세계, 세상
+thêm|더하다, 추가하다
+thơm|향긋하다, 향기롭다
+thức ăn|음식
+tính tiền|계산하다, 계산서
+tỏi|마늘
+tô|큰 그릇, 대접
+trà|차
+trả tiền|돈을 내다, 지불하다
+trước|먼저, 미리, 전
+vị|맛`,
+34:`bãi biển|해변, 바닷가
+bàn|탁자, 책상
+bay|날다
+băng (qua)|건너다, 가로지르다
+bên phải|오른쪽
+bên trái|왼쪽
+biển|바다
+bỏ (vào)|넣다, 집어넣다
+bước|걸음, 걷다
+chạy|달리다, 뛰다
+chìa khóa|열쇠
+chụp ảnh|사진을 찍다
+chuyến (đi)|여행, 여정
+dưới|아래, 밑
+đằng kia|저쪽, 저기
+đôi (dép, giày)|켤레(신발 세는 말), 쌍
+đồi|언덕
+đưa|건네주다, 데려다주다
+đứa bé|아이, 어린애
+đứng|서다
+gần đây|최근에, 근처
+gọi|부르다, 주문하다
+gửi|보내다, 부치다
+hài lòng|만족하다
+hồ bơi|수영장
+hộ chiếu|여권
+khác|다르다, 다른
+kiểm tra|검사하다, 확인하다
+làm ơn|제발, 부디
+lấy|가지다, 가져오다
+lên|올라가다, 오르다
+lý tưởng|이상적이다
+may mắn|행운, 운이 좋다
+miền Tây|서부 지역(메콩 델타)
+miễn phí|무료
+mong đợi|기대하다, 바라다
+mỗi khi|~할 때마다
+môn|과목
+mùa hè|여름
+nằm|눕다, 위치하다
+ngủ|자다
+ngày lễ|공휴일, 명절
+ngày thường|평일
+nhân viên tiếp tân|안내 직원, 프런트 직원
+nhận phòng|체크인하다
+(nhìn) qua|너머로 보다, 훑어보다
+nhiệt độ|온도, 기온
+nhảy|뛰다, 점프하다
+nửa đêm|자정, 한밤중
+ổ|덩이(빵 세는 말)
+phòng đơn|1인실, 싱글룸
+ra|나가다, 나오다
+rơi|떨어지다
+sạch sẽ|깨끗하다
+sàn|바닥, 마루
+sau|뒤, 뒤에
+thang máy|엘리베이터
+thật|진짜, 정말
+tìm|찾다
+tủ quần áo|옷장
+tươi|신선하다
+trước|앞, 앞에
+vừa rồi|지난, 방금 전
+xuống|내려가다, 내리다`,
+35:`áo sơ mi|셔츠, 와이셔츠
+áo thun|티셔츠
+bắc|북쪽
+bền|튼튼하다, 오래가다
+bớt|깎다, 줄이다
+cà vạt|넥타이
+chào mời|호객하다, 권하다
+chất lượng|품질
+chật|꽉 끼다, 좁다
+chó|개
+chung quanh|주위, 주변
+chuyển|옮기다, 이동하다
+chương trình|프로그램
+có vẻ|~인 것 같다
+cuối cùng|마지막, 마침내
+cửa|문
+cửa hàng tiện lợi|편의점
+đồ gia dụng|생활용품
+đổi|바꾸다, 교환하다
+đông|동쪽
+đồng hồ|시계
+giao hàng|배달하다, 배송
+giày dép|신발류
+giặt|빨다, 세탁하다
+giữa|가운데, 사이
+hàng hóa/ hàng|상품, 물건
+hàng thủ công|수공예품
+hóa đơn|영수증, 계산서
+học sinh|학생(초중고)
+hợp|어울리다, 맞다
+khu / khu vực|구역, 지역
+khuyến mãi|판촉 행사, 세일
+kiểu|스타일, 모양
+mang (theo)|가져가다, 지니다
+màu nâu|갈색
+mát|시원하다
+máy lạnh|에어컨
+mặc|입다
+mặt hàng|품목, 상품
+mèo|고양이
+món uống|음료
+mốt|유행, 패션
+nam|남쪽
+nghỉ hè|여름방학
+người lớn|어른, 성인
+như|~처럼, ~같이
+nói thách|바가지 씌우다
+pha lê|크리스털, 수정
+quà|선물
+quần áo|옷, 의복
+quần jean|청바지
+sang trọng|고급스럽다, 우아하다
+tay|손
+tặng|선물하다, 주다
+tây|서쪽
+thuận tiện|편리하다
+thứ|것, 종류
+thưởng thức|즐기다, 맛보다
+tiền thối|거스름돈
+trả giá|흥정하다, 값을 깎다
+trái cây|과일
+trẻ|젊다, 어리다
+trên|위에
+trung tâm thương mại|쇼핑센터, 백화점
+trông|보이다, 돌보다
+váy|치마`,
+36:`bắt máy|전화를 받다
+béo|뚱뚱하다, 살찌다
+cả|전체의, 모두
+cài đặt|설치하다, 설정하다
+(cái) sạc điện thoại|휴대폰 충전기
+cao|높다, 키가 크다
+cảnh sát|경찰
+cấp cứu|응급, 구급
+cuộc gọi|통화, 전화
+cúp máy|전화를 끊다
+đầu dây|수화기 저편, 통화 상대
+đầu tiên|첫 번째, 처음
+hết pin|배터리가 다 되다
+hiện đại|현대적이다
+hình ảnh|사진, 이미지
+họp mặt|모이다, 모임을 갖다
+hứa|약속하다
+kém|부족하다, 약하다
+kỷ niệm|추억, 기념
+lưu (lại)|저장하다
+mật khẩu|비밀번호
+mơ ước|꿈, 꿈꾸다
+mở|열다, 켜다
+người giao hàng|배달원, 택배기사
+nhắn/nhắn tin|문자를 보내다, 메시지를 남기다
+nhóm|그룹, 팀
+phí|요금, 수수료
+quản lý|관리자, 관리하다
+quý|귀하다, 소중하다
+sạc (pin)|충전하다
+sân khấu kịch|연극 무대, 연극 극장
+siêng năng|부지런하다, 성실하다
+tính năng|기능
+tổng đài giải đáp thắc mắc|고객 상담 콜센터
+tải|다운로드하다, 내려받다
+tại|~때문에
+tập trung|집중하다
+thi đậu|시험에 합격하다
+thói quen|습관
+thời sinh viên|대학생 시절
+tiền lương|월급, 급여
+tin nhắn|문자메시지
+tốn (tiền)|돈이 들다, 비용이 들다
+trung học|중고등학교
+túi|가방, 주머니
+ứng dụng|앱, 응용프로그램
+xin phép|허락을 구하다
+xóa|지우다, 삭제하다`,
+37:`ăn kiêng|식이요법을 하다, 다이어트하다
+bệnh nhân|환자
+bị cảm|감기에 걸리다
+bỏ|끊다, 그만두다
+bụng yếu|속이 약하다, 장이 약하다
+buồn nôn|메스껍다, 토할 것 같다
+cảm giác|느낌, 감각
+chàng trai|청년, 젊은 남자
+chân|다리, 발
+chê|흉보다, 헐뜯다
+chóng mặt|어지럽다
+cúm|독감, 인플루엔자
+dị ứng|알레르기
+đau bụng|배가 아프다, 복통
+đau đầu|머리가 아프다, 두통
+đau họng|목이 아프다, 인후통
+đau mắt|눈이 아프다, 눈병
+đau lưng|허리가 아프다, 요통
+đau răng|이가 아프다, 치통
+đau tim|심장이 아프다, 심장병
+đeo (kính)|(안경을) 쓰다, 착용하다
+đều đặn|규칙적이다, 꾸준하다
+đo huyết áp|혈압을 재다
+đo nhiệt độ|체온을 재다
+đỡ|나아지다, 덜하다
+giữ vệ sinh|위생을 지키다, 청결을 유지하다
+hết bệnh|병이 낫다, 완쾌하다
+hình như|~인 것 같다, 아마
+ho|기침하다, 기침
+hỏi ý kiến|의견을 묻다, 상담하다
+hồi sáng|오늘 아침, 아까 아침
+huyết áp|혈압
+kê đơn thuốc|약을 처방하다, 처방전을 쓰다
+khám|진찰하다, 진료받다
+khám sức khỏe|건강검진
+khó chịu|불편하다, 거북하다
+khuyên|충고하다, 권하다
+mặc dù|비록 ~이지만
+mồ hôi|땀
+(bệnh) nặng|(병이) 심하다, 위중하다
+nghỉ ngơi|쉬다, 휴식하다
+nghiêm trọng|심각하다, 중대하다
+nhà trường|학교(교육기관)
+nướng|굽다
+phạt|벌하다, 벌금을 물리다
+phòng khám|진료소, 클리닉
+sổ mũi|콧물이 나다
+sốt|열, 열이 나다
+nhẹ|가볍다, 약하다
+sưng|붓다, 부어오르다
+tăng cân|살이 찌다, 체중이 늘다
+tăng lương|월급이 오르다, 임금 인상
+thằng bé|꼬마, 남자아이
+thuốc|약
+thuốc nhỏ mắt|안약
+trầy|긁히다, 까지다
+ướt|젖다, 축축하다
+vấn đề|문제, 사안
+viên|알약, 알(약 세는 말)
+yếu|약하다, 허약하다
+xảy ra|일어나다, 발생하다`,
+38:`bệnh tật|질병, 병
+bếp|부엌, 주방
+báo thức|알람, 자명종
+Bắc Mỹ|북미, 북아메리카
+Châu Á|아시아
+Châu Phi|아프리카
+công nghệ|기술, 과학기술
+đồng ý|동의하다, 찬성하다
+giữ|지키다, 보관하다
+mắc mưa|비를 맞다
+Nam Mỹ|남미, 남아메리카
+nghiên cứu|연구하다, 연구
+nhu cầu|수요, 요구
+phòng đôi|2인실, 더블룸
+phòng thường|일반실, 보통 객실
+phát triển|발전하다, 발전
+thậm chí|심지어
+thuyền|배, 보트
+tốt nghiệp|졸업하다
+trở nên|~이 되다, ~해지다
+trời|하늘, 날씨
+vùng|지역, 지방
+xác nhận|확인하다`,
+39:`bãi giữ xe|주차장
+(người) bảo vệ|경비원, 보호하다
+bùng binh|로터리, 회전교차로
+cách|떨어지다, 방법
+cậu bé|소년, 꼬마
+cầu|다리
+cây ATM|현금인출기, ATM
+chỉ đường|길을 알려주다
+chung cư|아파트
+cụ già|노인, 어르신
+cuối đường|길 끝
+cửa hàng thời trang|옷가게, 패션 매장
+dừng lại|멈추다, 서다
+đi ngang|지나가다, 가로지르다
+đi qua|지나가다, 통과하다
+đi thẳng|직진하다, 곧장 가다
+đi vòng vòng|빙빙 돌다, 돌아다니다
+đón (xe)|(차를) 잡다, 마중하다
+đối diện|맞은편, 마주보다
+đường tắt|지름길
+góc (đường)|모퉁이, 코너
+hỏi đường|길을 묻다
+hướng|방향
+hướng dẫn|안내하다, 안내
+kêu rè rè|지지직거리다, 윙윙거리다
+khóc|울다
+lạc đường|길을 잃다
+mét|미터
+mỏi chân|다리가 아프다, 다리가 뻐근하다
+(ngã tư) tới|다음의(사거리), 오다
+ngắn|짧다
+người đi đường|행인, 지나가는 사람
+nhà/hiệu thuốc|약국
+ở đằng xa|저 멀리, 멀리에
+phần lớn|대부분
+quay (xe) lại|(차를) 돌리다, 유턴하다
+rạp chiếu phim|영화관
+rẽ phải|우회전하다, 오른쪽으로 돌다
+rẽ trái|좌회전하다, 왼쪽으로 돌다
+thanh niên|청년, 젊은이
+thời tiết|날씨
+tiệm bánh mì|빵집
+tiệm sách|서점, 책방
+tòa nhà|건물
+tòa nhà cao tầng|고층 건물
+tốt bụng|착하다, 마음씨 좋다
+trạm xăng|주유소
+trụ sở công an|경찰서
+trước mặt|앞, 눈앞
+tuyến|노선, 선
+vòng qua|돌아가다, 우회하다
+xuống (xe)|(차에서) 내리다`,
+40:`áy náy|꺼림칙하다, 미안하다
+cảm thấy|느끼다
+câu chuyện|이야기
+chán|지루하다, 싫증나다
+chia tay|헤어지다
+chịu|참다, 견디다
+chuyển nhà|이사하다
+có lỗi|잘못이 있다, 미안하다
+có mặt|참석하다, 출석하다
+cô đơn|외롭다
+cuộc sống|삶, 생활
+(cuốn) phim|영화
+diễn viên|배우
+đi làm thêm|아르바이트하다
+đồng nghiệp|동료
+động vật|동물
+hạnh phúc|행복하다, 행복
+hâm mộ|동경하다, 좋아하다
+hết tiền|돈이 떨어지다
+hồi hộp|긴장되다, 두근거리다
+hy vọng|희망하다, 바라다
+khát (nước)|목마르다
+khó khăn|어려움, 어렵다
+kí / kí lô|킬로그램
+kinh tế|경제
+lên chức|승진하다
+lịch sự|예의 바르다, 정중하다
+lười (biếng)|게으르다
+mát xa|마사지
+môi trường|환경
+mở|열다, 켜다
+nặng|무겁다, 무게가 나가다
+nghiêm túc|진지하다, 성실하다
+ngoài/ngoài ra|밖, 그 밖에
+nhẹ nhõm|홀가분하다, 안도하다
+ồn ào|시끄럽다
+phim hoạt hình|만화영화, 애니메이션
+phim kinh dị|공포영화
+rộng rãi|넓다, 널찍하다
+tâm trạng|기분, 심정
+tất nhiên|물론, 당연히
+tha thứ|용서하다
+thái độ|태도
+thanh điệu|성조
+thích thú|즐겁다, 흥미롭다
+thoải mái|편안하다, 편하다
+thói xấu|나쁜 버릇
+thưởng|상을 주다, 보너스
+trễ hẹn|약속에 늦다
+trừ|제외하다, 빼다
+trường hợp|경우, 상황
+tức giận|화나다
+vị trí|위치, 자리
+việc nội trợ|집안일, 가사`,
+41:`bảng|표, 게시판
+bằng lái xe|운전면허증
+bút|펜
+bữa tiệc|파티, 연회
+chi nhánh|지점, 지사
+cầu thủ|선수(축구 등 구기 선수)
+chuyển tiền|송금하다
+đèn|등, 전등
+đếm tiền|돈을 세다
+điền|기입하다, 써넣다
+đổi tiền|환전하다
+hiện giờ|지금, 요즘
+giao dịch|거래, 거래하다
+giữ im lặng|조용히 하다
+gửi tiết kiệm|저축하다, 적금을 들다
+khóa cửa|문을 잠그다
+ký tên|서명하다
+kỹ|꼼꼼히, 자세히
+lãi suất|이자율, 금리
+làm bù|보충 근무하다
+liên quan|관련되다
+màu|색깔
+mở tài khoản|계좌를 개설하다
+nạp tiền|입금하다, 충전하다
+ông xã|남편(애칭)
+quầy|창구, 카운터
+quý khách|고객님, 손님
+rút số thứ tự|번호표를 뽑다
+rút tiền|돈을 찾다, 출금하다
+sổ tiết kiệm|예금 통장
+suy nghĩ|생각하다, 생각
+tắt (đèn)|(불을) 끄다
+tết (tết âm lịch)|뗏(베트남 설날)
+tết dương lịch|양력설, 신정
+thẻ|카드
+thẻ căn cước|신분증
+thông báo|알리다, 공지
+ngày nghỉ lễ|공휴일, 휴일
+ngừng|멈추다, 중단하다
+thời hạn|기한, 만기
+tiền mặt|현금
+tiền thưởng|보너스, 상여금
+trang phục|복장, 의상
+trên|위, ~위에
+tủ lạnh|냉장고
+tuyệt / tuyệt vời|훌륭하다, 멋지다
+tỷ giá|환율
+văn hóa|문화
+xoài|망고`,
+42:`ăn vặt|간식을 먹다, 군것질하다
+bổ ích|유익하다
+bối rối|당황하다, 혼란스럽다
+bình thường|보통, 평범하다
+bóng chuyền|배구
+cầu lông|배드민턴
+chạy bộ|조깅하다, 달리기
+chắc chắn|확실하다, 반드시
+chữ|글자, 문자
+cắn|물다, 깨물다
+cầm (sách) lên|(책을) 집어 들다
+có hại|해롭다, 해가 되다
+có lợi|이롭다, 유익하다
+đầu óc|머리, 정신
+đi ăn ngoài|외식하다
+điều khó hiểu|이해하기 어려운 점
+đoạn|단락, 구간
+giải trí|오락, 즐기다
+giống/giống như|~와 같다, ~처럼
+học tập|학습하다, 공부하다
+hồi chiều|아까 오후에
+hơn nữa|게다가, 더욱이
+kiến thức|지식
+kỹ năng|기술, 능력
+lên giường|잠자리에 들다
+lớn lên|자라다, 성장하다
+móng tay|손톱
+mục đích|목적
+nâng cao|향상시키다, 높이다
+nghiêm khắc|엄격하다, 엄하다
+nhạc cổ điển|클래식 음악
+nhạc đồng quê|컨트리 음악
+nhớ|그리워하다, 기억하다
+nhớ nhà|집이 그립다, 향수병
+nội dung|내용
+phim hài|코미디 영화
+phổ biến|흔하다, 널리 퍼지다
+ra khỏi|~에서 나가다, 벗어나다
+rủ|같이 가자고 하다, 꾀다
+sắp xếp|정리하다, 배열하다
+than phiền|불평하다, 투덜대다
+thích hợp|적합하다, 알맞다
+thời trẻ|젊은 시절
+thư giãn|휴식하다, 긴장을 풀다
+tiền nhà|집세, 방세
+tiểu thuyết|소설
+tóc|머리카락
+tốn|(돈, 시간이) 들다
+truyện tranh|만화책
+việc nhà|집안일, 가사
+ý chính|요지, 중심 생각
+yêu thích|좋아하다, 애호하다`,
+43:`anh chàng|젊은 남자, 녀석
+tóc bạc|백발, 흰머리
+bé gái|여자아이
+bề ngoài / ngoại hình|외모, 겉모습
+buộc tóc|머리를 묶다
+căn hộ|아파트, 세대
+(cặp) kính|안경
+cắt|자르다
+cân đối|균형 잡히다, 몸매가 좋다
+cầu hôn|청혼하다, 프러포즈하다
+cẩu thả|덜렁대다, 부주의하다
+chia sẻ|나누다, 공유하다
+cười luôn miệng|늘 웃다, 웃음이 끊이지 않다
+dáng (người)|몸매, 체형
+dễ thương|귀엽다
+gầy|마르다, 여위다
+ghen tị|질투하다, 부러워하다
+(tóc) gợn sóng|웨이브 머리, 물결 머리
+hiền lành|착하다, 온순하다
+hoa tai|귀걸이
+hói|대머리다, 머리가 벗겨지다
+ít nói|말수가 적다, 과묵하다
+khuôn mặt|얼굴
+mang|착용하다, 신다
+màu tối|어두운 색
+màu sáng|밝은 색
+mắc cỡ|부끄럽다, 수줍다
+mắt hai mí|쌍꺼풀 눈
+mắt một mí|홑꺼풀 눈
+mặt nhọn|뾰족한 얼굴, 갸름한 얼굴
+miệng rộng|큰 입
+mọi chuyện|모든 일, 매사
+ngang trán|이마를 가로지르는(앞머리)
+nhanh|빠르다, 빨리
+nói dối|거짓말하다
+nóng tính|성격이 급하다, 다혈질이다
+nông dân|농부
+nước da|피부색, 살결
+ổn định|안정적이다, 안정되다
+quan tâm|관심을 갖다, 신경 쓰다
+ria mép|콧수염
+sáng|밝다
+siêng học|공부를 열심히 하다
+sinh|태어나다, 낳다
+quăn|곱슬하다
+thất vọng|실망하다
+thể thao|스포츠, 운동
+thon thả|날씬하다
+thuyết phục|설득하다
+tâm sự|속마음을 털어놓다, 고민
+tính cách|성격
+tóc thẳng|생머리, 직모
+trái lại|반대로, 오히려
+trắng trẻo|살결이 희다, 뽀얗다
+tròn|둥글다
+trung niên|중년
+trung thực|정직하다
+vàng|노란색, 금
+việc kinh doanh|사업
+vui tính|유쾌하다, 성격이 밝다
+vuông|네모나다, 각지다
+xanh|파랗다, 초록색
+xinh đẹp|예쁘다, 아름답다`,
+44:`chúng/ chúng nó/ họ|그들, 그 사람들
+dịch vụ|서비스
+đồng phục|제복, 유니폼
+giải quyết|해결하다
+nhựa|플라스틱
+nước da đen|검은 피부, 까무잡잡한 피부
+nước tương|간장
+thấp|(키가) 작다, 낮다
+thèm|먹고 싶다, 갈망하다
+tiền lẻ|잔돈
+tờ|장(종이 세는 말), 지폐
+trú mưa|비를 피하다`,
 };
 const ENG_RAW = {
 1:`anh|you
@@ -2224,6 +2845,609 @@ về|about
 vừa rồi|last, recent
 xe cộ|vehicle
 yên tĩnh|quiet`,
+/* 교재2권(33~44과) 영어 뜻: 부록 표의 원문 그대로 */
+33:`bán|to sell
+bánh mì|bread
+bánh xèo|pancakes
+bữa ăn|a meal
+cá|fish
+cay|spicy, hot
+chả cá|grilled chopped fish
+chả giò|spring roll
+chanh|lemon
+chai|bottle
+chấm|to dip
+chén|small bowl
+chiên|fry
+chủ quán|shop owner
+chua|sour
+cơm sen|lotus rice
+đặc sản|specialties
+đàn ông|men
+đĩa|plate
+đối với|for
+đường|sugar
+gia vị|spice
+giá cả|prices
+giống|like, look like
+gỏi cá|fish salad
+gọi|order
+hải sản|seafood
+hằng ngày|every day
+lẩu cua|crab hotpot
+loại|type, kind
+miền Bắc|Northern
+miền Nam|Southern
+mùi vị|flavour (smell & taste)
+ngò|cilantro
+người bán|seller
+nhân viên phục vụ|waiter, waitress
+nhất|most
+no|full
+nước chấm|sauce
+nước mắm|fish sauce
+ớt|chili
+phụ nữ|women
+phục vụ|serve
+rau thơm|herbs
+sầu riêng|durian
+thịt|meat
+theo|according to
+thế giới|world
+thêm|add, more
+thơm|fragrant
+thức ăn|food
+tính tiền|bill
+tỏi|garlic
+tô|bowl
+trà|tea
+trả tiền|pay
+trước|in advance, before, first
+vị|taste`,
+34:`bãi biển|beach
+bàn|table, desk
+bay|fly
+băng (qua)|across
+bên phải|right side
+bên trái|left side
+biển|sea
+bỏ (vào)|put into
+bước|step
+chạy|run
+chìa khóa|key
+chụp ảnh|to take pictures
+chuyến (đi)|a trip
+dưới|under, on
+đằng kia|over there
+đôi (dép, giày)|a pair of (slippers, shoes)
+đồi|hill
+đưa|give, hand
+đứa bé|child
+đứng|stand
+gần đây|recent(ly), nearby
+gọi|call
+gửi|give, send
+hài lòng|satisfy
+hồ bơi|swimming pool
+hộ chiếu|passport
+khác|different
+kiểm tra|check, test
+làm ơn|please
+lấy|take
+lên|(go) up
+lý tưởng|perfect, ideal
+may mắn|luck, lucki(ly)
+miền Tây|Mekong Delta
+miễn phí|free
+mong đợi|to expect
+mỗi khi|every time
+môn|subject
+mùa hè|summer
+nằm|lie, located
+ngủ|sleep
+ngày lễ|holiday
+ngày thường|weekday
+nhân viên tiếp tân|receptionist
+nhận phòng|check in
+(nhìn) qua|(look) through
+nhiệt độ|temperature
+nhảy|jump
+nửa đêm|midnight
+ổ|a loaf of
+phòng đơn|single room
+ra|go
+rơi|fall
+sạch sẽ|clean
+sàn|floor
+sau|behind
+thang máy|elevator
+thật|real(ly)
+tìm|find, look for
+tủ quần áo|wardrobe
+tươi|fresh
+trước|in front of
+vừa rồi|last
+xuống|(go) down`,
+35:`áo sơ mi|shirt
+áo thun|t-shirt
+bắc|north
+bền|durable
+bớt|discount
+cà vạt|cravat, tie
+chào mời|solicit, invite
+chất lượng|quality
+chật|tight
+chó|dog
+chung quanh|around
+chuyển|move
+chương trình|program
+có vẻ|look like
+cuối cùng|finally
+cửa|door
+cửa hàng tiện lợi|convenient store
+đồ gia dụng|housewares
+đổi|change
+đông|east
+đồng hồ|watch
+giao hàng|(to) ship / delivery of goods
+giày dép|shoes & slippers
+giặt|to wash
+giữa|between, in the middle
+hàng hóa/ hàng|goods
+hàng thủ công|handicrafts
+hóa đơn|receipt
+học sinh|schoolboy/girl
+hợp|(to) suit
+khu / khu vực|area
+khuyến mãi|promotion
+kiểu|style
+mang (theo)|bring (with)
+màu nâu|brown
+mát|cool
+máy lạnh|air conditioner
+mặc|wear
+mặt hàng|items
+mèo|cat
+món uống|drink
+mốt|fashion / mode
+nam|south
+nghỉ hè|summer vacation
+người lớn|adult
+như|such as, like
+nói thách|challenge, overcharge
+pha lê|crystal
+quà|gift
+quần áo|clothes
+quần jean|jeans
+sang trọng|luxurious, elegant
+tay|hand
+tặng|give (a gift)
+tây|west
+thuận tiện|convenient
+thứ|thing
+thưởng thức|enjoy
+tiền thối|change back
+trả giá|bargain
+trái cây|fruits
+trẻ|young
+trên|over, on
+trung tâm thương mại|trade center
+trông|look
+váy|skirt`,
+36:`bắt máy|pick up the phone
+béo|fat
+cả|whole, all
+cài đặt|install, set up
+(cái) sạc điện thoại|phone charger
+cao|high
+cảnh sát|police
+cấp cứu|emergency
+cuộc gọi|(a) call
+cúp máy|hang up
+đầu dây|on the line
+đầu tiên|first
+hết pin|out of battery
+hiện đại|modern
+hình ảnh|pictures
+họp mặt|meet
+hứa|promise
+kém|bad
+kỷ niệm|memory
+lưu (lại)|save
+mật khẩu|password
+mơ ước|dream
+mở|open
+người giao hàng|shipper
+nhắn/nhắn tin|leave a message
+nhóm|group, team
+phí|fee
+quản lý|manager
+quý|value, precious
+sạc (pin)|charge
+sân khấu kịch|drama theater
+siêng năng|diligent, hard
+tính năng|function, feature
+tổng đài giải đáp thắc mắc|call center to answer questions (directory enquiries)
+tải|download
+tại|because
+tập trung|focus
+thi đậu|pass (the exam)
+thói quen|habit
+thời sinh viên|student time
+tiền lương|salary
+tin nhắn|message
+tốn (tiền)|spend, cost, costly
+trung học|high school
+túi|bag
+ứng dụng|app.
+xin phép|ask for permission
+xóa|delete`,
+37:`ăn kiêng|diet
+bệnh nhân|patient
+bị cảm|have a cold
+bỏ|quit
+bụng yếu|weak stomach
+buồn nôn|nauseous
+cảm giác|feeling
+chàng trai|boy
+chân|leg
+chê|criticize
+chóng mặt|dizzy
+cúm|flu
+dị ứng|allergy
+đau bụng|stomachache
+đau đầu|headache
+đau họng|sore throat
+đau mắt|eyesore
+đau lưng|backache
+đau răng|toothache
+đau tim|heart attack
+đeo (kính)|wear (glasses)
+đều đặn|regularly
+đo huyết áp|take blood pressure
+đo nhiệt độ|take temperature
+đỡ|better, (be) relieved
+giữ vệ sinh|keep clean/hygiene
+hết bệnh|recover (the illness)
+hình như|seem
+ho|cough
+hỏi ý kiến|consult
+hồi sáng|morning (past), this morning
+huyết áp|blood pressure
+kê đơn thuốc|prescribe (medicine)
+khám|examine
+khám sức khỏe|health check
+khó chịu|uncomfortable
+khuyên|advise
+mặc dù|although
+mồ hôi|sweat
+(bệnh) nặng|serious
+nghỉ ngơi|rest
+nghiêm trọng|serious
+nhà trường|school
+nướng|grill
+phạt|punish
+phòng khám|clinic
+sổ mũi|running nose
+sốt|fever
+nhẹ|mild, light, slight
+sưng|swollen
+tăng cân|weight gain
+tăng lương|raise salary
+thằng bé|(a) little boy
+thuốc|medicine
+thuốc nhỏ mắt|eye drops
+trầy|have a scratch
+ướt|wet
+vấn đề|problem
+viên|pill, tablet
+yếu|weak
+xảy ra|happen`,
+38:`bệnh tật|disease
+bếp|kitchen
+báo thức|alarm
+Bắc Mỹ|North America
+Châu Á|Asia
+Châu Phi|Africa
+công nghệ|technology
+đồng ý|agree
+giữ|keep
+mắc mưa|get caught in the rain
+Nam Mỹ|South America
+nghiên cứu|research, study
+nhu cầu|needs
+phòng đôi|double room
+phòng thường|ordinary room
+phát triển|development
+thậm chí|even
+thuyền|boat
+tốt nghiệp|graduate
+trở nên|become
+trời|sky
+vùng|area
+xác nhận|confirm`,
+39:`bãi giữ xe|parking lot
+(người) bảo vệ|guardian
+bùng binh|roundabout
+cách|be distant, far from, a way
+cậu bé|little boy
+cầu|bridge
+cây ATM|ATM
+chỉ đường|give directions
+chung cư|apartment building
+cụ già|old man
+cuối đường|the end of the road
+cửa hàng thời trang|fashion shops
+dừng lại|stop
+đi ngang|go by, pass
+đi qua|pass
+đi thẳng|go straight
+đi vòng vòng|go around
+đón (xe)|take
+đối diện|opposite
+đường tắt|shortcut
+góc (đường)|corner
+hỏi đường|ask directions
+hướng|direction
+hướng dẫn|guide
+kêu rè rè|hum, sound
+khóc|cry
+lạc đường|lost the way
+mét|meter
+mỏi chân|tired legs
+(ngã tư) tới|next (intersection)
+ngắn|short
+người đi đường|passer-by
+nhà/hiệu thuốc|drugstore
+ở đằng xa|in the distance
+phần lớn|most of, almost
+quay (xe) lại|turn (the car) around
+rạp chiếu phim|cinema
+rẽ phải|turn right
+rẽ trái|turn left
+thanh niên|boy, youth
+thời tiết|weather
+tiệm bánh mì|bakery
+tiệm sách|bookstore
+tòa nhà|building
+tòa nhà cao tầng|high rise building, multistory
+tốt bụng|kind
+trạm xăng|gas station
+trụ sở công an|police office
+trước mặt|front
+tuyến|route
+vòng qua|around
+xuống (xe)|get off`,
+40:`áy náy|anxious, uneasy
+cảm thấy|feel
+câu chuyện|story
+chán|be bored, boring
+chia tay|break up
+chịu|bear
+chuyển nhà|move house
+có lỗi|guilty
+có mặt|present
+cô đơn|lonely
+cuộc sống|life
+(cuốn) phim|movie
+diễn viên|actor, actress
+đi làm thêm|work part-time
+đồng nghiệp|colleague
+động vật|animal
+hạnh phúc|happy
+hâm mộ|admire, love
+hết tiền|out of money
+hồi hộp|nervous, anxious
+hy vọng|hope
+khát (nước)|thirsty
+khó khăn|difficulty
+kí / kí lô|kilogram
+kinh tế|economics, economy
+lên chức|be promoted
+lịch sự|polite
+lười (biếng)|lazy
+mát xa|massage
+môi trường|environment
+mở|turn on, open
+nặng|weigh
+nghiêm túc|serious
+ngoài/ngoài ra|besides
+nhẹ nhõm|relieved
+ồn ào|noisy
+phim hoạt hình|cartoons, animes
+phim kinh dị|horror movie
+rộng rãi|widely
+tâm trạng|mood
+tất nhiên|of course
+tha thứ|forgive
+thái độ|attitude
+thanh điệu|tones
+thích thú|amused
+thoải mái|comfortable
+thói xấu|bad habit
+thưởng|reward
+trễ hẹn|late for appointment
+trừ|except
+trường hợp|case, situation
+tức giận|angry
+vị trí|position
+việc nội trợ|housework`,
+41:`bảng|table
+bằng lái xe|driver license
+bút|pen
+bữa tiệc|party
+chi nhánh|branch
+cầu thủ|(football) player
+chuyển tiền|transfer money
+đèn|lights
+đếm tiền|count money
+điền|fill in
+đổi tiền|exchange money
+hiện giờ|now, nowadays
+giao dịch|transaction
+giữ im lặng|keep silent
+gửi tiết kiệm|deposit (at the bank)
+khóa cửa|lock the door
+ký tên|sign
+kỹ|carefully
+lãi suất|interest rate
+làm bù|make up
+liên quan|related
+màu|color
+mở tài khoản|open a (bank) account
+nạp tiền|deposit
+ông xã|husband
+quầy|counter
+quý khách|customer, honour guest
+rút số thứ tự|take the order number
+rút tiền|withdraw money
+sổ tiết kiệm|bank book
+suy nghĩ|think, thinking
+tắt (đèn)|turn off
+tết (tết âm lịch)|lunar new year
+tết dương lịch|new year
+thẻ|card
+thẻ căn cước|ID card
+thông báo|announce, announcement
+ngày nghỉ lễ|holiday
+ngừng|stop
+thời hạn|deposit term, period
+tiền mặt|cash
+tiền thưởng|bonus
+trang phục|clothes
+trên|above
+tủ lạnh|fridge
+tuyệt / tuyệt vời|wonderful
+tỷ giá|exchange rate
+văn hóa|culture
+xoài|mango`,
+42:`ăn vặt|eat snacks
+bổ ích|useful
+bối rối|confused
+bình thường|normally,ordinarily
+bóng chuyền|volleyball
+cầu lông|badminton
+chạy bộ|jog
+chắc chắn|certainly
+chữ|letter
+cắn|bite
+cầm (sách) lên|pick up (the book)
+có hại|harmful
+có lợi|beneficial
+đầu óc|mind
+đi ăn ngoài|go out for a meal
+điều khó hiểu|confusing thing
+đoạn|paragraph
+giải trí|entertain
+giống/giống như|like
+học tập|study
+hồi chiều|afternoon (past), this afternoon
+hơn nữa|moreover
+kiến thức|knowledge
+kỹ năng|skill
+lên giường|go to bed
+lớn lên|grow up
+móng tay|finger nails
+mục đích|purpose
+nâng cao|improve
+nghiêm khắc|severe, strict(ly)
+nhạc cổ điển|classical music
+nhạc đồng quê|country music
+nhớ|miss
+nhớ nhà|homesick
+nội dung|content
+phim hài|comedy movie
+phổ biến|popular
+ra khỏi|leave from
+rủ|call
+sắp xếp|arrange
+than phiền|complain
+thích hợp|apply to, suitable to
+thời trẻ|youth
+thư giãn|relax
+tiền nhà|rent
+tiểu thuyết|novels
+tóc|hair
+tốn|spend money
+truyện tranh|comic books
+việc nhà|housework
+ý chính|main idea
+yêu thích|love`,
+43:`anh chàng|guy, boy
+tóc bạc|grey/white-haired
+bé gái|little girl
+bề ngoài / ngoại hình|appearance
+buộc tóc|hair tie
+căn hộ|flat, apartment
+(cặp) kính|glasses
+cắt|cut
+cân đối|fit
+cầu hôn|propose (marriage)
+cẩu thả|careless
+chia sẻ|share
+cười luôn miệng|smile all the time
+dáng (người)|shape, body, figure
+dễ thương|cute
+gầy|thin
+ghen tị|jealous
+(tóc) gợn sóng|wavy hair
+hiền lành|gentle
+hoa tai|earring
+hói|bold
+ít nói|quiet
+khuôn mặt|face
+mang|wear
+màu tối|dark color
+màu sáng|bright color
+mắc cỡ|shy
+mắt hai mí|double eyelids
+mắt một mí|one eyelid
+mặt nhọn|pointed face
+miệng rộng|big mouth
+mọi chuyện|everything
+ngang trán|across forehead
+nhanh|fast, quickly
+nói dối|tell a lie
+nóng tính|hot-tempered
+nông dân|farmer
+nước da|skin
+ổn định|stable
+quan tâm|care
+ria mép|mustache
+sáng|bright
+siêng học|study hard
+sinh|born
+quăn|curly
+thất vọng|disappointed
+thể thao|sports
+thon thả|slender
+thuyết phục|convince, persuade
+tâm sự|story
+tính cách|personality
+tóc thẳng|straight hair
+trái lại|opposite
+trắng trẻo|white
+tròn|round
+trung niên|middle-age
+trung thực|honest
+vàng|yellow
+việc kinh doanh|business
+vui tính|genial, funny
+vuông|square
+xanh|green, blue
+xinh đẹp|pretty`,
+44:`chúng/ chúng nó/ họ|they
+dịch vụ|services
+đồng phục|uniform
+giải quyết|solve
+nhựa|plastic
+nước da đen|dark skin
+nước tương|soya sauce
+thấp|short
+thèm|crave
+tiền lẻ|small change
+tờ|bill, sheet
+trú mưa|take shelter from the rain`,
 };
 /* 교재 영어 뜻(원본 a3f3653). 시험지 '뜻→베트남어' 문제 프롬프트용. 단원+단어로 매칭. */
 const ENG_MAP = {};
@@ -4017,7 +5241,10 @@ const LESSON_NAMES = { 13: "오늘 배운 ★", 14: "7/2 복습",
   15: "Expats · 분류사", 16: "Expats · 생활용품",
   17: "Expats · 오토바이", 18: "Expats · 위치", 19: "Expats · 집과 방", 20: "Expats · 집안 물건",
   21: "Expats · 하루 일과", 22: "Expats · 날짜", 23: "Expats · 아픔", 24: "Expats · 날씨", 25: "Expats · 취미", 26: "Expats · 여행",
-  27: "필수 동사", 28: "필수 형용사", 29: "음식·요리", 30: "집·물건·옷", 31: "사람·몸·동물", 32: "자연·장소·생활" };
+  27: "필수 동사", 28: "필수 형용사", 29: "음식·요리", 30: "집·물건·옷", 31: "사람·몸·동물", 32: "자연·장소·생활",
+  /* 33~44 = 교재 2권 부록 단어표 BÀI 1~12 (1권 1~12과와 번호가 겹치지 않게 "교재2"를 앞에 붙임) */
+  33: "교재2 · 1과", 34: "교재2 · 2과", 35: "교재2 · 3과", 36: "교재2 · 4과", 37: "교재2 · 5과", 38: "교재2 · 6과",
+  39: "교재2 · 7과", 40: "교재2 · 8과", 41: "교재2 · 9과", 42: "교재2 · 10과", 43: "교재2 · 11과", 44: "교재2 · 12과" };
 const lessonLabel = l => l==="custom" ? "내 단어" : (typeof l==="number" ? (LESSON_NAMES[l] || ("Lesson "+l)) : l);
 /* 한국어 '과' 표기용: 이름이 있으면 이름(오늘 배운 ★ · 2권 1과 …), 없으면 "N과".
    → 13·14(개인)·15~26(2권)이 맨숫자 "15과"로 새지 않게(교재 연장선 오해 방지). */
@@ -4219,6 +5446,11 @@ function ttsWarnRefresh(){
    예전 기본값 0.9는 소리를 억지로 늘려 읽는 방식이라 말이 끊기고 딱딱하게 들렸음.
    더 느리게 듣고 싶으면 '발음(소리) 설정 → 속도'에서 직접 내리면 됨. */
 function ttsRate(){ const r = Number(lsGet("_rate", 1.0)); return (r>=0.5 && r<=2) ? r : 1.0; }
+/* '인터넷 목소리 사용' 스위치. 기본은 켜짐(더 자연스러운 소리를 그냥 쓰게).
+   끄면 기기 안에 저장된 목소리(localService===true)만 씀 → 데이터가 전혀 안 나감. */
+function ttsNetOn(){ return lsGet("_ttsnet", true) !== false; }
+/* 인터넷 목소리(기기에 저장 안 된 목소리)가 실제로 이 기기에 있는지 */
+function hasNetVoice(){ return viVoices().some(v => v.localService === false); }
 /* 베트남어일 때만 사용자가 고른 음성 적용. 한국어 등은 OS 기본 음성 사용. */
 /* 음성 음질 점수: 이름에 붙은 표시로 '자연스러운 목소리'를 가려냄.
    ㆍ안드로이드(구글 음성): 이름이 vi-vn-x-vif-local / -network 식인데, network 쪽이 훨씬 자연스럽고
@@ -4246,9 +5478,11 @@ function pickedVoice(lang){
   if(!(lang||"").toLowerCase().startsWith("vi")) return null;
   const vs = viVoices(); if(!vs.length) return null;
   const uri = lsGet("_voiceURI","");
-  if(uri){ const f = vs.find(v=>v.voiceURI===uri); if(f) return f; }   // 사용자가 직접 고른 목소리가 1순위
+  /* 사용자가 직접 고른 목소리가 1순위. 단, 인터넷 목소리를 꺼둔 상태면 그 선택은 건너뜀 */
+  if(uri){ const f = vs.find(v=>v.voiceURI===uri); if(f && (ttsNetOn() || f.localService!==false)) return f; }
   let online = true; try{ online = (navigator.onLine !== false); }catch(e){}
   if(TTS_NET_FAIL) online = false;
+  if(!ttsNetOn()) online = false;        // 사용자가 '인터넷 목소리 사용'을 껐으면 기기 안 목소리만
   const offline = vs.filter(v=>v.localService!==false);
   const pool = (online || !offline.length) ? vs : offline;
   return pool.slice().sort((a,b)=>{
@@ -4680,7 +5914,7 @@ function srsRec(w, ok){
   if(lv>0) a[k]=lv; else delete a[k];
   lsSet("_srs", a);
 }
-const prepDeck = () => WORDS;                         // 전체 단어장(교재 609 + 내 단어)
+const prepDeck = () => WORDS;                         // 전체 단어장(교재1권 + Expats + 교재2권 + 내 단어)
 const prepCounts = () => { const d=prepDeck(); let m=0,f=0,z=0;
   d.forEach(w=>{ const l=srsLv(w); if(l>=SRS_MAX) m++; else if(l>0) f++; else z++; });
   return { total:d.length, master:m, familiar:f, fresh:z }; };
@@ -4704,6 +5938,128 @@ function prepSessLoad(){
   return { queue, idx, correct:Number(s.correct)||0, leveled:Number(s.leveled)||0, total:queue.length };
 }
 function goPrep(){ renderPrep(); }
+
+/* =========================================================
+   시험 대비 · 단어 리스트 (필기용 · 인쇄용)
+   한 단어씩 타자로 치는 연습과 '별개로', 베트남어와 뜻을 한눈에 늘어놓고
+   보면서 공책에 옮겨 적을 수 있는 화면. 그대로 A4 인쇄도 됨(동기들 나눠주기용).
+   ⚠️ 화면 조작 부분은 전부 .noprint 안에 둬야 인쇄물에 안 딸려 나감.
+   ========================================================= */
+const PL = {
+  pick : new Set(),                                  // 비어 있으면 = 전체 단원
+  only : lsGet("_plOnly", "all") === "weak" ? "weak" : "all",   // all | weak(아직 못 외운 것만)
+  order: lsGet("_plOrder","book") === "shuffle" ? "shuffle" : "book",
+  cols : [1,2,3].indexOf(Number(lsGet("_plCols",2)))>=0 ? Number(lsGet("_plCols",2)) : 2,
+  group: lsGet("_plGroup", true) !== false          // 단원 이름을 중간에 끼워 넣기
+};
+let PL_CACHE = { key:"", list:[] };                  // '섞기'가 화면 다시 그릴 때마다 뒤바뀌지 않게 보관
+function plWords(){
+  let a = prepDeck();
+  if(PL.pick.size) a = a.filter(w=>PL.pick.has(w.lesson));
+  if(PL.only==="weak") a = a.filter(w=>srsLv(w)<SRS_MAX);
+  if(PL.order!=="shuffle") return a;
+  const k = [...PL.pick].join(",")+"|"+PL.only+"|"+a.length;
+  if(PL_CACHE.key !== k) PL_CACHE = { key:k, list:shuffle(a) };
+  return PL_CACHE.list;
+}
+/* A4 몇 장쯤 될지 어림잡기(칸 수에 따라 한 장에 들어가는 줄 수가 달라짐).
+   실제 장수는 기기·브라우저마다 조금 다를 수 있어서 '약'으로 보여줌. */
+function plPages(n){ const per = PL.cols===1 ? 33 : PL.cols===2 ? 78 : 130;   // 크롬으로 실제 인쇄해 재본 값(조금 넉넉하게 잡음)
+                     return Math.max(1, Math.ceil(n/per)); }
+function plRangeLabel(){
+  if(!PL.pick.size) return "전체 단원";
+  const ls = lessonsList().filter(l=>PL.pick.has(l));
+  if(ls.length<=3) return ls.map(lessonLabel).join(" · ");
+  return lessonLabel(ls[0]) + " 외 " + (ls.length-1) + "개 단원";
+}
+function goPrepList(){ renderPrepList(); }
+function renderPrepList(){
+  state.screen = "preplist";
+  const list = plWords();
+  const lessons = lessonsList();
+  const chips = lessons.map(l=>{
+    const c = prepDeck().filter(w=>w.lesson===l).length;
+    return `<button class="chip ${PL.pick.has(l)?"on":""}" data-action="plLesson" data-l="${l}">${lessonLabel(l)} <small>${c}</small></button>`;
+  }).join("");
+
+  /* 인쇄되는 종이 부분 */
+  let rows = "";
+  if(PL.group && PL.order!=="shuffle"){
+    let cur = null;
+    list.forEach((w,i)=>{
+      if(w.lesson !== cur){ cur = w.lesson; rows += `<div class="pllz">${esc(lessonLabel(cur))}</div>`; }
+      rows += plRow(w, w.num);
+    });
+  } else {
+    list.forEach((w,i)=>{ rows += plRow(w, i+1); });
+  }
+
+  set(`
+    <div class="noprint">
+      <button class="link" data-action="goPrep">← 시험 대비로</button>
+      <div class="card">
+        <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-clipboard'/></svg> 단어 리스트 (보고 쓰기 · 인쇄)</h2>
+        <div class="muted tiny" style="margin-top:-4px">베트남어와 뜻이 <b>둘 다</b> 보이는 목록이에요. 화면으로 보면서 공책에 옮겨 적거나, 그대로 <b>A4로 인쇄</b>해서 나눠줄 수 있어요.</div>
+
+        <label class="fld">빠른 선택</label>
+        <div class="row">
+          <button class="chip" data-action="plBundle" data-g="t2">교재2권 전체</button>
+          <button class="chip" data-action="plBundle" data-g="t1">교재1권 1~12과</button>
+          <button class="chip" data-action="plBundle" data-g="ex">Expats 전체</button>
+          <button class="chip" data-action="plBundle" data-g="th">주제별 전체</button>
+        </div>
+
+        <label class="fld">어느 단원 (하나씩 고르기)</label>
+        <div class="row">
+          <button class="chip ${PL.pick.size?"":"on"}" data-action="plAll">전체</button>
+          ${chips}
+        </div>
+        ${PL.pick.size?`<div class="row" style="margin-top:8px"><button class="chip" data-action="plAll">선택 지우기</button></div>`:""}
+
+        <label class="fld">어떤 단어</label>
+        <div class="seg">
+          <button class="${PL.only==="all"?"on":""}" data-action="plOnly" data-v="all">전부</button>
+          <button class="${PL.only==="weak"?"on":""}" data-action="plOnly" data-v="weak">아직 못 외운 것만</button>
+        </div>
+
+        <label class="fld">순서</label>
+        <div class="seg">
+          <button class="${PL.order==="book"?"on":""}" data-action="plOrder" data-v="book">교재 순서</button>
+          <button class="${PL.order==="shuffle"?"on":""}" data-action="plOrder" data-v="shuffle">섞기</button>
+        </div>
+        ${PL.order==="shuffle"?`<div class="row" style="margin-top:8px"><button class="chip" data-action="plReshuffle">다시 섞기</button></div>`:""}
+
+        <label class="fld">한 줄에 몇 칸</label>
+        <div class="seg">
+          <button class="${PL.cols===1?"on":""}" data-action="plCols" data-v="1">1칸 (큼)</button>
+          <button class="${PL.cols===2?"on":""}" data-action="plCols" data-v="2">2칸</button>
+          <button class="${PL.cols===3?"on":""}" data-action="plCols" data-v="3">3칸 (작음)</button>
+        </div>
+        ${PL.order!=="shuffle"?`
+        <div class="keyrow" data-action="plGroup"><input type="checkbox" ${PL.group?"checked":""} readonly> 단원 이름 표시하기</div>`:""}
+
+        <div class="rsum" style="margin-top:14px"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pin'/></svg> ${esc(plRangeLabel())} · <b>${list.length}개</b> · 인쇄하면 A4 약 <b>${plPages(list.length)}장</b></div>
+        ${list.length>300?`<div class="muted tiny" style="margin-top:8px;color:var(--warn);font-weight:700">단어가 많아요. 인쇄 전에 단원을 골라서 장수를 줄이는 걸 권해요.</div>`:""}
+        ${list.length?`<button class="btn" style="width:100%;margin-top:12px" data-action="plPrint"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-printer'/></svg> 인쇄 · PDF로 저장</button>`:`<div class="muted tiny" style="margin-top:12px">고른 조건에 맞는 단어가 없어요. 위에서 단원이나 조건을 바꿔보세요.</div>`}
+        <div class="muted tiny" style="margin-top:9px">휴대폰에서도 인쇄를 누르면 <b>PDF로 저장</b>을 고를 수 있어요. 그 파일을 카톡으로 보내주면 됩니다.</div>
+      </div>
+    </div>
+
+    ${list.length?`
+    <div class="paper">
+      <div class="ptitle">베트남어 단어 리스트</div>
+      <div class="plsub">${esc(plRangeLabel())} · ${list.length}개${PL.only==="weak"?" · 아직 못 외운 단어":""}${PL.order==="shuffle"?" · 순서 섞음":""}</div>
+      <div class="plist c${PL.cols}">${rows}</div>
+    </div>`:""}
+
+    <div class="noprint">
+      <button class="btn line" style="margin-top:10px" data-action="goPrep">← 시험 대비로</button>
+    </div>
+  `);
+}
+function plRow(w, n){
+  return `<div class="plrow"><span class="plnum">${n}.</span><span class="plvn">${esc(w.vn)}</span><span class="plko">${esc(w.en)}</span></div>`;
+}
 function renderPrep(){
   state.screen = "prep";
   const c = prepCounts();
@@ -4740,6 +6096,11 @@ function renderPrep(){
       `}
     </div>
     ${c.master>=c.total && c.total>0 ? `<div class="card" style="text-align:center">🎉 전체 단어를 마스터했어요! 이제 복습만 반복하면 돼요.</div>` : ""}
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-clipboard'/></svg> 단어 리스트 (보고 쓰기 · 인쇄)</h2>
+      <div class="muted tiny" style="margin-top:-4px">타자로 치지 않고, <b>베트남어와 뜻이 같이 적힌 목록</b>을 보면서 공책에 옮겨 적고 싶을 때. 그대로 <b>A4로 인쇄</b>해서 동기들에게 나눠줄 수도 있어요.</div>
+      <button class="btn line" style="width:100%;margin-top:12px" data-action="goPrepList"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-printer'/></svg> 리스트 뽑기</button>
+    </div>
     <button class="btn line" style="margin-top:6px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
   `);
 }
@@ -6673,13 +8034,19 @@ const TTS_SAMPLE = "Tôi có thể nói tiếng Việt.";
 function goVoice(){ loadVoices(); renderVoice(); }
 function renderVoice(){
   state.screen="voice";
-  const vs = viVoices();
+  const netOn = ttsNetOn();
+  const vsAll = viVoices();
+  const vs = netOn ? vsAll : vsAll.filter(v=>v.localService!==false);   // 꺼두면 인터넷 목소리는 목록에서 숨김
+  const netCount = vsAll.filter(v=>v.localService===false).length;
   const curURI = lsGet("_voiceURI","");
   const rate = ttsRate();
   const now = pickedVoice("vi-VN");
   const voiceRows = vs.length
-    ? vs.map(v=>`<button class="chip ${curURI && v.voiceURI===curURI ? "on":""}" data-action="pickVoice" data-uri="${esc(v.voiceURI)}">${esc(v.name)}${isEnhancedVoice(v)?" ★":""} <small>${esc(v.lang)}${v.localService===false?" · 온라인":""}</small></button>`).join("")
-    : (VOICES_READY && !VOICES.length
+    ? vs.map(v=>`<button class="chip ${curURI && v.voiceURI===curURI ? "on":""}" data-action="pickVoice" data-uri="${esc(v.voiceURI)}">${esc(v.name)}${isEnhancedVoice(v)?" ★":""} <small>${esc(v.lang)}${v.localService===false?" · 인터넷":""}</small></button>`).join("")
+    : (!netOn && vsAll.length
+        /* 인터넷 목소리를 꺼둬서 목록이 빈 경우: 음성 설치 안내는 헛다리. 스위치를 켜면 바로 돌아옴 */
+        ? `<div class="tiny" style="color:var(--warn); font-weight:700; line-height:1.7">이 기기의 베트남어 목소리는 <b>전부 인터넷 목소리</b>예요. 아래 <b>인터넷 목소리 사용</b>을 켜야 소리가 납니다.</div>`
+        : VOICES_READY && !VOICES.length
         /* 목소리가 '베트남어만' 없는 게 아니라 아예 0개 → 음성 설치 안내는 헛다리. 브라우저를 바꿔야 함 */
         ? `<div class="tiny" style="color:var(--warn); font-weight:700; line-height:1.7"><b>이 화면에서는 발음이 안 나와요.</b> 읽어줄 목소리가 하나도 없어요. 크롬 · 삼성인터넷 · 사파리로 열어주세요.</div>`
         : `<div class="muted tiny">이 기기에 설치된 <b>베트남어 음성</b>을 찾지 못했어요. 아래 안내로 음성을 설치한 뒤 이 화면을 다시 열어주세요. (그 전까지는 기기 기본 음성으로 읽어요)</div>`);
@@ -6709,6 +8076,20 @@ function renderVoice(){
         ${voiceRows}
       </div>
       <div class="muted tiny" style="margin-top:8px">지금 읽는 목소리: <b>${now?esc(now.name):"(기기 기본)"}</b>${nowNudge}</div>
+    </div>
+    <div class="card">
+      <h2>인터넷 목소리 사용</h2>
+      <div class="seg" style="margin-top:2px">
+        <button class="${netOn?"on":""}" data-action="ttsNet" data-v="1">켜기 (더 자연스러움)</button>
+        <button class="${netOn?"":"on"}" data-action="ttsNet" data-v="0">끄기 (데이터 안 씀)</button>
+      </div>
+      <div class="muted tiny" style="margin-top:10px; line-height:1.75">
+        <b>인터넷 목소리</b>는 기기에 저장된 목소리가 아니라, 읽을 글자를 <b>인터넷 서버로 보내서</b> 사람 목소리에 가까운 소리를 받아오는 방식이에요.
+        그래서 훨씬 자연스럽지만 <b>켜면 켤수록 데이터(요금제 용량)를 조금씩 씁니다.</b>
+        단어 하나에 몇 KB 정도라 크진 않지만, 와이파이가 아닌 곳에서 오래 들으면 쌓일 수 있어요.<br>
+        <b>끄면</b> 기기 안에 저장된 목소리만 써서 데이터가 <b>전혀</b> 나가지 않고 비행기 모드에서도 소리가 나요. 대신 소리가 기계음에 가까워집니다.
+        ${netCount ? `<br><span style="opacity:.85">지금 이 기기에서 인터넷 목소리로 잡히는 건 <b>${netCount}개</b>예요.</span>` : `<br><span style="opacity:.85">지금 이 기기에는 인터넷 목소리가 없어서, 켜두어도 데이터는 쓰지 않아요.</span>`}
+      </div>
     </div>
     <div class="card">
       <h2>속도</h2>
@@ -7364,6 +8745,26 @@ const actions = {
   lisKoToggle:()=>{ lsSet("_lisKo", !(lsGet("_lisKo", true) !== false)); renderListen(); },
   lisStop:()=>{ stopSpeak(); lisClearPlay(); },
   goPrep, prepStart, prepResume, prepGrade, prepSkip, prepNext, quitPrep,
+  /* 단어 리스트(필기용 · 인쇄) */
+  goPrepList,
+  plLesson:(el)=>{ const l = el.dataset.l==="custom" ? "custom" : Number(el.dataset.l);
+                   if(PL.pick.has(l)) PL.pick.delete(l); else PL.pick.add(l); renderPrepList(); },
+  plAll:()=>{ PL.pick.clear(); renderPrepList(); },
+  /* 자주 쓰는 묶음을 한 번에 고르기(단원 칩이 40개가 넘어 하나씩 누르기 번거로움) */
+  plBundle:(el)=>{
+    const R = { t1:[1,12], t2:[33,44], ex:[15,26], th:[27,32] }[el.dataset.g];
+    if(!R) return;
+    PL.pick.clear();
+    lessonsList().forEach(l=>{ if(typeof l==="number" && l>=R[0] && l<=R[1]) PL.pick.add(l); });
+    renderPrepList();
+  },
+  plOnly:(el)=>{ PL.only = el.dataset.v==="weak" ? "weak" : "all"; lsSet("_plOnly", PL.only); renderPrepList(); },
+  plOrder:(el)=>{ PL.order = el.dataset.v==="shuffle" ? "shuffle" : "book"; lsSet("_plOrder", PL.order); renderPrepList(); },
+  plCols:(el)=>{ PL.cols = Number(el.dataset.v)||2; lsSet("_plCols", PL.cols); renderPrepList(); },
+  plGroup:()=>{ PL.group = !PL.group; lsSet("_plGroup", PL.group); renderPrepList(); },
+  plReshuffle:()=>{ PL_CACHE = { key:"", list:[] }; renderPrepList(); },
+  /* 이 화면엔 종이(.paper)가 하나뿐이라 따로 격리할 필요 없이 그냥 인쇄하면 됨 */
+  plPrint:()=>{ window.print(); },
   start, retryLast, retryWrong, retryWrongQ:retryWrong,
   openExternal,   // 카톡 등 앱 안 브라우저 → 크롬·사파리로 다시 열기 (거기서만 소리가 남)
   hardReload,     // 최신 내용 받기 (캐시 무시)
@@ -7415,6 +8816,19 @@ const actions = {
   snoozeBackup:()=>{ bkMark(); renderHome(); },
   cloudLogin, cloudLogout,
   pickVoice:(el)=>{ lsSet("_voiceURI", el.dataset.uri||""); renderVoice(); speak(TTS_SAMPLE,"vi-VN"); },
+  /* 인터넷 목소리 켜기·끄기. 끌 때, 골라둔 목소리가 인터넷 목소리면 '기본(자동)'으로 되돌림
+     (목록에서 사라진 목소리가 계속 선택된 것처럼 보이지 않게) */
+  ttsNet:(el)=>{
+    const on = el.dataset.v === "1";
+    lsSet("_ttsnet", on);
+    if(!on){
+      const uri = lsGet("_voiceURI","");
+      const f = uri ? viVoices().find(v=>v.voiceURI===uri) : null;
+      if(f && f.localService===false) lsSet("_voiceURI","");
+    }
+    renderVoice();
+    speak(TTS_SAMPLE,"vi-VN");     /* ⚠️ 누른 그 순간에 바로 호출(아이폰은 미루면 소리가 안 남) */
+  },
   testVoice:()=>{ speak(TTS_SAMPLE,"vi-VN"); },
   doImport:()=>{ const t=document.getElementById("importBox"); const res=importBackup(t?t.value:""); alert(res.msg); if(res.ok) renderBackup(); },
   removeNote:(el)=>{ const a=loadNote(); a.splice(Number(el.dataset.i),1); saveNote(a); renderNote(); },
