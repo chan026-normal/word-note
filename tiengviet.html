@@ -5915,7 +5915,31 @@ function srsRec(w, ok){
   lsSet("_srs", a);
 }
 const prepDeck = () => WORDS;                         // 전체 단어장(교재1권 + Expats + 교재2권 + 내 단어)
-const prepCounts = () => { const d=prepDeck(); let m=0,f=0,z=0;
+/* 공부 범위 — 시험 대비(한 단어씩 써내는 연습)에서 어느 단원까지 낼지.
+   8/1 시험은 교재2권(33~44과)이 범위 밖이라, 그걸 빼고 볼 수 있어야 남은 기간을 시험 단어에 쓸 수 있음.
+   비어 있으면 = 전체. 고른 범위는 문제 출제·위 진도 숫자·홈 배너에 모두 적용됨(리스트 뽑기는 따로 고름). */
+const PREP_PICK = new Set(lsGet("_prepPick", []) || []);
+function prepPickSave(){ lsSet("_prepPick", [...PREP_PICK]); }
+function prepPool(){ return PREP_PICK.size ? WORDS.filter(w=>PREP_PICK.has(w.lesson)) : WORDS; }
+const PREP_RANGES = { t1:[1,12], ex:[15,26], th:[27,32], t2:[33,44] };   // 교재1권 · Expats · 흔한어휘 · 교재2권
+const inBook2 = l => typeof l==="number" && l>=33 && l<=44;
+function prepRangeLessons(g){                          // g="all"이면 빈 배열(= 전체)
+  const ls = lessonsList();
+  if(g==="all") return [];
+  if(g==="exam") return ls.filter(l=>!inBook2(l));     // 교재2권만 빼고 전부(내 단어 포함)
+  const R = PREP_RANGES[g];
+  return R ? ls.filter(l=>typeof l==="number" && l>=R[0] && l<=R[1]) : [];
+}
+function prepRangeCount(g){
+  const ls = prepRangeLessons(g);
+  return ls.length ? WORDS.filter(w=>ls.indexOf(w.lesson)>=0).length : WORDS.length;
+}
+function prepRangeIs(g){                               // 지금 고른 범위가 이 묶음인가(칩 강조용)
+  const ls = prepRangeLessons(g);
+  if(!ls.length) return PREP_PICK.size===0;
+  return PREP_PICK.size===ls.length && ls.every(l=>PREP_PICK.has(l));
+}
+const prepCounts = () => { const d=prepPool(); let m=0,f=0,z=0;
   d.forEach(w=>{ const l=srsLv(w); if(l>=SRS_MAX) m++; else if(l>0) f++; else z++; });
   return { total:d.length, master:m, familiar:f, fresh:z }; };
 
@@ -6065,7 +6089,10 @@ function renderPrep(){
   const c = prepCounts();
   const pct = c.total ? Math.round(c.master/c.total*100) : 0;
   const dleft = prepDaysLeft();
-  const saved = prepSessLoad();   // 이어서 풀 세션이 있으면
+  const saved0 = prepSessLoad();   // 이어서 풀 세션이 있으면
+  /* 저장된 세션이 지금 고른 범위 밖 단어를 품고 있으면 '이어서 풀기'를 감춤
+     (범위를 바꿨는데 옛 단어가 계속 나오면 필터가 안 듣는 것처럼 보임. 세션은 지우지 않음) */
+  const saved = (saved0 && (!PREP_PICK.size || saved0.queue.every(w=>PREP_PICK.has(w.lesson)))) ? saved0 : null;
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
@@ -6086,6 +6113,17 @@ function renderPrep(){
         <div><span class="pnum">${c.total}</span><span class="plab">전체</span></div>
       </div>
 
+      <label class="fld" style="margin-top:14px">공부 범위</label>
+      <div class="row">
+        <button class="chip ${prepRangeIs("exam")?"on":""}" data-action="prepRange" data-g="exam">8/1 시험 범위 <small>${prepRangeCount("exam")}</small></button>
+        <button class="chip ${prepRangeIs("all")?"on":""}" data-action="prepRange" data-g="all">전체 <small>${prepRangeCount("all")}</small></button>
+        <button class="chip ${prepRangeIs("t1")?"on":""}" data-action="prepRange" data-g="t1">교재1권 <small>${prepRangeCount("t1")}</small></button>
+        <button class="chip ${prepRangeIs("t2")?"on":""}" data-action="prepRange" data-g="t2">교재2권 <small>${prepRangeCount("t2")}</small></button>
+        <button class="chip ${prepRangeIs("ex")?"on":""}" data-action="prepRange" data-g="ex">Expats <small>${prepRangeCount("ex")}</small></button>
+        <button class="chip ${prepRangeIs("th")?"on":""}" data-action="prepRange" data-g="th">주제별 <small>${prepRangeCount("th")}</small></button>
+      </div>
+      <div class="muted tiny" style="margin-top:6px">고른 범위 안에서만 문제가 나오고, 위 진도 숫자도 그 범위 기준이에요. <b>8/1 시험 범위</b>는 교재2권(33~44과)을 뺀 ${prepRangeCount("exam")}개입니다.</div>
+
       ${saved ? `
       <button class="btn" style="width:100%;margin-top:14px" data-action="prepResume"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 이어서 풀기 (${saved.idx+1}번째부터 · 총 ${saved.total}단어)</button>
       <button class="btn line" style="width:100%;margin-top:8px" data-action="prepStart"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pencil'/></svg> 처음부터 새로 (${PREP.sessN}단어)</button>
@@ -6105,7 +6143,7 @@ function renderPrep(){
   `);
 }
 function prepStart(){
-  const deck = prepDeck();
+  const deck = prepPool();                            // 고른 공부 범위 안에서만 출제
   if(!deck.length){ alert("먼저 단어가 있어야 해요."); return; }
   prepSessClear();                                    // 처음부터 새로 = 저장된 세션 버림
   const weak = deck.filter(w=>srsLv(w)<SRS_MAX);
@@ -8745,6 +8783,14 @@ const actions = {
   lisKoToggle:()=>{ lsSet("_lisKo", !(lsGet("_lisKo", true) !== false)); renderListen(); },
   lisStop:()=>{ stopSpeak(); lisClearPlay(); },
   goPrep, prepStart, prepResume, prepGrade, prepSkip, prepNext, quitPrep,
+  /* 공부 범위 고르기 — 고른 묶음만 시험 대비에 나옴(8/1 시험은 교재2권 제외) */
+  prepRange:(el)=>{
+    const ls = prepRangeLessons(el.dataset.g);
+    PREP_PICK.clear();
+    ls.forEach(l=>PREP_PICK.add(l));
+    prepPickSave();
+    renderPrep();
+  },
   /* 단어 리스트(필기용 · 인쇄) */
   goPrepList,
   plLesson:(el)=>{ const l = el.dataset.l==="custom" ? "custom" : Number(el.dataset.l);
