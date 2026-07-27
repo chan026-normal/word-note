@@ -4147,7 +4147,14 @@ function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.fl
 function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 /* ---------- 발음(TTS) 음성·속도 ---------- */
 let VOICES = [];
-function loadVoices(){ try{ VOICES = (window.speechSynthesis && speechSynthesis.getVoices()) || []; }catch(e){ VOICES = []; } }
+/* ⚠️ 목소리 목록은 브라우저가 '조금 뒤에' 채워줌 — 앱이 막 켜진 순간엔 거의 항상 빈 배열임.
+   그래서 '아직 안 온 것'과 '정말 하나도 없는 것'을 구분할 표시가 필요함.
+   VOICES_READY 가 true 인데도 목록이 비어 있으면 → 이 화면에선 발음이 아예 안 남. */
+let VOICES_READY = false;
+function loadVoices(){
+  try{ VOICES = (window.speechSynthesis && speechSynthesis.getVoices()) || []; }catch(e){ VOICES = []; }
+  if(VOICES.length) VOICES_READY = true;
+}
 /* ⚠️ 카톡·인스타 등 '앱 안에서 열리는 브라우저'(인앱 브라우저)는 소리 읽기(Web Speech)를 지원하지 않음.
    특히 안드로이드 카톡은 Chrome WebView라 음성 목록이 아예 비어 있어 **아무 소리도 안 남**.
    → 감지해서 '크롬/사파리로 열기' 버튼을 보여줌. (사용자 제보: 카톡 링크로 바로 열면 소리 안 남) */
@@ -4169,38 +4176,121 @@ function ttsProblem(){
   if(IN_APP) return "inapp";                                   // 카톡 등 앱 안 브라우저 → 소리 기능 없음
   if(!window.speechSynthesis) return "이 브라우저는 소리 읽기를 지원하지 않아요.";
   if(!VOICES.length) loadVoices();
+  /* 목록이 다 왔는데도 목소리가 0개 = 이 화면에선 발음이 아예 안 남(대개 앱 안 브라우저).
+     예전엔 이 경우 아무 안내도 안 떠서, 사용자는 버튼만 누르며 왜 조용한지 알 수 없었음. */
+  if(VOICES_READY && !VOICES.length) return "novoice";
   if(VOICES.length && !viVoices().length) return "이 폰에 <b>베트남어 음성</b>이 없어요. 설치하면 소리가 나요.";
   return "";
 }
 function viVoices(){ return VOICES.filter(v => (v.lang||"").toLowerCase().replace("_","-").startsWith("vi")); }
-function ttsRate(){ const r = Number(lsGet("_rate", 0.9)); return (r>=0.5 && r<=2) ? r : 0.9; }
-/* 베트남어일 때만 사용자가 고른 음성 적용. 한국어 등은 OS 기본 음성 사용.
-   ⚠️ 자동 선택은 '기기에 설치된(오프라인)' 음성 우선 — 온라인(network) 음성은 버퍼링으로 끊길 수 있음 */
-/* 음성 음질 점수 — premium > neural > enhanced > natural > 기본. (맥·아이폰의 '향상된/프리미엄' 음성을 자동으로 고름) */
+/* 홈 화면 위쪽 '소리 안 남' 안내 카드.
+   ⚠️ 홈 전체를 다시 그리면 검색창에 치던 글자가 지워지고 화면이 위로 튐.
+      그래서 이 카드만 따로 갈아끼울 수 있게 함수로 분리함(ttsWarnRefresh). */
+function ttsWarnHTML(){
+  const p = ttsProblem(); if(!p) return "";
+  if(p==="inapp") return `<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:14px">
+        <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.65">
+          <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg>
+          지금은 <b>카톡 안의 브라우저</b>로 열려 있어서 <b>발음 소리가 안 나요.</b><br>
+          <span style="font-weight:600">아래 버튼으로 크롬·사파리에서 열면 소리가 나요.</span>
+        </div>
+        <button class="btn" style="margin-top:10px" data-action="openExternal">크롬 · 사파리로 열기</button>
+      </div>`;
+  if(p==="novoice") return `<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:14px">
+        <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.65">
+          <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg>
+          <b>이 화면에서는 발음이 안 나와요.</b> 읽어줄 목소리가 하나도 없어요.<br>
+          <span style="font-weight:600">크롬 · 삼성인터넷 · 사파리로 열면 소리가 나요.</span>
+        </div>
+        <button class="btn" style="margin-top:10px" data-action="openExternal">크롬 · 사파리로 열기</button>
+        <button class="chip tiny" style="margin-top:8px" data-action="goVoice">해결 방법 보기</button>
+      </div>`;
+  return `<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:12px 14px">
+        <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.6">
+          <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${p}
+          <button class="chip tiny" style="margin-left:6px" data-action="goVoice">해결 방법 보기</button>
+        </div></div>`;
+}
+/* 목소리 목록이 늦게 도착했을 때, 홈의 안내 카드만 조용히 갱신 */
+function ttsWarnRefresh(){
+  try{ const el = document.getElementById("ttsWarn"); if(el) el.innerHTML = ttsWarnHTML(); }catch(e){}
+}
+/* 읽기 속도 기본값 1.0(보통 말 빠르기).
+   예전 기본값 0.9는 소리를 억지로 늘려 읽는 방식이라 말이 끊기고 딱딱하게 들렸음.
+   더 느리게 듣고 싶으면 '발음(소리) 설정 → 속도'에서 직접 내리면 됨. */
+function ttsRate(){ const r = Number(lsGet("_rate", 1.0)); return (r>=0.5 && r<=2) ? r : 1.0; }
+/* 베트남어일 때만 사용자가 고른 음성 적용. 한국어 등은 OS 기본 음성 사용. */
+/* 음성 음질 점수: 이름에 붙은 표시로 '자연스러운 목소리'를 가려냄.
+   ㆍ안드로이드(구글 음성): 이름이 vi-vn-x-vif-local / -network 식인데, network 쪽이 훨씬 자연스럽고
+     local(compact) 쪽은 옛날 기계음이라 한 글자씩 뚝뚝 끊어 읽는 느낌이 남.
+   ㆍ맥·아이폰: Enhanced(향상됨) / Premium 이 붙은 쪽이 자연스러움. */
 function voiceScore(v){
-  const n = ((v.name||"")+" "+(v.voiceURI||""));
-  if(/premium/i.test(n)) return 5;
-  if(/neural/i.test(n)) return 4;
-  if(/enhanced|nâng cao/i.test(n)) return 3;
-  if(/natural/i.test(n)) return 2;
+  const n = ((v.name||"")+" "+(v.voiceURI||"")).toLowerCase();
+  if(/compact|espeak|eloquence|pico/.test(n)) return 0;                  // 옛날식 기계음: 가장 어색함
+  if(/premium|wavenet|studio|journey|chirp|siri/.test(n)) return 5;
+  if(/neural|network/.test(n)) return 4;
+  if(/enhanced|nâng cao/.test(n)) return 3;
+  if(/natural/.test(n)) return 2;
   return 1;
 }
 function isEnhancedVoice(v){ return voiceScore(v) >= 3; }
+/* 자동 선택 규칙(2026-07-26 변경):
+   예전엔 '기기에 설치된(오프라인)' 음성을 무조건 먼저 골랐음. 그런데 폰에 깔린 기본 음성이
+   기계음(compact)이면, 훨씬 자연스러운 음성이 있어도 그걸 못 쓰고 발음이 어색하게 들렸음.
+   이제는 ① 음질 점수가 높은 순 ② 점수가 같으면 오프라인 우선. 단, 인터넷이 끊겨 있으면
+   온라인 음성은 소리가 아예 안 나므로 오프라인 음성만 후보로 둠. */
+/* 안전장치: 온라인 음성이 실제로 소리를 못 낸 적이 있으면, 그 뒤로는 오프라인 음성만 씀.
+   (인터넷이 연결돼 있어도 회사·학교 와이파이에서 막히는 경우가 있어서, '소리가 아예 안 남'을 막음) */
+let TTS_NET_FAIL = false;
 function pickedVoice(lang){
   if(!(lang||"").toLowerCase().startsWith("vi")) return null;
   const vs = viVoices(); if(!vs.length) return null;
   const uri = lsGet("_voiceURI","");
-  if(uri){ const f = vs.find(v=>v.voiceURI===uri); if(f) return f; }
-  const byScore = (a,b)=>voiceScore(b)-voiceScore(a);
-  const locals = vs.filter(v=>v.localService!==false).sort(byScore);   // 로컬(오프라인) 우선 = 끊김 없음
-  if(locals.length) return locals[0];                                  // 그 중 최고 음질(향상된/프리미엄)
-  return vs.slice().sort(byScore)[0] || vs[0];                         // 로컬이 없으면 온라인이라도 최고 음질
+  if(uri){ const f = vs.find(v=>v.voiceURI===uri); if(f) return f; }   // 사용자가 직접 고른 목소리가 1순위
+  let online = true; try{ online = (navigator.onLine !== false); }catch(e){}
+  if(TTS_NET_FAIL) online = false;
+  const offline = vs.filter(v=>v.localService!==false);
+  const pool = (online || !offline.length) ? vs : offline;
+  return pool.slice().sort((a,b)=>{
+    const d = voiceScore(b) - voiceScore(a); if(d) return d;             // ① 음질 좋은 순
+    return (a.localService===false?1:0) - (b.localService===false?1:0);  // ② 같으면 오프라인 우선
+  })[0] || vs[0];
 }
 /* TTS 전용 발음 교정 — 화면 글자는 그대로 두고 '소리'만 바꿈.
    베트남어 음성이 외국 이름(한국·영어)을 이상하게 읽는 걸 완화. 필요하면 여기 줄만 추가하면 됨. */
+/* 왜 필요한가: 베트남어는 'br, j, w, z' 같은 소리나 'd·s·r'로 끝나는 소리가 없어서,
+   베트남어 음성이 영어·한국어 이름을 만나면 읽다가 소리가 뚝 끊기거나 엉뚱하게 읽음
+   (보고된 예: 8과 'Brian'에서 음이 중간에 끊김).
+   그래서 화면 글자는 그대로 두고, 소리 낼 때만 베트남어식 철자로 바꿔 읽게 함.
+   이름을 더 고치고 싶으면 이 배열에 줄만 한 줄 추가하면 됨. */
 const TTS_FIX = [
-  [/\bEun\s*Ji\b/gi, "Ưn Chi"],   // 은지
-  [/\bJane\b/gi, "Chên"],          // 제인 — 베트남어 음성이 '자이'로 읽던 것
+  /* 사람 이름 */
+  [/\bEun\s*Ji\b/gi, "Ưn Chi"],    // 은지
+  [/\bJinwan\b/gi,   "Chin Oan"],  // 진완
+  [/\bBrian\b/gi,    "Bờ Rai Ơn"], // 브라이언 (br 소리가 없어 끊기던 것)
+  [/\bDavid\b/gi,    "Đây Vít"],   // 데이비드 (d로 끝나는 소리가 없음)
+  [/\bThomas\b/gi,   "Tô Mát"],    // 토마스
+  [/\bJames\b/gi,    "Giêm"],      // 제임스
+  [/\bJackie\b/gi,   "Giắc Ki"],   // 재키
+  [/\bJenny\b/gi,    "Gien Ni"],   // 제니
+  [/\bJack\b/gi,     "Giắc"],      // 잭
+  [/\bJane\b/gi,     "Chên"],      // 제인 (음성이 '자이'로 읽던 것)
+  [/\bKate\b/gi,     "Kêt"],       // 케이트 ('카떼'로 읽던 것)
+  [/\bRyan\b/gi,     "Rai Ơn"],    // 라이언
+  [/\bHenry\b/gi,    "Hen Ri"],    // 헨리
+  [/\bGraham\b/gi,   "Gờ Rêm"],    // 그레이엄
+  [/\bKeener\b/gi,   "Ki Nơ"],     // 키너
+  [/\bEmily\b/gi,    "Ê Mi Li"],   // 에밀리
+  [/\bLee\b/gi,      "Li"],        // 이(李)
+  /* 지명 · 상표 */
+  [/\bSeoul\b/gi,    "Xê Un"],     // 서울
+  [/\bGoogle\b/gi,   "Gu Gồ"],     // 구글
+  [/\bYoutube\b/gi,  "Diu Tuýp"],  // 유튜브
+  [/\bNetflix\b/gi,  "Nét Phờ Lích"], // 넷플릭스
+  [/\bK-pop\b/gi,    "Kây Pốp"],   // 케이팝
+  [/\bFAHASA\b/g,    "Pha Ha Sa"], // 파하사 (서점 이름)
+  [/\bILA\b/g,       "I La"],      // 아이엘에이 (어학원 이름)
+  [/\btour\b/gi,     "tua"],       // 투어 (베트남에서도 '뚜아'로 읽음)
 ];
 function ttsText(text, lang){
   if(!(lang||"").toLowerCase().startsWith("vi")) return text;   // 베트남어 재생일 때만 교정
@@ -4212,15 +4302,25 @@ function ttsText(text, lang){
                 안의 단어는 살려서 "bữa ăn sáng"으로 읽음. */
   t = t.replace(/\s*\/\s*/g, ", ");    // 빗금 → 쉼표(잠깐 쉼)
   t = t.replace(/[()[\]]/g, " ");      // 괄호 기호만 제거, 안의 단어는 그대로 읽음
+  t = t.replace(/…/g, "...").replace(/\.{2,}/g, ",");   // 말줄임표: 마침표를 여러 개로 보고 길게 멈추던 것을 쉼표 한 번으로
   t = t.replace(/\s{2,}/g, " ")        // 위에서 생긴 이중 공백 정리
        .replace(/\s+([,.!?;:])/g, "$1")
        .replace(/,\s*,/g, ",")
-       .trim().replace(/^[,;:]\s*/, "");
+       .replace(/,\s*([.!?])/g, "$1")  // "À..., xin lỗi." 처럼 쉼표+마침표가 겹치던 것 정리
+       .trim().replace(/^[,;:]\s*/, "").replace(/[,;:]+$/, ".");
   /* ② 사람 이름 등 개별 교정 */
   TTS_FIX.forEach(([re, rep]) => { t = t.replace(re, rep); });
   return t;
 }
-if(window.speechSynthesis){ loadVoices(); try{ speechSynthesis.onvoiceschanged = loadVoices; }catch(e){} }
+if(window.speechSynthesis){
+  loadVoices();
+  /* 목소리 목록이 뒤늦게 도착하면 홈의 안내 카드만 다시 계산 */
+  try{ speechSynthesis.onvoiceschanged = ()=>{ loadVoices(); VOICES_READY = true; ttsWarnRefresh(); }; }catch(e){}
+  /* 끝내 목록이 안 오는 브라우저(앱 안 브라우저 등)도 있어서 1.5초 뒤 한 번 더 확인.
+     그때도 비어 있으면 '이 화면에서는 발음이 안 나와요' 안내를 띄움.
+     ⚠️ 여기서 speak()을 부르면 안 됨 — 아이폰은 '누른 그 순간'이 아니면 소리가 안 남. 글자만 갱신. */
+  try{ setTimeout(()=>{ loadVoices(); VOICES_READY = true; ttsWarnRefresh(); }, 1500); }catch(e){}
+}
 /* 끊김 방지 2종:
    ① cancel() 직후 바로 speak()하면 크롬(특히 맥)에서 소리가 씹힘 → 짧게 지연 + 시퀀스 토큰으로 중복 재생 차단
    ② 크롬은 긴 문장을 도중에 멈추는 버그가 있음 → 재생 중 주기적으로 pause/resume해 깨움 */
@@ -4233,6 +4333,16 @@ const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test((navigator.userAgent||
 const IS_IOS = /iPad|iPhone|iPod/i.test(navigator.userAgent||"") || (navigator.platform==="MacIntel" && (navigator.maxTouchPoints||0)>1);
 const IS_MAC = /Mac/i.test(navigator.platform||navigator.userAgent||"") && !IS_IOS;   // 맥(아이패드 제외) — 발음 음성 설치 안내용
 try{ if(IS_IOS) document.documentElement.classList.add("ios"); }catch(e){}
+/* 재생이 실패했을 때 원인 기록. 단, 다른 발음 버튼을 눌러 '끊긴' 것은 실패가 아님. */
+function ttsOnError(e){
+  ttsKeepStop();
+  try{
+    const kind = (e && (e.error || (e.detail&&e.detail.error))) || "";
+    if(kind==="interrupted" || kind==="canceled") return;   // 사용자가 다른 걸 눌러 멈춘 것
+    const v = pickedVoice("vi-VN");
+    if(v && v.localService===false) TTS_NET_FAIL = true;    // 온라인 음성이 소리를 못 냄 → 다음부터 오프라인으로
+  }catch(err){}
+}
 function ttsKeepStop(){
   if(TTS_KEEP){ clearInterval(TTS_KEEP); TTS_KEEP = null; }
   // 혹시 '멈춤'으로 굳었으면 반드시 풀어줌 — 안 풀면 이후 speak()이 전부 조용히 쌓이기만 함
@@ -4268,7 +4378,7 @@ function speak(text, lang){
         u.lang = lang || "en-US";
         u.rate = ttsRate();
         const v = pickedVoice(lang); if(v){ u.voice = v; u.lang = v.lang; }
-        u.onend = ttsKeepStop; u.onerror = ttsKeepStop;
+        u.onend = ttsKeepStop; u.onerror = ttsOnError;
         speechSynthesis.speak(u);
         ttsKeepStart();
       }catch(e){}
@@ -4297,7 +4407,7 @@ function speakLines(texts, onLine, onDone){
           u.onstart = ()=>{ if(my===TTS_SEQ && onLine) try{ onLine(i); }catch(e){} };
           if(i === texts.length-1){
             u.onend = ()=>{ ttsKeepStop(); if(my===TTS_SEQ && onDone) try{ onDone(); }catch(e){} };
-            u.onerror = ttsKeepStop;
+            u.onerror = ttsOnError;
           }
           speechSynthesis.speak(u);
         });
@@ -4905,20 +5015,7 @@ function renderHome(){
       </div>
     </div>
 
-    ${(()=>{ const p=ttsProblem(); if(!p) return "";
-      if(p==="inapp") return `<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:14px">
-        <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.65">
-          <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg>
-          지금은 <b>카톡 안의 브라우저</b>로 열려 있어서 <b>발음 소리가 안 나요.</b><br>
-          <span style="font-weight:600">아래 버튼으로 크롬·사파리에서 열면 소리가 나요.</span>
-        </div>
-        <button class="btn" style="margin-top:10px" data-action="openExternal">크롬 · 사파리로 열기</button>
-      </div>`;
-      return `<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:12px 14px">
-        <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.6">
-          <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> ${p}
-          <button class="chip tiny" style="margin-left:6px" data-action="goVoice">해결 방법 보기</button>
-        </div></div>`; })()}
+    <div id="ttsWarn">${ttsWarnHTML()}</div>
 
     <div class="card" style="padding:12px 14px">
       <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px"><span class="seclbl" style="margin:0">이번 주</span><span style="font-size:11.5px; color:var(--accent); font-weight:700">연속 ${strk}일</span></div>
@@ -6582,7 +6679,10 @@ function renderVoice(){
   const now = pickedVoice("vi-VN");
   const voiceRows = vs.length
     ? vs.map(v=>`<button class="chip ${curURI && v.voiceURI===curURI ? "on":""}" data-action="pickVoice" data-uri="${esc(v.voiceURI)}">${esc(v.name)}${isEnhancedVoice(v)?" ★":""} <small>${esc(v.lang)}${v.localService===false?" · 온라인":""}</small></button>`).join("")
-    : `<div class="muted tiny">이 기기에 설치된 <b>베트남어 음성</b>을 찾지 못했어요. 아래 안내로 음성을 설치한 뒤 이 화면을 다시 열어주세요. (그 전까지는 기기 기본 음성으로 읽어요)</div>`;
+    : (VOICES_READY && !VOICES.length
+        /* 목소리가 '베트남어만' 없는 게 아니라 아예 0개 → 음성 설치 안내는 헛다리. 브라우저를 바꿔야 함 */
+        ? `<div class="tiny" style="color:var(--warn); font-weight:700; line-height:1.7"><b>이 화면에서는 발음이 안 나와요.</b> 읽어줄 목소리가 하나도 없어요. 크롬 · 삼성인터넷 · 사파리로 열어주세요.</div>`
+        : `<div class="muted tiny">이 기기에 설치된 <b>베트남어 음성</b>을 찾지 못했어요. 아래 안내로 음성을 설치한 뒤 이 화면을 다시 열어주세요. (그 전까지는 기기 기본 음성으로 읽어요)</div>`);
   const enhCount = vs.filter(isEnhancedVoice).length;
   const nowNudge = now && isEnhancedVoice(now)
     ? ' · <b style="color:var(--good)">향상된 음성 ★</b>'
@@ -6593,10 +6693,11 @@ function renderVoice(){
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 발음(소리) 설정</h2>
       <div class="muted tiny" style="margin-top:-4px">듣기·발음 버튼이 읽어주는 <b>목소리</b>와 <b>속도</b>를 정해요. 기기에 깔린 베트남어 음성을 사용해요.</div>
     </div>
-    ${IN_APP?`<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:14px">
+    ${(IN_APP || (VOICES_READY && !VOICES.length))?`<div class="card" style="background:var(--warnsoft); border-color:var(--warn); padding:14px">
       <div class="tiny" style="color:var(--warn); font-weight:800; line-height:1.65">
         <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-alert'/></svg>
-        <b>카톡 안의 브라우저</b>에서는 소리 기능이 없어요 — 목소리 목록도 비어 있어요.<br>
+        ${IN_APP ? "<b>카톡 안의 브라우저</b>에서는 소리 기능이 없어요. 목소리 목록도 비어 있어요."
+                 : "<b>이 화면에서는 발음이 안 나와요.</b> 읽어줄 목소리가 하나도 없어요."}<br>
         <span style="font-weight:600">크롬·사파리로 열면 정상으로 나옵니다.</span>
       </div>
       <button class="btn" style="margin-top:10px" data-action="openExternal">크롬 · 사파리로 열기</button>
@@ -6614,19 +6715,19 @@ function renderVoice(){
       <input type="range" id="rateRange" min="0.6" max="1.3" step="0.05" value="${rate}" style="width:100%;accent-color:var(--brand)">
       <div class="muted tiny" style="margin-top:6px">느리게 ← <b id="rateLbl">${rate.toFixed(2)}배</b> → 빠르게</div>
     </div>
-    <button class="btn lg" data-action="testVoice"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 테스트 듣기 — "${esc(TTS_SAMPLE)}"</button>
+    <button class="btn lg" data-action="testVoice"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 테스트 듣기: "${esc(TTS_SAMPLE)}"</button>
     <div class="card" style="margin-top:12px${IS_MAC?";background:var(--brandsoft);border-color:var(--brand)":""}">
       <h2>발음이 어색하면 (더 좋은 음성 설치)</h2>
       <div class="muted tiny" style="line-height:1.75">
         <b>맥</b>: 시스템 설정 → 손쉬운 사용 → 읽어주기 콘텐츠 → 시스템 음성 → <b>음성 관리…</b> → <b>Tiếng Việt(베트남어)</b> → <b>Linh</b>의 <b>'향상된(Enhanced)' 또는 '프리미엄'</b> 내려받기. 그다음 이 화면을 다시 열면 위 목록에 <b>★</b>로 뜨고 자동으로 선택돼요.<br>
         <b>아이폰</b>: 설정 → 손쉬운 사용 → 읽어주기 콘텐츠 → 음성 → 베트남어 → <b>'향상된/프리미엄'</b> 다운로드<br>
-        <b>안드로이드</b>: 설정 → 언어 → 음성 출력(TTS) → Google 음성 선택 + <b>베트남어</b> 데이터 설치<br>
-        <span style="opacity:.85">설치 후에도 목소리가 여러 개면, 위 <b>목소리</b> 목록에서 ★ 표시된 것을 직접 골라도 돼요.</span>
+        <b>안드로이드</b>: 설정 → 일반(또는 접근성) → 텍스트 음성 변환(TTS) → 엔진을 <b>Google 음성 인식 및 합성</b>으로 → 톱니바퀴 → 음성 데이터 설치 → <b>Tiếng Việt(베트남어)</b> 내려받기. 그 뒤 이 앱을 <b>새로고침</b>하면 위 목록에 베트남어 목소리가 여러 개 뜹니다.<br>
+        <span style="opacity:.85">목소리가 여러 개면 위 <b>목소리</b> 목록에서 ★ 표시된 것을 골라보세요. 이름에 <b>network</b>가 붙은 것이 가장 사람 말투에 가깝고(인터넷 필요), <b>local</b>이 붙은 것은 인터넷 없이도 되지만 기계음에 가깝습니다. 하나씩 눌러보면 바로 소리로 들려줘요.</span>
       </div>
     </div>
   `);
   const rr=document.getElementById("rateRange"), rl=document.getElementById("rateLbl");
-  if(rr){ rr.addEventListener("input", ()=>{ const v=Number(rr.value)||0.9; lsSet("_rate", v); if(rl) rl.textContent=v.toFixed(2)+"배"; }); }
+  if(rr){ rr.addEventListener("input", ()=>{ const v=Number(rr.value)||1.0; lsSet("_rate", v); if(rl) rl.textContent=v.toFixed(2)+"배"; }); }
 }
 function goTelex(){ renderTelex(); }
 function renderTelex(){
