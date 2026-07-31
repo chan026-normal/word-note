@@ -234,6 +234,18 @@
   .pgtxt{flex:1 1 auto; min-width:0}
   .pgvn{font-weight:600; line-height:1.45}
   .pgko{color:var(--muted); font-size:13px; line-height:1.4; margin-top:1px}
+  /* 추가자료(EXTRA) : 지문 화면 뼈대를 그대로 쓰고 몇 가지만 더함 */
+  .exsrc{margin-left:auto; font-size:11px; font-weight:700; color:var(--muted); background:var(--soft); border-radius:999px; padding:2px 8px}
+  .exlead{border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:10px; background:var(--soft); padding:9px 12px; color:var(--muted); font-size:13px; line-height:1.55; margin-bottom:12px}
+  .exbody{padding:9px 0; font-size:13.5px; line-height:1.65; color:var(--muted)}
+  .exbox{margin:9px 0 3px; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--soft); font-weight:800; font-size:13.5px; line-height:1.6; text-align:center; letter-spacing:.2px}
+  .exnote{border-top:1px dashed var(--line); margin-top:4px; padding:8px 0 9px; color:var(--muted); font-size:12.5px; line-height:1.6}
+  .pgvn.exq{font-weight:600; color:var(--muted)}
+  .pgvn.exa{font-weight:800}
+  .nbp{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px; line-height:1.45}
+  .nbs{color:var(--muted); font-size:13.5px}
+  .nbar{color:var(--muted); font-size:12px}
+  .nbn{font-weight:800}
   /* 듣기 연습 (교재 듣기 대본) */
   .lssec{margin-top:16px}
   .lshead{font-weight:800; font-size:13.5px; color:var(--brand); line-height:1.5}
@@ -4697,7 +4709,9 @@ const allPaperSentences = () => sentLessons().flatMap(l => paperSents(l));
 /* =========================================================
    3-b) 교재 회화(HỘI THOẠI) — '대화 빈칸 채우기'용
    단원별 대화 배열. 각 대화는 백틱 문자열, 한 줄 = "화자|베트남어|한국어".
-   교재 사진에서 화자·순서 그대로 옮김(1~7과, 대화 20개).
+   교재 사진에서 화자·순서 그대로 옮김(교재1 1~11과, 대화 32개).
+   11과(166쪽)는 2026-07-30에 뒤늦게 채움. 7/28에 11과를 넣을 때 회화를 SENT_RAW 쪽에만
+   문장으로 풀어 넣고 화자를 안 적어서 이 표에서 빠져 있었음.
    단원 추가 시: 아래에 번호 키로 대화 배열만 넣으면 화면·빈칸이 자동 반영됨.
    ========================================================= */
 const DIALOG_RAW = {
@@ -4920,12 +4934,29 @@ Vân|Anh Brian có mấy anh chị em, vậy chị?|Brian 씨는 형제자매가
 Loan|Anh ấy có khá đông anh em, một anh trai, bốn chị gái.|그는 형제가 꽤 많아요. 형 한 명, 누나 네 명이요.
 Vân|Vậy, anh trai anh ấy đã có gia đình chưa?|그럼, 그의 형은 결혼했어요?
 Loan|Chưa, anh ấy còn độc thân.|아니요, 그는 아직 미혼이에요.`
+],
+11: [
+`Vân|Ở Hàn Quốc có phương tiện giao thông gì vậy, anh?|한국에는 어떤 교통수단이 있어요?
+Lee|Có xe buýt, xe điện ngầm, xe hơi, xe tắc xi...|버스, 지하철, 자동차, 택시가 있어요.
+Vân|Có xe máy không, anh?|오토바이는 있어요?
+Lee|Có. Nhưng rất ít.|있어요. 그런데 아주 적어요.
+Vân|Ở Việt Nam anh thường đi làm bằng gì?|베트남에서는 보통 뭘 타고 출근해요?
+Lee|Tôi đi bằng xe máy. Nếu trời mưa thì tôi đi tắc xi.|저는 오토바이로 가요. 비가 오면 택시를 타요.`,
+`Loan|Khi đến Việt Nam chị mua vé máy bay một chiều hay vé khứ hồi?|베트남에 올 때 편도 항공권을 샀어요, 왕복 항공권을 샀어요?
+Kate|Vé một chiều. Vì tôi chưa biết bao giờ sẽ trở lại Anh. À, nghe nói dạo này chị đi bằng xe đạp điện phải không?|편도요. 언제 영국에 돌아갈지 아직 모르거든요. 아, 요즘 전기 자전거를 타고 다닌다면서요?
+Loan|Vâng, nhưng hôm nay xe của tôi hư. Tôi đi bằng xe ôm. Chắc là tôi phải đi xe máy lại.|네, 그런데 오늘 제 자전거가 고장 났어요. 그래서 오토바이 택시를 타요. 아무래도 다시 오토바이를 타야 할 것 같아요.
+Kate|Tôi thích đi bằng xe ôm. Người lái xe rất thân thiện. Tôi thường nói tiếng Việt với họ.|저는 오토바이 택시 타는 걸 좋아해요. 운전사가 아주 친절해요. 저는 보통 그들과 베트남어로 이야기해요.`,
+`Vân|Xe Grab sắp đến chưa anh?|그랩 차가 곧 와요?
+Dũng|Sắp đến rồi. Tài xế mới gọi cho tôi. Anh ấy nói là khoảng 10 phút nữa sẽ đến. Đang kẹt xe.|곧 와요. 기사님이 방금 저에게 전화했어요. 10분쯤 뒤에 도착한다고 했어요. 차가 막히고 있대요.
+Vân|Hôm nay chúng ta cùng ăn tối với bố mẹ anh Brian. Nếu đến trễ thì ngại quá!|오늘 우리는 Brian 씨 부모님과 함께 저녁을 먹잖아요. 늦게 도착하면 너무 민망해요!
+Dũng|Không trễ đâu. Kìa, xe đến rồi kìa!|안 늦어요. 저기, 차 왔어요!`
 ]
 };
 /* 회화가 실린 교재 쪽 — [대화1쪽, 대화2쪽, 대화3쪽]. 사진에서 확인함. */
 const DIALOG_PAGES = {
   1:[3,4,4], 2:[17,17,18], 3:[35,35,36], 4:[53,53,54],
-  5:[70,70,71], 6:[90,90], 7:[108,108,109], 8:[123,123,124], 9:[137,137,138], 10:[151,151,152]
+  5:[70,70,71], 6:[90,90], 7:[108,108,109], 8:[123,123,124], 9:[137,137,138], 10:[151,151,152],
+  11:[166,166,166]
 };
 const DIALOGS = {};
 Object.keys(DIALOG_RAW).forEach(L=>{
@@ -5252,7 +5283,7 @@ const listenLessons = () => Object.keys(LISTEN).map(Number).sort((a,b)=>a-b);
 /* 대본 쪽수(교재 부록 3) — 어느 쪽을 보고 있는지 표시용 */
 const LISTEN_PAGE = { 1:200, 2:200, 3:201, 4:202, 5:203, 6:204, 7:205, 8:206, 9:207, 10:208, 11:"208-209" };
 /* 빈칸 후보에서 뺄 고유명사(등장인물·지명·상호) — 뚫어봐야 학습에 도움 안 됨 */
-const DLG_NAMES = new Set(["david","van","vân","eun","ji","brian","kate","hiroki","loan","lee","toan","toàn","dorothy","dung","dũng","min","fahasa","google","youtube","ila","c308","nguyen","nguyễn","hue","huệ","dinh","đinh","tien","tiên","hoang","hoàng","singapore"]);
+const DLG_NAMES = new Set(["david","van","vân","eun","ji","brian","kate","hiroki","loan","lee","toan","toàn","dorothy","dung","dũng","min","fahasa","google","youtube","ila","c308","nguyen","nguyễn","hue","huệ","dinh","đinh","tien","tiên","hoang","hoàng","singapore","grab"]);
 
 /* 시험 오답 → 오답노트에 자동 등록(1회). 단어=word, 작문=sentence(자가채점). lesson은 시험 날짜 표시용. */
 const SEED_NOTE_V = "exam-2026q2-r4";
@@ -6101,6 +6132,253 @@ function renderGrammar(){
 }
 
 /* =========================================================
+   추가자료 (EXTRA) : 수업 PPT·유인물 + '하노이(북부)식으로는 이렇게' 대응표
+   ⚠️ 보여주기 전용. 시험 문제 풀(WORDS·SENT_BY_LESSON)에는 절대 안 섞임.
+   블록 종류 5가지
+     k:"txt" 설명 글        (body)
+     k:"pat" 문법 패턴      (box 제목틀 + lines 예문 + note)
+     k:"voc" 어휘 묶음      (rows = [베트남어, 한국어])
+     k:"qa"  연습 정답      (items = {q,qk,a,ak}) q 없으면 완성 문장 한 줄
+     k:"nb"  남부 → 북부표  (rows = [남부, 북부, 뜻, 나오는 자리])
+   0번은 '전체 점검'(교재 1~44과 전수 조사 결과) 자리로 씀.
+   ========================================================= */
+const EXTRA = {
+  0: { note:"교재 44개 단원의 단어 1828개·문장 1005개·듣기 대본 249줄을 전부 훑어서 **남부(호치민) 말이 섞인 자리**를 찾았어요. 결론부터: 이 교재는 **하노이식이 아니라 남부 쪽에 가깝습니다.** 다만 틀린 말은 하나도 없고, 8/1 시험은 교재 기준이니 **교재 단어를 그대로 외우시면 됩니다.** 아래는 수업에서 하노이 말이 들릴 때 당황하지 않도록 정리한 것이에요.", blocks:[
+    { k:"txt", t:"왜 남부 쪽이라고 보나", s:"1~44과 전수 점검", body:"**하나, 배경이 되는 도시가 남쪽이에요.** 남부·중부 지명이 41번, 북부 지명이 9번 나옵니다. Thành phố Hồ Chí Minh(호치민시) 22번, Đà Lạt(달랏) 5번, Phú Quốc(푸꾸옥) 4번, Sài Gòn(사이공) 3번, Nha Trang(냐짱) 3번, Đà Nẵng(다낭) 3번, Vũng Tàu(붕따우) 1번. 북쪽은 Hà Nội(하노이) 8번, Hồ Tây(서호) 1번뿐입니다.\n\n**둘, 남부에서만 쓰는 낱말 15개가 11개 단원에 모두 33군데 흩어져 있어요.** 5·6·9·11·12·13·18·33·35·43·44과입니다. 특히 **11과가 제일 심해서 혼자 16군데**나 됩니다(교통수단 단원이라 그래요).\n\n**셋, 그런데 어미는 북부식이에요.** '네'는 dạ(남부) 8번 대 vâng(북부) 10번으로 오히려 북부가 많고, 남부 말끝 nha·nghen·hổng·tui 는 **한 번도 안 나옵니다.** 즉 '남부 낱말을 쓰는 표준 문어체'에 가깝습니다.\n\n**넷, 아예 북부 말만 쓴 단원도 있어요.** 29과 식기 이름은 bát(공기)·cốc(컵)·đĩa(접시)·thìa(숟가락)로 **전부 북부식**인데, 33과는 같은 그릇을 chén·tô 라고 남부식으로 부릅니다. 28과의 ốm(아프다)·gầy(마르다)도 북부 쪽 표현이에요. **한 권 안에서 남북이 섞여 있다**는 뜻입니다." },
+    { k:"nb", t:"확실한 남부 낱말 15개 (모두 33곳)", s:"교재 1~44과 전수", rows:[
+      ["mắc","đắt","비싸다 (3곳)","5과 단어·문장 · 9과 문장"],
+      ["ngàn","nghìn","천, 1000 (2곳)","6과 듣기 · 13과 단어"],
+      ["cà phê sữa đá","cà phê nâu đá","연유 아이스 밀크커피 (1곳)","6과 문장"],
+      ["xe lửa","tàu hỏa","기차 (6곳)","9과 단어·문장 · 11과 듣기·문법·문장 2곳"],
+      ["xe hơi","ô tô","자동차 (4곳)","11과 문법 · 문장 3곳"],
+      ["kẹt xe","tắc đường","차가 막히다 (3곳)","11과 단어 · 문장 2곳"],
+      ["xe điện ngầm","tàu điện ngầm","지하철 (5곳)","11과 단어 · 문법 2곳 · 문장 2곳"],
+      ["trái cây","hoa quả","과일 (2곳)","12과 단어 · 35과 단어"],
+      ["lẻ","linh","백 단위 뒤의 0, 105 = một trăm linh năm (1곳)","13과 단어"],
+      ["cây xăng","trạm xăng","주유소 (1곳)","18과 단어"],
+      ["chén","bát","(밥)공기 (1곳)","33과 단어"],
+      ["tô","bát to","큰 그릇, 대접 (1곳)","33과 단어"],
+      ["chả giò","nem rán","짜조, 튀긴 스프링롤 (1곳)","33과 단어"],
+      ["mắc cỡ","xấu hổ","부끄럽다 (1곳)","43과 단어"],
+      ["nước tương","xì dầu","간장 (1곳)","44과 단어"],
+    ], note:"왼쪽이 **교재에 실린 말**, 오른쪽이 **하노이 말**입니다. 시험은 왼쪽으로 나옵니다." },
+    { k:"nb", t:"약한 신호 3개 (하노이에서도 쓰지만 덜 씀)", s:"참고만 하세요", rows:[
+      ["xe tắc xi","tắc xi","택시 (5곳)","8과 문장 2곳 · 11과 문법·문장 2곳. 북부는 앞에 xe 를 잘 안 붙여요"],
+      ["chạy xe","đi xe","(오토바이를) 타고 가다 (2곳)","11과 문장. 북부는 đi xe máy 를 더 씁니다"],
+      ["ông xã","chồng","남편을 부르는 애칭 (1곳)","41과 단어. 남부에서 더 흔한 말투예요"],
+    ], note:"이 셋은 **하노이에서도 통하고 실제로 씁니다.** 빈도가 낮을 뿐이라 위 15개와 나눠 두었어요. 따로 외우실 필요 없습니다." },
+    { k:"txt", t:"안심하셔도 되는 것", s:"", body:"**남부 말이라고 틀린 게 아니에요.** 위 15개는 베트남 남쪽에서 매일 쓰는 정상적인 말이고, 하노이 사람도 다 알아듣습니다. 반대로 하노이 말을 호치민에서 써도 통합니다.\n\n**교재 대부분은 지역색이 없습니다.** 단어 1828개 중 남부 낱말은 14개, **0.77%**뿐이에요(xe hơi 와 cà phê sữa đá 는 단어장엔 없고 문장·문법에만 나옵니다). 나머지는 남북 공통입니다.\n\n**교재가 스스로 표시해 둔 곳도 있어요.** 13과의 ngàn·lẻ 는 앱 뜻풀이에 이미 '(남부)'라고 적혀 있습니다.\n\n**정리하면**: 교재로 시험 준비하시고, 수업에서 선생님이 ô tô·tàu hỏa·tắc đường 이라고 하시면 '아, 하노이 말이구나' 하고 넘기시면 됩니다." },
+  ]},
+
+  5: { name:"남부 말 1곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["mắc","đắt","비싸다","5과 단어 · 문장 「giá không mắc」(비싸지 않은 값)"],
+    ], note:"교재 뒤쪽 9과에도 「Nhà hàng đó ngon nhưng hơi mắc.」(그 식당 맛있는데 좀 비싸요)로 또 나와요. 하노이라면 hơi đắt 입니다." },
+  ]},
+
+  6: { name:"남부 말 2곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["ngàn","nghìn","천, 1000","6과 듣기 「Hai trăm tám mươi ngàn」(28만 동)"],
+      ["cà phê sữa đá","cà phê nâu đá","연유 아이스 밀크커피","6과 문장 「Ông ấy thích uống cà phê sữa đá.」"],
+    ], note:"숫자 '천'은 북부에서 **nghìn**, 남부에서 **ngàn**입니다. 소리만 다르고 뜻은 같아요. 하노이 카페에서 밀크커피는 색깔을 따서 **nâu**(갈색)라고 부릅니다." },
+  ]},
+
+  9: { name:"남부 말 2곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["xe lửa","tàu hỏa","기차","9과 단어 · 문장 「vé xe lửa đi Hà Nội」(하노이행 기차표)"],
+      ["mắc","đắt","비싸다","9과 문장 「hơi mắc」(좀 비싸다)"],
+    ], note:"재미있는 점: 문장 안에서는 **하노이로 가는 기차**를 이야기하면서 단어는 남부 말 xe lửa 를 씁니다. 11과에서 또 나오니 지금 같이 외워 두세요." },
+  ]},
+
+  11: { name:"교통수단 · 7/28 수업 PPT", note:"7월 28일 수업 슬라이드 11장을 그대로 옮겨 담았어요. 선생님 자료는 **전부 하노이 말**입니다(ô tô, tàu hỏa, tàu điện ngầm, 하노이에서 하이퐁 가는 예문, 호안끼엠 호수). 반면 **교재 11과는 남부 말이 16군데**로 이 책에서 제일 많아요. 맨 아래 대응표를 꼭 보고 가세요.", blocks:[
+    { k:"pat", t:"bằng gì? (뭘 타고?)", s:"수업 PPT", box:"A: 주어 + 동사 + BẰNG GÌ?\nB: 주어 + 동사 + BẰNG + 수단", lines:[
+      { w:"A", vn:"Cậu đi học bằng gì?", ko:"너는 뭘 타고 학교에 가?" },
+      { w:"B", vn:"Tớ đi học bằng xe buýt.", ko:"나는 버스 타고 학교에 가." },
+    ], note:"선생님 메모: **Tuấn đi bộ đi học.** (맞는 문장) / Tuấn đi học bằng đi bộ. (틀린 문장). **걸어가는 것에만 bằng 을 안 붙여요.** 그리고 cậu(너)·tớ(나)는 하노이 친구 사이 호칭이에요. 남부에서는 보통 bạn·mình 을 씁니다." },
+    { k:"pat", t:"mất bao lâu? (얼마나 걸려요?)", s:"수업 PPT", box:"(ĐI BẰNG ...) + MẤT BAO LÂU?", lines:[
+      { w:"A", vn:"Từ Hà Nội đến Hải Phòng đi bằng ô tô mất bao lâu?", ko:"하노이에서 하이퐁까지 차로 가면 얼마나 걸려요?" },
+      { w:"B", vn:"Từ Hà Nội đến Hải Phòng đi bằng ô tô mất 2 tiếng 55 phút.", ko:"하노이에서 하이퐁까지 차로 2시간 55분 걸려요." },
+    ], note:"「Từ A đến B đi bằng 수단 mất bao lâu?」 를 통째로 외우세요. 대답은 **mất 뒤에 걸리는 시간**을 그대로 넣으면 끝입니다. tiếng 은 시간, phút 은 분이에요. 슬라이드에 쓴 **ô tô 가 하노이 말**이고, 교재는 같은 뜻을 xe hơi 라고 씁니다." },
+    { k:"pat", t:"nếu A thì B (A하면 B한다)", s:"수업 PPT", box:"NẾU A THÌ B", lines:[
+      { vn:"Nếu trời đẹp thì gia đình em sẽ đi chơi.", ko:"날씨가 좋으면 저희 가족은 놀러 갈 거예요." },
+      { vn:"Nếu bạn đến Hà Nội thì bạn nên đi thăm Hồ Gươm.", ko:"하노이에 오면 호안끼엠 호수에 가 보는 게 좋아요." },
+      { vn:"Nếu trời lạnh thì em phải mặc áo ấm.", ko:"날씨가 추우면 따뜻한 옷을 입어야 해요." },
+    ], note:"선생님 메모: A와 B의 **주어가 같으면 A쪽 주어는 지워도** 됩니다(원문: A and B have same Subject, Subject in A can be deleted). 결과 쪽에는 sẽ·nên·phải 같은 말을 자주 같이 써요." },
+    { k:"pat", t:"không / chưa + 동사 + đâu", s:"수업 PPT", box:"KHÔNG / CHƯA + ĐỘNG TỪ + ĐÂU", lines:[
+      { vn:"Em không ăn đâu. Em no rồi.", ko:"저 안 먹어요. 배불러요." },
+      { vn:"Tiếng Việt không khó đâu.", ko:"베트남어 안 어려워요." },
+      { vn:"Em chưa làm bài tập đâu. Ngày mai em sẽ làm.", ko:"저 아직 숙제 안 했어요. 내일 할 거예요." },
+    ], note:"선생님 메모: **đâu 는 부정을 세게 만드는 말**(원문: đâu: emphasize negative meanings). 여기서는 '어디'라는 뜻이 아니에요. 앞에 không 이나 chưa 가 보이면 무조건 부정 쪽입니다." },
+    { k:"voc", t:"PHƯƠNG TIỆN GIAO THÔNG (교통수단)", s:"수업 PPT", rows:[
+      ["xe đạp","자전거"],
+      ["xe máy","오토바이"],
+      ["xe buýt","버스"],
+      ["xe tắc xi","택시"],
+      ["xích lô","씨클로 (자전거 인력거)"],
+      ["tàu hỏa","기차 (교재의 xe lửa 와 같은 말)"],
+      ["tàu điện ngầm","지하철"],
+      ["tàu thủy","배, 여객선"],
+      ["máy bay","비행기"],
+      ["xe ôm","오토바이 택시"],
+    ], note:"슬라이드에는 기차가 **Tàu hỏa / xe lửa** 두 가지로 나란히 적혀 있었어요. 앞쪽이 하노이 말입니다. **xích lô·tàu thủy 는 교재 11과 단어장에 없는 추가 단어**예요." },
+    { k:"voc", t:"Từ vựng (수업 정리)", s:"수업 PPT", rows:[
+      ["xe máy","오토바이"],
+      ["xe đạp","자전거"],
+      ["đi bộ","걷다, 걸어서"],
+      ["xe buýt","버스"],
+      ["tàu hỏa","기차"],
+      ["tắc-xi (taxi)","택시"],
+      ["máy bay","비행기"],
+      ["tàu điện ngầm","지하철 (subway)"],
+    ], note:"이 슬라이드에는 **đi bộ(걷기)** 가 교통수단들과 같이 들어 있어요. 뜻은 같이 묶이지만 **bằng 은 붙이지 않는다**는 것만 기억하시면 됩니다." },
+    { k:"qa", t:"연습 2 정답 · 168쪽 (nếu ... thì ...)", s:"수업 PPT 정답", items:[
+      { a:"Nếu trời mưa thì tôi sẽ đi bằng tắc xi.", ak:"비가 오면 저는 택시를 타고 갈 거예요. (교재에 인쇄된 예시)" },
+      { a:"Nếu đi siêu thị thì chúng tôi sẽ mua sắm nhiều.", ak:"마트에 가면 우리는 많이 살 거예요." },
+      { a:"Nếu đến trễ thì tôi sẽ xin lỗi.", ak:"늦게 도착하면 저는 사과할 거예요." },
+      { a:"Nếu chị muốn đi bộ thì tôi sẽ đi bộ cùng chị.", ak:"누나가 걷고 싶으면 제가 같이 걸을게요." },
+      { a:"Nếu làm bài tập xong thì nó sẽ xem tivi.", ak:"숙제를 다 하면 걔는 티비를 볼 거예요." },
+      { a:"Nếu không hiểu thì tôi sẽ hỏi giáo viên.", ak:"이해가 안 되면 저는 선생님께 물어볼 거예요." },
+      { a:"Nếu có hẹn với bạn thì anh ấy sẽ đến đúng giờ.", ak:"친구와 약속이 있으면 그는 제시간에 올 거예요." },
+      { a:"Nếu đi du lịch xa thì tôi sẽ đi bằng máy bay.", ak:"멀리 여행을 가면 저는 비행기를 타고 갈 거예요." },
+    ], note:"짝맞추기 문제라 **한 번 쓴 보기는 다시 못 씁니다.** 푸실 때 쓴 보기에 바로 줄을 그어 지우시면 중복이 안 생겨요." },
+    { k:"qa", t:"연습 3 정답 · 168~169쪽 (không ... đâu)", s:"수업 PPT 정답", items:[
+      { q:"A: Chúng ta sẽ đi Vũng Tàu bằng xe máy.", qk:"우리 오토바이 타고 붕따우 가요.", a:"Tôi không đi đâu. Đi bằng xe máy mệt lắm.", ak:"저는 안 가요. 오토바이로 가면 너무 힘들어요. (교재 예시)" },
+      { q:"A: Nhanh lên. Sắp trễ rồi đấy!", qk:"서둘러요. 곧 늦겠어요!", a:"Không trễ đâu. Kịp mà.", ak:"안 늦어요. 늦지 않게 갈 수 있어요." },
+      { q:"A: Đi bằng xe buýt rất bất tiện.", qk:"버스로 가면 아주 불편해요.", a:"Không bất tiện đâu. Đi bằng xe buýt rất thoải mái.", ak:"불편하지 않아요. 버스로 가면 아주 편해요." },
+      { q:"A: Ngày mai anh ấy đến đây bằng xe đạp điện, phải không?", qk:"내일 그는 전기 자전거를 타고 여기 오죠?", a:"Anh ấy không đi xe đạp điện đâu. Anh ấy đi xe ôm.", ak:"그는 전기 자전거를 타지 않아요. 그는 쎄옴(오토바이 택시)을 타요." },
+      { q:"A: Họ sẽ đón ông ấy bằng xe hơi của công ty đấy!", qk:"그들이 회사 차로 그분을 마중 나갈 거래요!", a:"Họ không đón ông ấy đâu. Ông ấy sẽ đi taxi.", ak:"그들은 마중 안 나가요. 그분은 택시를 타실 거예요." },
+      { q:"A: Ăn tối xong, chị ấy đi bộ để tập thể dục phải không?", qk:"저녁 먹고 나서 그 언니는 운동하려고 걷죠?", a:"Chị ấy không đi bộ để tập thể dục đâu. Chị ấy tập yoga.", ak:"그 언니는 운동하려고 걷는 게 아니에요. 요가를 해요." },
+      { q:"A: Mua vé máy bay trên mạng phức tạp lắm hả, anh?", qk:"인터넷으로 비행기표 사는 거 많이 복잡해요?", a:"Không phức tạp đâu. Nhanh và dễ lắm.", ak:"복잡하지 않아요. 빠르고 아주 쉬워요." },
+      { q:"A: Từ Thành phố Hồ Chí Minh đến Đà Lạt có xe lửa không chị?", qk:"호치민시에서 달랏까지 기차가 있어요?", a:"Không có xe lửa đâu. Chỉ có xe khách thôi.", ak:"기차는 없어요. 시외버스만 있어요." },
+      { q:"A: Tài xế của ông ấy nói tiếng Anh giỏi không?", qk:"그분의 운전기사는 영어를 잘해요?", a:"Anh ấy không giỏi tiếng Anh đâu.", ak:"그는 영어를 잘하지 못해요." },
+    ], note:"규칙은 하나예요. **A가 밑줄 친 말을 그대로 가져와서** 「không + 그 말 + đâu」 로 끼워 넣습니다. 뜻이 비슷한 다른 단어로 바꾸면 안 돼요. 밑줄이 đi bộ để tập thể dục 처럼 길어도 **덩어리 통째로** 넣으시면 됩니다." },
+    { k:"qa", t:"연습 4 정답 · 175쪽 (không / chưa ... đâu 로 고쳐 쓰기)", s:"수업 PPT 정답", items:[
+      { q:"Chúng tôi sẽ không đến đó bằng xe khách.", qk:"우리는 시외버스로 거기 안 갈 거예요.", a:"Chúng tôi không đến đó bằng xe khách đâu.", ak:"우리는 시외버스로 거기 안 가요. (교재 예시)" },
+      { q:"Tháng này vé máy bay không rẻ.", qk:"이번 달 비행기표는 싸지 않아요.", a:"Tháng này vé máy bay không rẻ đâu.", ak:"이번 달 비행기표 하나도 안 싸요." },
+      { q:"Từ Thành phố Hồ Chí Minh đến Đà Lạt không có xe lửa.", qk:"호치민시에서 달랏까지는 기차가 없어요.", a:"Từ Thành phố Hồ Chí Minh đến Đà Lạt không có xe lửa đâu.", ak:"호치민시에서 달랏까지 기차 같은 거 없어요." },
+      { q:"Đi xe ôm từ đây về nhà em sẽ không mất nhiều thời gian.", qk:"여기서 쎄옴 타고 제 집까지 가면 시간이 많이 안 걸릴 거예요.", a:"Đi xe ôm từ đây về nhà em không mất nhiều thời gian đâu.", ak:"여기서 쎄옴 타고 제 집까지 시간 별로 안 걸려요." },
+    ], note:"⚠️ 1번과 4번을 잘 보세요. 원래 문장에 있던 **미래 sẽ 가 사라졌습니다.** 「không ... đâu」 문장에는 **sẽ 를 같이 안 씁니다.** 시험에 나오면 여기서 갈려요. 수업에서는 1~4번까지만 다뤘고, 5~7번은 교재 정답을 그대로 두시면 됩니다." },
+    { k:"nb", t:"교재는 남부 말, 수업은 하노이 말 (11과 대응표)", s:"자체 점검 16곳", rows:[
+      ["xe hơi","ô tô","자동차 (4곳)","교재 문법 1곳 · 문장 3곳. 선생님 슬라이드는 ô tô"],
+      ["xe lửa","tàu hỏa","기차 (4곳)","교재 단어에는 없고 듣기 1곳 · 문법 1곳 · 문장 2곳. 슬라이드는 Tàu hỏa"],
+      ["kẹt xe","tắc đường","차가 막히다, 교통 체증 (3곳)","교재 단어 1곳 · 문장 2곳"],
+      ["xe điện ngầm","tàu điện ngầm","지하철 (5곳)","교재 단어 1곳 · 문법 2곳 · 문장 2곳. 슬라이드는 Tàu điện ngầm"],
+      ["xe tắc xi","tắc xi","택시 (11과 3곳)","교재 문법 1곳 · 문장 2곳. 북부는 앞에 xe 를 잘 안 붙여요. 위 16곳에는 안 넣었어요"],
+    ], note:"**8/1 시험은 교재 기준입니다. 왼쪽을 외우세요.** 오른쪽은 수업에서 들릴 때 알아듣기 위한 것이에요. 참고로 Chan 님이 여백에 적으신 「kẹt xe = tắc đường」 메모가 정확합니다. **kẹt xe 가 호치민 말, tắc đường 이 하노이 말**이에요." },
+  ]},
+
+  12: { name:"남부 말 1곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["trái cây","hoa quả","과일","12과 단어 (35과에도 같은 단어)"],
+    ], note:"trái 는 남부에서 과일을 세는 말이라 trái cây 가 '과일'이 됩니다. 북부는 quả 를 써서 hoa quả 라고 해요. 다만 trái cây 는 하노이에서도 다 알아듣습니다." },
+  ]},
+
+  13: { name:"남부 말 2곳 (교재가 스스로 표시한 곳)", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["ngàn","nghìn","천, 1000","13과 단어. 앱 뜻풀이에 이미 (남부) 표시가 있어요"],
+      ["lẻ","linh","백 단위 뒤의 0 (105 = một trăm linh năm)","13과 단어. 앱에 이미 (남부) 표시"],
+    ], note:"여기는 **교재가 스스로 '남부'라고 알려 준 자리**예요. 그대로 두고 하노이 말만 같이 외워 두시면 됩니다. 숫자 읽기는 시험에 잘 나오니 105를 **một trăm linh năm**(북부) / **một trăm lẻ năm**(남부) 두 가지로 소리 내어 보세요." },
+  ]},
+
+  18: { name:"남부 말 1곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["cây xăng","trạm xăng","주유소","18과 단어"],
+    ], note:"재미있는 것은 **이 교재가 두 말을 다 싣고 있다**는 점이에요. 여기 18과는 남부식 **cây xăng**, 교재2 7과(39과)는 북부식 **trạm xăng**으로 똑같이 '주유소'라고 적혀 있습니다. 둘 다 시험에 나올 수 있으니 **두 개 다 외워 두세요.** 남부에서는 주유소를 '기둥'에 빗대어 cây 라고 부릅니다." },
+  ]},
+
+  33: { name:"남부 말 3곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["chén","bát","(밥)공기","33과 단어"],
+      ["tô","bát to","큰 그릇, 대접","33과 단어"],
+      ["chả giò","nem rán","짜조 (튀긴 스프링롤)","33과 단어"],
+    ], note:"식당 단어는 남북 차이가 가장 큰 분야예요. 하노이에서 **một bát phở**(쌀국수 한 그릇)라고 하면 호치민에서는 **một tô phở** 가 됩니다. 짜조는 하노이에서 **nem rán**, 호치민에서 **chả giò** 로 이름 자체가 다릅니다." },
+  ]},
+
+  35: { name:"남부 말 1곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["trái cây","hoa quả","과일","35과 단어 (12과와 같은 단어)"],
+    ], note:"12과에서 이미 나온 단어예요. 두 교재가 똑같이 남부 말을 씁니다." },
+  ]},
+
+  41: { name:"약한 신호 1곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["ông xã","chồng","남편 (애칭)","41과 단어. 하노이에서도 쓰지만 남부에서 더 흔해요"],
+    ], note:"**이건 지역 차이라기보다 말투 차이에 가까워요.** ông xã 는 아내가 남편을 다정하게 부르는 애칭이고, 짝이 되는 말은 **bà xã**(남편이 아내를 부를 때)입니다. 남쪽에서 더 자주 들리지만 하노이에서도 통합니다. 담백한 표준말은 **chồng**(남편) · **vợ**(아내)이고, 이 둘은 교재 10과에 이미 나와 있어요. **따로 고칠 것 없이 그냥 외우시면 됩니다.**" },
+  ]},
+
+  43: { name:"남부 말 1곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["mắc cỡ","xấu hổ","부끄럽다, 수줍다","43과 단어"],
+    ], note:"북부의 **xấu hổ** 는 글자 그대로 '나쁠 xấu + 창피할 hổ' 라서 조금 무거운 느낌, 남부의 **mắc cỡ** 는 쑥스럽다에 가까운 가벼운 말입니다. 하노이에서 수줍다는 뜻으로는 **ngượng** 도 자주 씁니다. 교재에는 xấu hổ 가 없으니 시험 답은 **mắc cỡ** 입니다." },
+  ]},
+
+  44: { name:"남부 말 1곳", blocks:[
+    { k:"nb", t:"하노이식으로는", s:"자체 점검", rows:[
+      ["nước tương","xì dầu","간장","44과 단어"],
+    ], note:"북부의 **xì dầu** 는 중국어에서 온 말이고, 남부의 **nước tương** 은 '장 국물'이라는 뜻의 순 베트남어예요. 참고로 하노이에서 nước tương 이라고 하면 간장이 아니라 **된장 비슷한 소스**를 떠올리는 사람도 있습니다. 조미료 쪽도 남북이 갈리는데(남부 bột ngọt, 북부 mì chính), 교재에는 둘 다 없어요." },
+  ]},
+};
+const extraLessons = () => Object.keys(EXTRA).map(Number).sort((a,b)=>a-b);
+const exName = l => l===0 ? "교재 전 단원 점검" : lessonName(l);
+const exChip = l => l===0 ? "전체 점검" : lessonSrcTag(l);
+const EX_ICON = { txt:"bulb", pat:"pencil", voc:"cards", qa:"check", nb:"repeat" };
+/* 베트남어 한 줄(발음 버튼 포함) */
+function exLine(vn, ko, who, cls){
+  return `<div class="pgline">${who?`<span class="pgwho">${esc(who)}</span>`:""}<div class="pgtxt">`
+       + `<div class="pgvn${cls?" "+cls:""}">${esc(vn)} ${spkBtn(vn,"vi-VN",true)}</div>`
+       + `<div class="pgko">${esc(ko||"")}</div></div></div>`;
+}
+function exNote(b){ return b.note ? `<div class="exnote">${gramMd(b.note)}</div>` : ""; }
+function exBlock(b){
+  const head = `<div class="pghead"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-${EX_ICON[b.k]||"clipboard"}'/></svg> ${esc(b.t)}${b.s?`<span class="exsrc">${esc(b.s)}</span>`:""}</div>`;
+  let body = "";
+  if(b.k === "txt"){
+    body = `<div class="pgblock"><div class="exbody">${gramMd(b.body).replace(/\n/g,"<br>")}</div></div>`;
+  } else if(b.k === "pat"){
+    const box = b.box ? `<div class="exbox">${gramMd(b.box).replace(/\n/g,"<br>")}</div>` : "";
+    body = `<div class="pgblock">${box}${b.lines.map(x=>exLine(x.vn,x.ko,x.w)).join("")}${exNote(b)}</div>`;
+  } else if(b.k === "voc"){
+    body = `<div class="pgblock">${b.rows.map(r=>exLine(r[0],r[1])).join("")}${exNote(b)}</div>`;
+  } else if(b.k === "qa"){
+    body = `<div class="pgblock">${b.items.map((it,i)=>
+        (it.q ? exLine(it.q, it.qk, (i+1)+")", "exq") : "") +
+        exLine(it.a, it.ak, it.q ? "→" : (i+1)+")", "exa")
+      ).join("")}${exNote(b)}</div>`;
+  } else if(b.k === "nb"){
+    body = `<div class="pgblock">${b.rows.map(r=>
+        `<div class="pgline"><div class="pgtxt">`
+      + `<div class="nbp"><span class="nbs">${esc(r[0])}</span><span class="nbar">→</span><span class="nbn">${esc(r[1])}</span> ${spkBtn(r[1],"vi-VN",true)}</div>`
+      + `<div class="pgko">${esc(r[2])}${r[3]?" · "+esc(r[3]):""}</div></div></div>`
+      ).join("")}${exNote(b)}</div>`;
+  }
+  return `<div class="pgsec">${head}${body}</div>`;
+}
+function goExtra(){ renderExtra(); }
+function renderExtra(){
+  const Ls = extraLessons();
+  let L = Number(lsGet("_extraL", 11));
+  if(!EXTRA[L]) L = Ls[0];
+  state.screen = "extra:"+L;
+  const g = EXTRA[L];
+  const chips = Ls.map(l=>
+    `<button class="chip${l===L?" on":""}" data-action="extraLesson" data-l="${l}">${esc(exChip(l))}</button>`
+  ).join("");
+  set(`
+    <button class="link" data-action="goHome">← 처음으로</button>
+    <div class="card">
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-clipboard'/></svg> 추가자료</h2>
+      <div class="muted tiny" style="margin:-4px 0 10px">수업 PPT와 <b>하노이(북부)식 대응표</b>예요. 시험 문제에는 안 섞이니 마음 놓고 보세요. 교재 전 단원을 훑은 결과는 <b>전체 점검</b> 칸에 있어요.</div>
+      <div class="chips gchips">${chips}</div>
+      <div class="ghead">${esc(exName(L))}${g.name?" · "+esc(g.name):""}</div>
+      ${g.note?`<div class="exlead">${gramMd(g.note)}</div>`:""}
+      ${g.blocks.map(exBlock).join("")}
+    </div>
+    <button class="btn line" style="margin-top:10px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
+  `);
+}
+
+
+/* =========================================================
    시험 대비 (8/1 1200단어 시험) — 간격 반복 + 생산형(한→베) 연습
    · 단어마다 숙련도 0~3(3=마스터). 맞히면 +1, 틀리면 0 → 약한 단어에 시간이 저절로 몰림.
    · 진도(_srs)는 각자 폰에 저장(개인). 단어 자체는 코드라 동기 전원 공유.
@@ -6641,8 +6919,9 @@ function renderHome(){
       <button class="lrow" data-action="goSkill" data-skill="exam"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg><span class="lr-nm">실전 시험</span><span class="lr-meta">단어 40 + 문장 10</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goSkill" data-skill="flash"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg><span class="lr-nm">플래시카드</span><span class="lr-meta">암기·복습</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goPassage"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">지문 해석</span><span class="lr-meta">대화·읽기·받아쓰기</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
-      <button class="lrow" data-action="goListen"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg><span class="lr-nm">듣기 연습</span><span class="lr-meta">교재 듣기 대본 · 1~10과</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goListen"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg><span class="lr-nm">듣기 연습</span><span class="lr-meta">교재 듣기 대본 · 1~11과</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goGrammar"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg><span class="lr-nm">문법 정리</span><span class="lr-meta">단원별</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goExtra"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-clipboard'/></svg><span class="lr-nm">추가자료</span><span class="lr-meta">수업 PPT · 하노이식 대응</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
     </div>
 
     <div class="seclbl">복습 · 관리</div>
@@ -8979,8 +9258,9 @@ function bindPaperCustom(){
    6) 클릭 이벤트 연결
    ========================================================= */
 const actions = {
-  goHome, goList, goAdd, goGrammar, goPassage, goListen,
+  goHome, goList, goAdd, goGrammar, goPassage, goListen, goExtra,
   gramLesson:(el)=>{ lsSet("_gramL", Number(el.dataset.l)); renderGrammar(); },
+  extraLesson:(el)=>{ lsSet("_extraL", Number(el.dataset.l)); renderExtra(); },
   passageLesson:(el)=>{ lsSet("_passL", Number(el.dataset.l)); renderPassage(); },
   listenLesson:(el)=>{ stopSpeak(); LIS_SHOW = new Set(); LIS_PLAYK = null; lsSet("_lisL", Number(el.dataset.l)); renderListen(); },
   lisPlay:(el)=>{
