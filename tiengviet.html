@@ -5203,7 +5203,7 @@ Object.keys(DIALOG_RAW).forEach(L=>{
 const dialogLessons = () => Object.keys(DIALOGS).map(Number).sort((a,b)=>a-b);
 
 
-/* ── 듣기 대본(TAPESCRIPT) — 교재 부록 3, 200~211쪽 (1~12과) ────────────────
+/* ── 듣기 대본(TAPESCRIPT) — 교재1 부록 3, 200~211쪽 (1~12과) + 교재2 부록, 149~159쪽 (33~44과) ──
    교재엔 대본만 있고 음원이 없어서, 대본을 그대로 담고 앱이 읽어 주게 했음. 줄마다 한국어 해석도 붙였음.
    한 줄 = "번호|화자|베트남어|한국어" (막대 4칸).
      번호 "#" → 문제 지시문(제목 줄)
@@ -5537,7 +5537,274 @@ const LISTEN_RAW = {
 ||Anh ấy đi bộ rất nhanh.|그는 아주 빠르게 걸었어요.
 ||Anh ấy chào tôi bằng tiếng Việt.|그는 베트남어로 저에게 인사했어요.
 ||Tôi hỏi anh ấy đến công viên bằng phương tiện gì.|저는 그에게 무엇을 타고 공원에 왔는지 물어봤어요.
-||Anh ấy nói anh ấy đi bộ.|그는 걸어서 왔다고 말했어요.`
+||Anh ấy nói anh ấy đi bộ.|그는 걸어서 왔다고 말했어요.`,
+
+/* ── 아래부터 교재2 부록 "NỘI DUNG PHẦN NGHE" 149~159쪽 (교재2 1~12과 = 앱 33~44과) ── */
+33: `#||Bài nghe 1. Nghe ba đoạn hội thoại sau đây, chọn ý đúng:|듣기 1. 다음 세 대화를 듣고, 알맞은 내용을 고르세요.
+1|Nam|Chị đã ăn phở ở quán “Dậu” bao giờ chưa?|“저우” 가게에서 쌀국수를 먹어 본 적 있어요?
+|Nữ|Rồi, tôi ăn một lần rồi.|네, 한 번 먹어 봤어요.
+|Nam|Chị thấy thế nào?|어땠어요?
+|Nữ|Tôi thấy ngon, nhưng... hơi mắc.|맛있었어요, 그런데... 좀 비쌌어요.
+|Nam|Vậy à? Tôi chưa bao giờ ăn ở đó.|그래요? 저는 거기서 한 번도 먹어 본 적이 없어요.
+2|Nam|Chào các bạn. Tôi xin phép về trước.|여러분 안녕히 계세요. 저는 먼저 가 볼게요.
+|Nữ|Mới bốn giờ rưỡi, chúng ta đang vui. Anh về sớm làm gì?|이제 4시 반이고, 우리 재미있게 놀고 있잖아요. 왜 이렇게 일찍 가요?
+|Nam|Tôi phải về chuẩn bị bữa tối cho gia đình.|집에 가서 가족을 위해 저녁을 준비해야 해요.
+|Nữ|Còn vợ anh đâu?|그럼 부인은요?
+|Nam|Chiều nay vợ tôi đi chơi với bạn, tôi phải nấu ăn.|오늘 오후에 아내가 친구랑 놀러 가서, 제가 요리해야 해요.
+|Nữ|Vậy à?|그래요?
+3|Nữ|Ngày mai là sinh nhật của chị Thu. Chúng ta mời chị Thu đi nhà hàng. Anh đồng ý không?|내일이 투 씨 생일이에요. 우리 투 씨를 식당에 초대해요. 동의해요?
+|Nam|Sinh nhật chị Thu à? Đồng ý! Đi nhà hàng nào?|투 씨 생일이요? 좋아요! 어느 식당에 갈까요?
+|Nữ|Đi nhà hàng Thái Lan có được không? Tôi thấy món ăn Thái rất ngon.|태국 식당에 가도 될까요? 태국 음식이 아주 맛있는 것 같아요.
+|Nam|Món Thái ngon, nhưng tôi thấy hơi cay. Chị Thu có thích không?|태국 음식은 맛있는데, 좀 매운 것 같아요. 투 씨가 좋아할까요?
+|Nữ|Vậy chúng ta đi quán “Hương Xưa” đi, ăn món Việt Nam. Quán đó vừa ngon vừa rẻ...|그럼 “흐엉 쓰아” 가게에 가요, 베트남 음식을 먹어요. 그 가게는 맛있고 싸기도 해요...
+|Nam|À, tuyệt! Tôi biết quán đó. Tôi sẽ gọi điện đặt bàn trước.|아, 좋아요! 저 그 가게 알아요. 제가 미리 전화해서 자리를 예약할게요.
+#||Bài nghe 2. Nghe và trả lời câu hỏi:|듣기 2. 듣고 질문에 답하세요.
+|Nữ|Cuối tuần anh thường làm gì?|주말에 보통 뭐 해요?
+|Nam|Đi gặp bạn bè hoặc nấu ăn cho cả nhà.|친구를 만나러 가거나 온 가족을 위해 요리를 해요.
+|Nữ|Anh nấu ăn được hả? Anh thường nấu món gì?|요리할 줄 알아요? 보통 무슨 음식을 만들어요?
+|Nam|Tôi chỉ làm những món bình thường. Chẳng hạn như bò bít tết, bánh xèo, gỏi cá, lẩu hải sản.|평범한 음식만 만들어요. 예를 들면 소고기 스테이크, 반쎄오, 생선회무침, 해물 전골이요.
+|Nữ|Ồ! Anh làm được bánh xèo à? Giỏi quá! Tôi chỉ biết làm trứng ốp la thôi. Tôi không biết làm bánh xèo.|오! 반쎄오를 만들 줄 알아요? 대단해요! 저는 계란 프라이만 할 줄 알아요. 반쎄오는 만들 줄 몰라요.
+|Nam|À, tôi lên mạng, vừa xem vừa làm.|아, 저는 인터넷에 들어가서 보면서 만들어요.
+|Nữ|Anh đã nấu phở bao giờ chưa?|쌀국수를 끓여 본 적 있어요?
+|Nam|Rồi, tôi nấu phở nhiều lần rồi, nhưng không ngon.|네, 여러 번 끓여 봤는데, 맛이 없었어요.
+|Nữ|Phở khó nấu lắm! Nếu muốn ăn phở, ra tiệm là ngon nhất.|쌀국수는 끓이기 아주 어려워요! 쌀국수가 먹고 싶으면 가게에 가는 게 제일 맛있어요.`,
+
+34: `#||Bài nghe 1. Nghe 3 mẫu đối thoại và trả lời câu hỏi:|듣기 1. 세 개의 대화를 듣고 질문에 답하세요.
+1|Nam|Từ khách sạn này ra bãi biển có xa không, cô?|이 호텔에서 해변까지 멀어요?
+|Nữ|Tôi không biết có xa không, nhưng đi bộ chỉ mất khoảng 7, 8 phút thôi.|먼지는 모르겠지만, 걸어서 7, 8분밖에 안 걸려요.
+2|Nữ|Anh đã đi Vũng Tàu, Mũi Né, Nha Trang, Phú Quốc rồi, phải không? Anh thích đâu nhất?|붕따우, 무이네, 나짱, 푸꾸옥에 가 봤죠? 어디가 제일 좋아요?
+|Nam|Tôi thích Mũi Né nhất.|저는 무이네가 제일 좋아요.
+|Nữ|Anh thích gì ở đó?|거기서 뭐가 좋아요?
+|Nam|Tôi thích hải sản. Buổi tối tôi và bạn bè vừa uống bia vừa ăn hải sản. Thú vị lắm!|저는 해산물이 좋아요. 저녁에 저와 친구들은 맥주를 마시면서 해산물을 먹어요. 아주 재미있어요!
+|Nữ|Tôi thì tôi thích đồi cát ở Mũi Né!|저는요, 저는 무이네의 모래언덕이 좋아요!
+3|Nữ|Khách sạn anh ở có tốt không?|묵고 있는 호텔은 좋아요?
+|Nam|Hơi bất tiện.|좀 불편해요.
+|Nữ|Bất tiện thế nào?|어떻게 불편해요?
+|Nam|Nó chỉ có một cái thang máy. Lên, xuống phải chờ hơi lâu.|엘리베이터가 하나뿐이에요. 오르내릴 때 좀 오래 기다려야 해요.
+#||Bài nghe 2. Nghe đoạn hội thoại và trả lời câu hỏi:|듣기 2. 대화를 듣고 질문에 답하세요.
+|Nữ|Thứ sáu tuần trước sao anh và anh Colin không đi học?|지난주 금요일에 왜 콜린 씨랑 학교에 안 왔어요?
+|Nam|Tôi và anh Colin đi Vũng Tàu.|저와 콜린 씨는 붕따우에 갔어요.
+|Nữ|Đi bằng xe khách à?|시외버스로 갔어요?
+|Nam|Không. Chúng tôi đi bằng xe máy. Anh Colin chở tôi.|아니요. 저희는 오토바이로 갔어요. 콜린 씨가 저를 태워 줬어요.
+|Nữ|Từ đây ra Vũng Tàu mất mấy tiếng?|여기서 붕따우까지 몇 시간 걸려요?
+|Nam|Vừa đi vừa nghỉ mất hơn 4 tiếng. Chúng tôi ra đến Vũng Tàu trước 11 giờ. Khách sạn cho nhận phòng sau 2 giờ nên chúng tôi đi tắm biển trước.|가다 쉬다 하면서 4시간 넘게 걸렸어요. 저희는 11시 전에 붕따우에 도착했어요. 호텔이 2시 이후에 체크인을 해 줘서 저희는 먼저 해수욕을 하러 갔어요.
+|Nữ|Cuối tuần, khách sạn mắc lắm, phải không?|주말에는 호텔이 아주 비싸죠?
+|Nam|Vâng, hơi mắc, trên 600 ngàn một đêm.|네, 좀 비싸요, 하룻밤에 60만 동이 넘어요.`,
+
+35: `#||Bài nghe 1. Nghe các đoạn hội thoại sau đây, chọn câu trả lời đúng:|듣기 1. 다음 대화들을 듣고, 알맞은 답을 고르세요.
+1|Nam|Tôi muốn mua một, hai kí cà phê mang về nước. Mua ở các quán cà phê có rẻ không, chị?|커피를 1, 2킬로 사서 고국에 가져가고 싶어요. 카페에서 사면 싼가요?
+|Nữ|Mua ở các quán cà phê không rẻ đâu. Anh nên mua ở siêu thị hay ở chợ Bến Thành. Nhưng tôi nghĩ mua trên mạng rẻ nhất.|카페에서 사면 싸지 않아요. 마트나 벤탄 시장에서 사는 게 좋아요. 그런데 인터넷으로 사는 게 제일 싼 것 같아요.
+2|Nữ|Tôi sẽ chở anh đi mua giày.|제가 신발 사러 태워다 줄게요.
+|Nam|Ở đâu?|어디서요?
+|Nữ|Ở một cửa hàng ở Quận 1. Cửa hàng này rất nổi tiếng.|1군에 있는 어느 가게요. 이 가게는 아주 유명해요.
+|Nam|Giày ở đó thế nào?|거기 신발은 어때요?
+|Nữ|Chắc chắn là tốt. Anh đừng lo.|틀림없이 좋아요. 걱정하지 마세요.
+3|Nam|Em có áo dài Việt Nam không, Mariko?|마리코 씨, 베트남 아오자이 있어요?
+|Nữ|Có. Em có hai cái. Một cái em mua. Một cái bạn em mới tặng hôm qua.|있어요. 두 벌 있어요. 한 벌은 제가 샀어요. 한 벌은 어제 친구가 선물해 줬어요.
+|Nam|Em mua hồi nào?|언제 샀어요?
+|Nữ|Em mua tuần trước, ở chợ Bến Thành.|지난주에 벤탄 시장에서 샀어요.
+|Nam|Đẹp không?|예뻐요?
+|Nữ|Đẹp, nhưng mà cái của bạn em tặng đẹp hơn.|예뻐요, 그런데 친구가 선물해 준 게 더 예뻐요.
+4|Nam|Cho hai ly cà phê sữa đá, ít sữa nhé! À... mà thôi! Hai ly cà phê đá thôi.|아이스 연유커피 두 잔 주세요, 연유는 적게요! 아... 아니에요! 아이스 블랙커피 두 잔만요.
+|Nữ|Bốn ly phải không, anh?|네 잔 맞죠?
+|Nam|Không. Chị đừng làm cà phê sữa đá. Chỉ hai ly cà phê đá thôi.|아니요. 아이스 연유커피는 만들지 마세요. 아이스 블랙커피 두 잔만요.
+5|Nữ|Anh xem gì vậy?|뭘 보고 있어요?
+|Nam|Tôi xem các chương trình khuyến mãi trong tháng 7.|7월 할인 행사들을 보고 있어요.
+|Nữ|Tháng 7 là thời gian học sinh nghỉ hè. Có chương trình khuyến mãi du lịch phải không anh?|7월은 학생들이 여름방학 하는 때죠. 여행 할인 행사가 있죠?
+|Nam|Phải. Nhưng tôi chỉ tìm máy lạnh giảm giá thôi. Sắp đến mùa hè rồi!|맞아요. 그런데 저는 할인하는 에어컨만 찾고 있어요. 곧 여름이 오잖아요!
+#||Bài nghe 2. Nghe và trả lời những câu hỏi sau đây:|듣기 2. 듣고 다음 질문들에 답하세요.
+|Nam|Bây giờ việc mua sắm rất tiện lợi. Không cần đi siêu thị, đi chợ cũng có thể mua sắm được.|요즘은 쇼핑이 아주 편리해요. 마트나 시장에 가지 않아도 살 수 있어요.
+|Nữ|Chỉ ở nhà nhưng vẫn mua sắm được à? Tôi không hiểu.|집에만 있어도 살 수 있다고요? 이해가 안 돼요.
+|Nam|Chị chỉ cần vào internet, xem sản phẩm, xem giá rồi đặt hàng.|인터넷에 들어가서 상품을 보고, 가격을 본 다음 주문하기만 하면 돼요.
+|Nữ|À, hiểu rồi. Nhưng tôi không thích mua như vậy, vì không biết chất lượng thế nào. Tôi chỉ thích mua ở cửa hàng thôi.|아, 알겠어요. 그런데 저는 그렇게 사는 걸 안 좋아해요, 품질이 어떤지 모르니까요. 저는 가게에서 사는 것만 좋아해요.
+|Nam|Mất nhiều thời gian lắm.|시간이 아주 많이 걸려요.
+|Nữ|Mất thời gian nhưng không lo lắng về chất lượng.|시간은 걸리지만 품질을 걱정하지 않아요.`,
+
+36: `#||Bài nghe 1. Nghe và viết lại số điện thoại:|듣기 1. 듣고 전화번호를 받아쓰세요.
+a)||Nếu bạn có vấn đề về sức khỏe, hãy gọi đến số 115.|건강에 문제가 있으면 115번으로 전화하세요.
+b)||Nếu bạn cần sự giúp đỡ của cảnh sát, hãy gọi đến số 113.|경찰의 도움이 필요하면 113번으로 전화하세요.
+c)||Bạn hãy gọi đến số 1080, nếu cần giải đáp thắc mắc hoặc muốn hỏi địa chỉ.|궁금한 것을 풀고 싶거나 주소를 묻고 싶으면 1080번으로 전화하세요.
+d)||Số điện thoại của văn phòng Khoa Việt Nam học là 028.38.225.009.|베트남학과 사무실 전화번호는 028.38.225.009예요.
+e)||Tổng đài điện thoại của Vietnam Airlines rất dễ nhớ: 1900.1100.|베트남항공 대표 전화번호는 아주 외우기 쉬워요: 1900.1100.
+f)||Bạn có thể mua vé xem kịch ở Sân khấu Idecaf qua số điện thoại 028.38.239.968.|이데카프 극장의 연극표는 028.38.239.968번으로 살 수 있어요.
+g)||Công ty Du lịch Saigontourist số điện thoại là 84.28.38.279.279.|사이공투어리스트 여행사 전화번호는 84.28.38.279.279예요.
+h)||Ở Thành phố Hồ Chí Minh, bạn muốn đi chơi mà không có xe? Hãy gọi taxi Vinasun, số 028.38.27.27.27.|호치민시에서 놀러 가고 싶은데 차가 없나요? 비나선 택시를 부르세요, 번호는 028.38.27.27.27이에요.
+#||Bài nghe 2. Nghe và trả lời câu hỏi:|듣기 2. 듣고 질문에 답하세요.
+|Nữ|Alô.|여보세요.
+|Nam|Dạ, có phải chị Tâm không ạ?|네, 떰 씨 맞으세요?
+|Nữ|Dạ, đúng rồi. Xin lỗi, ai ở đầu dây vậy?|네, 맞아요. 실례지만, 어느 분이세요?
+|Nam|Tôi giao hàng cho Tiki đây, chị ơi. Tôi đang đứng trước cửa nhà chị đây!|티키 배송 기사예요. 지금 댁 문 앞에 서 있어요!
+|Nữ|Vậy à? Xin lỗi, tôi không có ở nhà.|그래요? 죄송한데, 저 집에 없어요.
+|Nam|Vậy, chiều chị có ở nhà không?|그럼 오후에는 집에 계세요?
+|Nữ|Có. Nhưng sau 3 giờ nhé!|네. 그런데 3시 이후에요!
+|Nam|Dạ, vâng.|네, 알겠습니다.
+#||Bài nghe 3. 1. Nghe và đánh dấu ✓ những từ có trong bài:|듣기 3. 1. 듣고 지문에 나오는 단어에 ✓ 표시하세요.
+|NV|Alô, công ty giày Tân Mai xin nghe.|여보세요, 떤마이 신발 회사입니다.
+|Lan|Alô, chị làm ơn cho tôi gặp anh Hà Đông, phòng kế toán.|여보세요, 회계부 하 동 씨를 바꿔 주세요.
+|NV|Xin chị đợi một lát.|잠시만 기다려 주세요.
+|Đông|Xin chào, Hà Đông đây. Xin lỗi ai ở đầu dây vậy?|안녕하세요, 하 동입니다. 실례지만 어느 분이세요?
+|Lan|Mình là Lan. Cả buổi chiều hôm nay, sao mình gọi điện thoại mà Hà Đông không bắt máy?|나 란이야. 오늘 오후 내내 전화했는데 왜 하 동은 전화를 안 받았어?
+|Đông|Ồ, điện thoại mình hết pin rồi mà mình quên sạc.|아, 내 전화기 배터리가 다 됐는데 충전하는 걸 깜빡했어.
+|Lan|Vậy sao?|그래?
+|Đông|Gọi cho mình có việc gì vậy?|나한테 무슨 일로 전화했어?
+|Lan|Tối thứ bảy này là sinh nhật mình. Hà Đông đến chơi nhé!|이번 토요일 저녁이 내 생일이야. 하 동도 놀러 와!
+|Đông|Vậy à? Thế nào mình cũng đến.|그래? 무슨 일이 있어도 갈게.
+#||2. Nghe lại và trả lời câu hỏi.|2. 다시 듣고 질문에 답하세요.`,
+
+37: `#||Bài nghe 1. Nghe và đánh dấu ✓ ý đúng:|듣기 1. 듣고 알맞은 내용에 ✓ 표시하세요.
+|Nam|Alô! Chị Lan hả, chúng ta được khách hàng mời đi ăn tối. Chị đi được chứ?|여보세요! 란 씨죠, 우리 고객이 저녁 식사에 초대했어요. 갈 수 있죠?
+|Nữ|Vậy à? Tôi không đi được. Tôi cảm thấy không khỏe.|그래요? 저는 못 가요. 몸이 안 좋은 것 같아요.
+|Nam|Chị bị gì vậy?|어디가 아파요?
+|Nữ|Tôi bị đau đầu, sốt nữa.|머리가 아프고, 열도 나요.
+|Nam|Có bị đau họng không?|목도 아파요?
+|Nữ|Không, chỉ ho một hai tiếng thôi.|아니요, 한두 번 기침만 해요.
+|Nam|Chị bị như vậy từ hồi nào?|언제부터 그랬어요?
+|Nữ|Mới hôm qua.|어제부터요.
+|Nam|Sao chị không đi khám bệnh?|왜 진찰을 받으러 안 가요?
+|Nữ|Tôi chỉ bị cảm nhẹ thôi, không sao.|가벼운 감기일 뿐이에요, 괜찮아요.
+|Nam|Mặc dù bị cảm nhẹ nhưng chị cũng nên đi khám. Chị không nên tự mua thuốc uống nhé!|가벼운 감기라도 진찰은 받는 게 좋아요. 약을 직접 사서 먹지 마세요!
+#||Bài nghe 2. Nghe và đánh dấu ✓ câu trả lời đúng:|듣기 2. 듣고 알맞은 답에 ✓ 표시하세요.
+|Nữ|Anh bị sao vậy?|어디가 아파요?
+|Nam|Tôi bị đau bụng. Tôi nghĩ hồi trưa tôi ăn thịt nướng.|배가 아파요. 점심 때 구운 고기를 먹어서 그런 것 같아요.
+|Nữ|Không phải đâu. Nếu thịt nướng không tốt thì sao tôi không bị đau bụng? Chúng ta cùng ăn trưa với nhau mà!|아니에요. 구운 고기가 안 좋았다면 왜 저는 배가 안 아파요? 우리 같이 점심 먹었잖아요!
+|Nam|Bụng của tôi yếu lắm, hễ ăn thịt nướng nhiều là bụng tôi có vấn đề.|제 배가 아주 약해요, 구운 고기를 많이 먹기만 하면 배에 문제가 생겨요.
+|Nữ|Vậy bây giờ phải làm sao?|그럼 이제 어떻게 해야 해요?
+|Nam|Tôi phải tìm nhà vệ sinh đã.|우선 화장실부터 찾아야겠어요.`,
+
+38: `#||Bài nghe 1. Nghe và đánh dấu ✓ câu trả lời đúng:|듣기 1. 듣고 알맞은 답에 ✓ 표시하세요.
+|Chồng|Alô, em hả? Em ơi, em để cái cà-vạt màu xanh của anh ở đâu?|여보세요, 당신이야? 여보, 내 파란 넥타이 어디에 뒀어?
+|Vợ|Cà-vạt xanh hả? Em để trong tủ áo của anh đó! Thấy chưa?|파란 넥타이? 당신 옷장 안에 뒀어! 찾았어?
+|Chồng|À... à, thấy rồi! Còn bộ vest của anh? Sao anh không thấy trong tủ áo?|아... 아, 찾았어! 그럼 내 정장은? 왜 옷장에 안 보이지?
+|Vợ|Bộ áo vest của anh để ở trên phòng ngủ lầu hai đó!|당신 정장은 2층 침실에 뒀어!
+|Chồng|Anh biết rồi. Cảm ơn em.|알겠어. 고마워.
+|Vợ|Còn gì nữa không? Em cúp máy nhé?|또 뭐 있어? 나 끊을게?
+|Chồng|À, cái sạc điện thoại của anh, em để ở đâu?|아, 내 휴대폰 충전기는 어디에 뒀어?
+|Vợ|Ủa, anh để trong phòng làm việc mà!|어, 당신이 서재에 뒀잖아!
+|Chồng|Trong phòng làm việc không có.|서재에 없어.
+|Vợ|Làm việc xong, em về em tìm cho.|일 끝나고 집에 가서 찾아 줄게.
+#||Bài nghe 2. 1. Nghe và đánh dấu ✓ những từ ngữ nghe được:|듣기 2. 1. 듣고 들리는 표현에 ✓ 표시하세요.
+|Mai|Cô cho tôi khám bệnh.|진찰 좀 받으려고요.
+|Y tá|Chị cho tôi biết tên..., tuổi..., địa chỉ.... Chị bị gì vậy?|이름..., 나이..., 주소...를 알려 주세요. 어디가 아프세요?
+|Mai|Tôi bị đau đầu, sốt, với lại đau họng nữa ạ.|머리가 아프고, 열이 나고, 게다가 목도 아파요.
+|Y tá|Chị đặt tay trái lên bàn để tôi đo huyết áp... Xong rồi. Chị vào phòng số 2 nhé!|혈압을 잴 테니 왼손을 책상 위에 올려 주세요... 다 됐어요. 2번 방으로 들어가세요!
+|Mai|Cảm ơn.|감사합니다.
+|Bác sĩ|Mời chị ngồi. Chị bị sao vậy?|앉으세요. 어디가 아프세요?
+|Mai|Tôi đau đầu, sốt và đau họng. Tôi thấy đau cả người.|머리가 아프고, 열이 나고 목이 아파요. 온몸이 아파요.
+|Bác sĩ|Để tôi khám xem. À, chị bị cúm rồi.|한번 진찰해 볼게요. 아, 독감에 걸리셨네요.
+|Mai|Tôi có cần nhập viện không ạ?|입원해야 하나요?
+|Bác sĩ|Không cần. Chị phải nghỉ ngơi, giữ ấm, uống nhiều nước. Tôi sẽ kê đơn thuốc. À, chị nên cẩn thận! Cúm rất dễ lây đấy!|필요 없어요. 쉬고, 따뜻하게 하고, 물을 많이 드세요. 처방전을 써 드릴게요. 아, 조심하세요! 독감은 아주 잘 옮아요!
+|Mai|Cám ơn bác sĩ.|감사합니다, 선생님.
+#||2. Nghe và trả lời câu hỏi.|2. 듣고 질문에 답하세요.
+#||Bài nghe 3. Nghe và trả lời các câu hỏi sau đây:|듣기 3. 듣고 다음 질문들에 답하세요.
+|Nam|Alô.|여보세요.
+|Nữ|Alô. Mai đây. Ai vậy?|여보세요. 마이예요. 누구세요?
+|Nam|Mình là Quan. Tuần sau lớp chúng ta được nghỉ. Bạn đi chơi xa cùng với lớp được không?|나 꾸안이야. 다음 주에 우리 반이 쉬어. 반이랑 같이 멀리 놀러 갈 수 있어?
+|Nữ|Ồ, thích quá! Nhưng... đi chơi xa thì mình phải xin phép mẹ.|오, 정말 좋다! 그런데... 멀리 놀러 가려면 엄마한테 허락을 받아야 해.
+|Nam|Chắc là mẹ bạn sẽ đồng ý.|아마 어머니가 허락하실 거야.
+|Nữ|Mình không biết, vì mẹ mình khó lắm.|모르겠어, 우리 엄마는 아주 엄하시거든.
+|Nam|Mình hiểu rồi. Xin phép mẹ đi rồi gọi lại cho mình nhé!|알겠어. 엄마한테 허락받고 나한테 다시 전화해 줘!
+|Nữ|Vâng. Mình sẽ gọi lại. Cám ơn bạn.|응. 다시 전화할게. 고마워.`,
+
+39: `#||Bài nghe 1. Nghe và trả lời câu hỏi: (Người đi đường (NĐĐ) và cảnh sát giao thông (CSGT))|듣기 1. 듣고 질문에 답하세요. (행인(NĐĐ)과 교통경찰(CSGT))
+|NĐĐ|Xin lỗi. Làm ơn cho tôi hỏi, bệnh viện Hoàn Mỹ ở đâu ạ?|실례합니다. 말씀 좀 여쭐게요, 호안미 병원이 어디에 있나요?
+|CSGT|Trước tiên, chị cứ đi thẳng đường này.|우선, 이 길을 곧장 가세요.
+|NĐĐ|Vâng, đi thẳng...|네, 곧장 가고요...
+|CSGT|Đi thẳng, sau đó, đến ngã tư thì rẽ phải.|곧장 가다가, 그다음 사거리에서 오른쪽으로 도세요.
+|NĐĐ|Vâng, rẽ phải ở ngã tư...|네, 사거리에서 오른쪽으로 돌고요...
+|CSGT|Rồi chị đi thêm khoảng 50 mét nữa.|그러고 나서 50미터쯤 더 가세요.
+|NĐĐ|Vâng, đi thẳng 50 mét nữa.|네, 50미터 더 곧장 가고요.
+|CSGT|Chị sẽ nhìn thấy bệnh viện ở phía bên trái.|왼쪽에 병원이 보일 거예요.
+|NĐĐ|Tôi biết rồi. Cảm ơn anh.|알겠어요. 감사합니다.
+|CSGT|Không có gì.|천만에요.
+#||Bài nghe 2. Nghe và chọn ý đúng:|듣기 2. 듣고 알맞은 내용을 고르세요.
+|Nữ|Xin lỗi, làm ơn cho tôi hỏi, đến Suối Tiên thì đi thế nào ạ?|실례합니다, 말씀 좀 여쭐게요, 수오이띠엔에 가려면 어떻게 가야 하나요?
+|Nam|Khu du lịch Suối Tiên hả? Cô đi tuyến xe buýt số 26, đừng đi nhầm tuyến 46 nhé!|수오이띠엔 관광지요? 26번 버스 노선을 타세요, 46번 노선을 잘못 타지 마세요!
+|Nữ|Trạm xe buýt có gần đây không anh?|버스 정류장이 여기서 가까워요?
+|Nam|Cô cứ đi thẳng khoảng 100 mét, rẽ trái thì sẽ nhìn thấy trạm xe buýt.|100미터쯤 곧장 가다가 왼쪽으로 돌면 버스 정류장이 보일 거예요.
+|Nữ|Cám ơn anh.|감사합니다.`,
+
+40: `#||Bài nghe 1. Nghe và chọn câu trả lời đúng:|듣기 1. 듣고 알맞은 답을 고르세요.
+|Nam|Sao trông chị không được vui? Chị cảm thấy không khỏe à?|왜 기분이 안 좋아 보여요? 몸이 안 좋아요?
+|Nữ|Tôi đang chán đây! Chắc là tôi sẽ nghỉ việc.|지금 너무 답답해요! 아마 일을 그만둘 것 같아요.
+|Nam|Chị nói chuyện nghiêm túc chứ?|진지하게 하는 말이죠?
+|Nữ|Ừ, tôi cảm thấy mệt mỏi khi làm ở công ty này.|네, 이 회사에서 일하니까 지쳐요.
+|Nam|Công việc căng thẳng lắm à?|일이 많이 힘들어요?
+|Nữ|Ừ, căng thẳng lắm! Tôi phải làm việc tám tiếng ở công ty. Ngoài ra, về nhà tôi còn phải viết báo cáo, trả lời email... Tôi cảm thấy không chịu được.|네, 아주 힘들어요! 회사에서 여덟 시간 일해야 해요. 그 밖에 집에 와서도 보고서를 쓰고, 이메일에 답해야 해요... 견딜 수 없을 것 같아요.
+|Nam|Ừ, công ty của chị chán thật!|네, 그 회사 정말 답답하네요!
+#||Bài nghe 2. Nghe và chọn câu trả lời đúng:|듣기 2. 듣고 알맞은 답을 고르세요.
+|Nam|Có chuyện vui phải không? Trông chị rất tươi.|좋은 일이 있죠? 표정이 아주 밝아 보여요.
+|Nữ|Tôi mới vừa được lên chức. Ngoài ra tôi còn được thưởng một số tiền khá lớn.|저 방금 승진했어요. 그 밖에 꽤 큰 상여금도 받았어요.
+|Nam|Chúc mừng chị! Chị giỏi thật! Tôi ghen tị với chị đấy!|축하해요! 정말 대단해요! 부러워요!
+|Nữ|Ở vị trí cao, tôi lo là mình không làm tốt.|높은 자리에서 잘 못 해낼까 봐 걱정돼요.
+|Nam|Chị không tự tin sao?|자신이 없어요?
+|Nữ|Tất nhiên là tôi tự tin, nhưng tôi vẫn sợ....|물론 자신은 있어요, 그런데 그래도 두려워요...
+|Nam|Ừ, cả việc ở công ty lẫn việc nhà, có lẽ chị sẽ căng thẳng lắm!|네, 회사 일도 집안일도 있으니 아마 아주 힘들 거예요!`,
+
+41: `#||Bài nghe 1. Chọn câu trả lời đúng:|듣기 1. 알맞은 답을 고르세요.
+|Nam|Khi mua thức ăn bạn thanh toán thế nào?|음식을 살 때 어떻게 결제해?
+|Nữ|Tôi trả tiền mặt.|나는 현금으로 내.
+|Nam|Còn khi mua quần áo?|그럼 옷을 살 때는?
+|Nữ|Cũng tiền mặt. Mua gì tôi cũng trả tiền mặt.|역시 현금이야. 뭘 사든 현금으로 내.
+|Nam|Sao bạn không trả bằng thẻ?|왜 카드로 안 내?
+|Nữ|Tôi nghe nói trả bằng thẻ không an toàn lắm.|카드로 내면 별로 안전하지 않다고 들었어.
+#||Bài nghe 2|듣기 2
+|Nam|Xin chào! Làm ơn cho tôi hỏi, ở đây có đổi tiền không?|안녕하세요! 말씀 좀 여쭐게요, 여기서 환전이 되나요?
+|Nữ|Có ạ. Ông muốn đổi tiền gì?|됩니다. 무슨 돈을 바꾸시려고요?
+|Nam|Tôi muốn đổi tiền đô sang tiền Việt. Tỉ giá hôm nay là bao nhiêu vậy cô?|달러를 베트남 돈으로 바꾸고 싶어요. 오늘 환율이 얼마예요?
+|Nữ|Một đô bằng 23.100 đồng tiền Việt.|1달러가 베트남 돈 23,100동이에요.
+|Nam|Ủa, sao tôi nghe nói một đô ăn 23.500 đồng mà.|어, 1달러에 23,500동이라고 들었는데요.
+|Nữ|Đó là tỉ giá vài ngày trước. Hôm nay xuống rồi.|그건 며칠 전 환율이에요. 오늘은 내렸어요.
+|Nam|Vậy, cô đổi giùm tôi 500 đô nhé!|그럼 500달러를 바꿔 주세요!
+|Nữ|Đây, tiền của ông đây. 11.550.000 đồng. Ông hãy kiểm tra lại đi.|여기, 돈 받으세요. 11,550,000동이에요. 다시 확인해 보세요.
+|Nam|Cảm ơn cô!|감사합니다!`,
+
+42: `#||Bài nghe. Nghe và chọn câu trả lời đúng:|듣기. 듣고 알맞은 답을 고르세요.
+||Tôi có thói quen nghe nhạc từ năm lớp 10.|저는 10학년 때부터 음악을 듣는 습관이 있어요.
+||Ban đầu, giáo viên tiếng Anh của tôi thường cho chúng tôi nghe một số bài hát tiếng Anh để nâng cao khả năng nghe.|처음에 제 영어 선생님은 듣기 실력을 높이려고 저희에게 영어 노래를 몇 곡 들려주곤 하셨어요.
+||Sau một thời gian, khả năng nghe tiếng Anh của tôi tốt hơn.|얼마 뒤에 제 영어 듣기 실력이 좋아졌어요.
+||Và nghe nhạc trở thành thói quen của tôi.|그리고 음악 듣기가 제 습관이 되었어요.
+||Buổi sáng, sau khi thức dậy tôi thường nghe nhạc Pop trong lúc chuẩn bị đến trường.|아침에 일어난 뒤 저는 학교 갈 준비를 하면서 보통 팝 음악을 들어요.
+||Khi gặp những chuyện căng thẳng, tôi thường nghe nhạc đồng quê để thư giãn.|스트레스 받는 일이 있을 때는 긴장을 풀려고 컨트리 음악을 들어요.
+||Và tối nào tôi cũng nghe nhạc cổ điển để dễ ngủ.|그리고 저녁마다 잠이 잘 오도록 클래식 음악을 들어요.
+||Vì có thói quen nghe nhạc nên tôi ít khi chơi game để giải trí, và cũng ít khi vào Youtube.|음악 듣는 습관이 있어서 저는 오락으로 게임을 거의 안 하고, 유튜브에도 거의 안 들어가요.`,
+
+43: `#||Bài nghe 1. Nghe và cho biết lý do người nói thích Phúc, Duy và Mai.|듣기 1. 듣고 말하는 사람이 푹, 주이, 마이를 좋아하는 이유를 말해 보세요.
+1||Chào các bạn. Bạn thân của tôi tên là Phúc.|여러분 안녕하세요. 제 친한 친구 이름은 푹이에요.
+||Anh có khuôn mặt tròn và mái tóc ngắn.|그는 둥근 얼굴에 짧은 머리예요.
+||Phúc đã tốt bụng lại vui tính nên ai cũng thích anh ấy. Tôi cũng vậy.|푹은 마음씨도 좋고 성격도 밝아서 누구나 그를 좋아해요. 저도 그래요.
+2||Chào mọi người. Người bạn thân nhất của tôi tên là Duy.|여러분 안녕하세요. 제 가장 친한 친구 이름은 주이예요.
+||Duy có dáng người cao lớn và cái mũi thẳng.|주이는 몸집이 크고 키가 크며 코가 오뚝해요.
+||Anh ấy rất thân thiện và tốt bụng.|그는 아주 친절하고 마음씨가 좋아요.
+||Anh ấy luôn ở bên cạnh tôi khi tôi gặp khó khăn. Đó là lý do tôi thích anh ấy.|제가 어려움을 겪을 때 그는 늘 제 곁에 있어요. 그게 제가 그를 좋아하는 이유예요.
+3||Xin chào các anh, các chị. Người bạn thân duy nhất của tôi là Mai.|여러분 안녕하세요. 제 유일한 친한 친구는 마이예요.
+||Mai có mái tóc quăn, dài ngang lưng.|마이는 허리까지 오는 긴 곱슬머리예요.
+||Cô ấy đã siêng năng lại thông minh nên học giỏi nhất lớp.|그녀는 부지런하기도 하고 똑똑하기도 해서 반에서 공부를 제일 잘해요.
+||Cô ấy luôn giúp tôi trong việc học nên tôi rất thích cô ấy.|그녀는 공부에서 늘 저를 도와줘서 저는 그녀를 아주 좋아해요.
+#||Bài nghe 2. Nghe và trả lời câu hỏi:|듣기 2. 듣고 질문에 답하세요.
+||Em trai út của tôi tên là Trường.|제 막냇동생 이름은 쯔엉이에요.
+||Nó đã cao lại gầy nên trông càng cao.|걔는 키도 크고 마르기도 해서 더 커 보여요.
+||Nó có mái tóc thẳng và đôi mắt đen.|걔는 생머리에 검은 눈을 가졌어요.
+||Nó trán cao, đôi tai to, trông có vẻ rất thông minh.|걔는 이마가 넓고 귀가 커서, 아주 똑똑해 보여요.
+||Nó tham gia tất cả các môn thể thao trong trường, như bóng đá, bóng chuyền, cầu lông, và nó cũng biết chơi đàn ghi-ta.|걔는 축구, 배구, 배드민턴처럼 학교의 모든 운동 종목에 참가하고, 기타도 칠 줄 알아요.
+||Nó đã thông minh lại siêng năng nên bố mẹ tôi rất yên tâm về nó, còn tôi thì rất tự hào khi có một đứa em trai như vậy.|걔는 똑똑하기도 하고 부지런하기도 해서 부모님이 걔를 아주 안심하시고, 저는 그런 남동생이 있어서 아주 자랑스러워요.`,
+
+44: `#||Bài nghe 1. Nghe và trả lời câu hỏi:|듣기 1. 듣고 질문에 답하세요.
+|Nữ|Alô, cậu khỏe chứ?|여보세요, 잘 지내?
+|Nam|Khỏe, nhưng gần đây mình khó ngủ lắm. Hễ nhắm mắt là mình lại thấy ác mộng. Chắc mình phải đi bác sĩ.|잘 지내, 그런데 요즘 잠들기가 아주 힘들어. 눈을 감기만 하면 악몽을 꿔. 아무래도 병원에 가야 할 것 같아.
+|Nữ|Mỗi đêm cậu ngủ được mấy tiếng?|밤마다 몇 시간 자?
+|Nam|Mỗi đêm mình chỉ ngủ được khoảng ba, bốn tiếng. Nhưng phải nằm một, hai tiếng mới ngủ được.|밤마다 서너 시간밖에 못 자. 그런데 한두 시간 누워 있어야 겨우 잠이 들어.
+|Nữ|Hiểu rồi. Cậu thay đổi thói quen sinh hoạt đã, rồi hãy đi bác sĩ.|알겠어. 우선 생활 습관을 바꾸고 나서 병원에 가 봐.
+|Nam|Thay đổi thế nào?|어떻게 바꿔?
+|Nữ|Bỏ uống cà phê. Buổi tối tập thể dục khoảng 20 phút. Sau đó uống một ly sữa nóng. Cứ làm như vậy là cậu sẽ ngủ ngon.|커피를 끊어. 저녁에 20분쯤 운동해. 그다음에 따뜻한 우유를 한 잔 마셔. 그렇게만 하면 잘 잘 거야.
+|Nam|Vậy sao?|그래?
+#||Bài nghe 2. Nghe và chọn câu đáp đúng:|듣기 2. 듣고 알맞은 대답을 고르세요.
+|Nam|Chúng ta nghỉ một chút đi! Mình đi bộ gần một tiếng rồi.|우리 좀 쉬어요! 한 시간 가까이 걸었어요.
+|Nữ|Tôi thấy nóng và khát nước quá! Ước gì có một ly nước cam!|덥고 목이 너무 말라요! 오렌지 주스 한 잔 있으면 좋겠어요!
+|Nam|Còn tôi thì đói và mệt quá! Tôi thèm một tô phở nóng...|저는요, 배고프고 너무 피곤해요! 따뜻한 쌀국수 한 그릇이 먹고 싶어요...
+|Nữ|Ở đằng kia có một quán cà phê. Chúng ta đến đó uống cà phê đi!|저기에 카페가 하나 있어요. 저기 가서 커피 마셔요!
+|Nam|Ở đó có phở không?|거기에 쌀국수 있어요?
+|Nữ|Không. Ở đó không có gì để ăn cả, trừ bánh mì.|없어요. 거기엔 반미 말고는 먹을 게 아무것도 없어요.
+|Nam|Bánh mì à? Cũng được!|반미요? 그것도 좋아요!`
 };
 /* 대본 문자열 → 화면에서 쓰기 쉬운 모양으로. LISTEN[과] = [ {d:지시문, dk:해석, groups:[{no, lines:[{who,vn,ko}]}]} ] */
 const LISTEN = {};
@@ -5556,8 +5823,9 @@ Object.keys(LISTEN_RAW).forEach(L=>{
   LISTEN[Number(L)] = secs;
 });
 const listenLessons = () => Object.keys(LISTEN).map(Number).sort((a,b)=>a-b);
-/* 대본 쪽수(교재 부록 3) — 어느 쪽을 보고 있는지 표시용 */
-const LISTEN_PAGE = { 1:200, 2:200, 3:201, 4:202, 5:203, 6:204, 7:205, 8:206, 9:207, 10:208, 11:"208-209", 12:"209-211" };
+/* 대본 쪽수 — 어느 쪽을 보고 있는지 표시용. 1~12과는 교재1 부록 3, 33~44과는 교재2 부록. */
+const LISTEN_PAGE = { 1:200, 2:200, 3:201, 4:202, 5:203, 6:204, 7:205, 8:206, 9:207, 10:208, 11:"208-209", 12:"209-211",
+  33:"149-150", 34:"150-151", 35:"151-152", 36:"152-153", 37:154, 38:"154-156", 39:156, 40:157, 41:"157-158", 42:158, 43:"158-159", 44:159 };
 /* 빈칸 후보에서 뺄 고유명사(등장인물·지명·상호) — 뚫어봐야 학습에 도움 안 됨 */
 const DLG_NAMES = new Set(["david","van","vân","eun","ji","brian","kate","hiroki","loan","lee","toan","toàn","dorothy","dung","dũng","min","fahasa","google","youtube","ila","c308","nguyen","nguyễn","hue","huệ","dinh","đinh","tien","tiên","hoang","hoàng","singapore","grab","bến","tre","mai","sơn","son","john","reiko","nvpv"]);
 
@@ -7077,7 +7345,7 @@ function renderPassage(){
 }
 
 /* =========================================================
-   듣기 연습 — 교재 부록 3 듣기 대본(1~12과, 200~211쪽).
+   듣기 연습 — 교재 부록 듣기 대본. 교재1 1~12과(200~211쪽) + 교재2 1~12과(149~159쪽, 앱 33~44과).
    교재에 음원이 없으므로 앱이 베트남어를 읽어 줌. 대본은 처음엔 흐리게 가려 두고(먼저 듣기),
    '대본 보기'를 누르면 확인. 문항마다 '듣기' 버튼, 줄마다 작은 발음 버튼.
    ========================================================= */
@@ -7138,7 +7406,7 @@ function renderListen(){
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
       <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg> 듣기 연습</h2>
-      <div class="muted tiny" style="margin:-4px 0 10px">교재 <b>듣기 대본</b>(부록 3)이에요. <b>듣기</b>를 누르면 앱이 베트남어를 읽어 줘요. 대본은 흐리게 가려 두었으니 <b>먼저 듣고</b> 나서 <b>대본 보기</b>로 확인해요.</div>
+      <div class="muted tiny" style="margin:-4px 0 10px">교재 뒤쪽 <b>듣기 대본</b>이에요. <b>듣기</b>를 누르면 앱이 베트남어를 읽어 줘요. 대본은 흐리게 가려 두었으니 <b>먼저 듣고</b> 나서 <b>대본 보기</b>로 확인해요.</div>
       <div class="chips gchips">${chips}</div>
       <div class="row" style="margin:-6px 0 10px">
         <button class="chip tiny${showAll?" on":""}" data-action="lisAllToggle"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-${showAll?"eye":"eye-off"}'/></svg> 대본 항상 보기</button>
@@ -7209,7 +7477,7 @@ function renderHome(){
       <button class="lrow" data-action="goSkill" data-skill="exam"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg><span class="lr-nm">실전 시험</span><span class="lr-meta">단어 40 + 문장 10</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goSkill" data-skill="flash"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg><span class="lr-nm">플래시카드</span><span class="lr-meta">암기·복습</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goPassage"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">지문 해석</span><span class="lr-meta">대화·읽기·받아쓰기</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
-      <button class="lrow" data-action="goListen"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg><span class="lr-nm">듣기 연습</span><span class="lr-meta">교재 듣기 대본 · 1~12과</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goListen"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg><span class="lr-nm">듣기 연습</span><span class="lr-meta">교재1·2 듣기 대본</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goGrammar"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg><span class="lr-nm">문법 정리</span><span class="lr-meta">단원별</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goExtra"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-clipboard'/></svg><span class="lr-nm">추가자료</span><span class="lr-meta">수업 PPT · 하노이식 대응</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
     </div>
