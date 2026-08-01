@@ -4816,7 +4816,7 @@ Không phải đâu.|아니에요.
 #7 rd
 Nước mắm là loại gia vị đặc biệt của Việt Nam.|느억맘은 베트남의 특별한 조미료예요.
 Trong bữa ăn hằng ngày của người Việt phải có nước mắm.|베트남 사람의 매일 식사에는 느억맘이 꼭 있어야 해요.
-Nước mắm không chỉ dùng để làm gia vị, mà còn dùng để chấm rau, thịt, cá.|느억맘은 조미료로만 쓰는 게 아니라 채소, 고기, 생선을 찍어 먹는 데에도 써요.
+Nước mắm không chỉ dùng để làm gia vị, mà còn dùng để chấm rau, thịt, cá, v.v..|느억맘은 조미료로만 쓰는 게 아니라 채소, 고기, 생선 등을 찍어 먹는 데에도 써요.
 Đặc biệt, món chả giò, bánh xèo sẽ không ngon nếu không có nước mắm.|특히 짜조, 반쎄오는 느억맘이 없으면 맛이 없어요.
 Vì nước mắm rất mặn nên khi ăn người ta thường thêm tỏi, ớt, chanh, đường.|느억맘은 아주 짜기 때문에 먹을 때 보통 마늘, 고추, 라임, 설탕을 더 넣어요.
 Ở Việt Nam có nhiều nơi làm nước mắm ngon nổi tiếng, như Phú Quốc, Phan Thiết, Nha Trang, Quảng Ninh.|베트남에는 맛있는 느억맘으로 유명한 곳이 많아요, 푸꾸옥, 판티엣, 나짱, 꽝닌 같은 곳이요.
@@ -6288,6 +6288,8 @@ const TTS_FIX = [
   [/\bFAHASA\b/g,    "Pha Ha Sa"], // 파하사 (서점 이름)
   [/\bILA\b/g,       "I La"],      // 아이엘에이 (어학원 이름)
   [/\btour\b/gi,     "tua"],       // 투어 (베트남에서도 '뚜아'로 읽음)
+  /* 줄임말 */
+  [/(^|[\s,;:(])v\.\s*v\.?/gi, "$1vân vân"],   // v.v. = vân vân (등등). 글자 그대로 두면 음성이 '베 베'처럼 알파벳으로 읽음
 ];
 function ttsText(text, lang){
   if(!(lang||"").toLowerCase().startsWith("vi")) return text;   // 베트남어 재생일 때만 교정
@@ -8647,7 +8649,11 @@ function setupQ(){
 }
 
 /* 문장 채점: 대소문자·문장부호·띄어쓰기 무시 + 약간의 오차(편집거리 20%)까지 자동 정답. 그 외엔 자가채점으로 넘김 */
-function normSent(s){ return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/[.,!?;:'"“”‘’…()\-–]/g," ").replace(/\s+/g," ").trim(); }  /* 성조·부호·대소문자·띄어쓰기 무시(문장은 번역 맞으면 관대하게) */
+/* v.v. 는 vân vân(등등)의 줄임말. 교재엔 'v.v..'로 적혀 있는데, 채점할 때 부호를 떼면
+   "v v" 두 조각으로 흩어져 버림. 듣고 받아쓰면 소리대로 "vân vân"이라고 적게 되므로,
+   'v.v.' / 'vv' / 'vân vân' 어느 쪽으로 적어도 같은 답으로 봄. (2026-08-01, 33과 읽기 지문) */
+function foldVv(s){ return s.replace(/(^|\s)v\s+v(?=\s|$)/g,"$1vv").replace(/(^|\s)vân\s+vân(?=\s|$)/g,"$1vv").replace(/(^|\s)van\s+van(?=\s|$)/g,"$1vv"); }
+function normSent(s){ return foldVv(String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/đ/g,"d").replace(/[.,!?;:'"“”‘’…()\-–]/g," ").replace(/\s+/g," ").trim()); }  /* 성조·부호·대소문자·띄어쓰기 무시(문장은 번역 맞으면 관대하게) */
 function levenshtein(a,b){
   const m=a.length, n=b.length; if(!m) return n; if(!n) return m;
   let prev=Array.from({length:n+1},(_,i)=>i), cur=new Array(n+1);
@@ -8673,7 +8679,7 @@ function sentMatch(typed, answer){
   return false;
 }
 /* 성조까지 채점 — ok(성조·철자 정확) / tone(글자는 맞는데 성조·dấu만 달라 시험 감점) / no(내용도 다름) */
-function normSentTone(s){ return canonTone(String(s).toLowerCase()).replace(/[.,!?;:'"“”‘’…()\-–]/g," ").replace(/\s+/g," ").trim(); }  /* 성조 유지(부호 위치 통일), 대소문자·부호·띄어쓰기만 무시 */
+function normSentTone(s){ return foldVv(canonTone(String(s).toLowerCase()).replace(/[.,!?;:'"“”‘’…()\-–]/g," ").replace(/\s+/g," ").trim()); }  /* 성조 유지(부호 위치 통일), 대소문자·부호·띄어쓰기만 무시 */
 function gradeSent(typed, answer){
   const aT=normSentTone(typed), bT=normSentTone(answer);
   if(!aT) return "no";
