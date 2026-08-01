@@ -263,7 +263,7 @@
   .lsko{color:var(--muted); font-size:13px; line-height:1.4; margin-top:1px}
   .lsblk.hid .lstxt{filter:blur(5px); user-select:none}
   .lshint{font-size:12.5px; color:var(--muted); padding:6px 2px 2px; line-height:1.5}
-  /* 시험 대비 */
+  /* 단어 연습 */
   .prepcta{display:flex; align-items:center; justify-content:space-between; width:100%;
            background:var(--brand); color:#fff; border:none; margin-bottom:10px; padding:14px 16px}
   .prepcta:hover{background:var(--brand2)}
@@ -6701,7 +6701,7 @@ function renderGrammar(){
    0번은 '전체 점검'(교재 1~44과 전수 조사 결과) 자리로 씀.
    ========================================================= */
 const EXTRA = {
-  0: { note:"교재 44개 단원의 단어 1828개·문장 1005개·듣기 대본 249줄을 전부 훑어서 **남부(호치민) 말이 섞인 자리**를 찾았어요. 결론부터: 이 교재는 **하노이식이 아니라 남부 쪽에 가깝습니다.** 다만 틀린 말은 하나도 없고, 8/1 시험은 교재 기준이니 **교재 단어를 그대로 외우시면 됩니다.** 아래는 수업에서 하노이 말이 들릴 때 당황하지 않도록 정리한 것이에요.", blocks:[
+  0: { note:"교재 44개 단원의 단어 1828개·문장 1005개·듣기 대본 249줄을 전부 훑어서 **남부(호치민) 말이 섞인 자리**를 찾았어요. 결론부터: 이 교재는 **하노이식이 아니라 남부 쪽에 가깝습니다.** 다만 틀린 말은 하나도 없고, 시험은 교재 기준이니 **교재 단어를 그대로 외우시면 됩니다.** 아래는 수업에서 하노이 말이 들릴 때 당황하지 않도록 정리한 것이에요.", blocks:[
     { k:"txt", t:"왜 남부 쪽이라고 보나", s:"1~44과 전수 점검", body:"**하나, 배경이 되는 도시가 남쪽이에요.** 남부·중부 지명이 41번, 북부 지명이 9번 나옵니다. Thành phố Hồ Chí Minh(호치민시) 22번, Đà Lạt(달랏) 5번, Phú Quốc(푸꾸옥) 4번, Sài Gòn(사이공) 3번, Nha Trang(냐짱) 3번, Đà Nẵng(다낭) 3번, Vũng Tàu(붕따우) 1번. 북쪽은 Hà Nội(하노이) 8번, Hồ Tây(서호) 1번뿐입니다.\n\n**둘, 남부에서만 쓰는 낱말 15개가 11개 단원에 모두 33군데 흩어져 있어요.** 5·6·9·11·12·13·18·33·35·43·44과입니다. 특히 **11과가 제일 심해서 혼자 16군데**나 됩니다(교통수단 단원이라 그래요).\n\n**셋, 그런데 어미는 북부식이에요.** '네'는 dạ(남부) 8번 대 vâng(북부) 10번으로 오히려 북부가 많고, 남부 말끝 nha·nghen·hổng·tui 는 **한 번도 안 나옵니다.** 즉 '남부 낱말을 쓰는 표준 문어체'에 가깝습니다.\n\n**넷, 아예 북부 말만 쓴 단원도 있어요.** 29과 식기 이름은 bát(공기)·cốc(컵)·đĩa(접시)·thìa(숟가락)로 **전부 북부식**인데, 33과는 같은 그릇을 chén·tô 라고 남부식으로 부릅니다. 28과의 ốm(아프다)·gầy(마르다)도 북부 쪽 표현이에요. **한 권 안에서 남북이 섞여 있다**는 뜻입니다." },
     { k:"nb", t:"확실한 남부 낱말 15개 (모두 33곳)", s:"교재 1~44과 전수", rows:[
       ["mắc","đắt","비싸다 (3곳)","5과 단어·문장 · 9과 문장"],
@@ -6822,7 +6822,7 @@ const EXTRA = {
       ["kẹt xe","tắc đường","차가 막히다, 교통 체증 (3곳)","교재 단어 1곳 · 문장 2곳"],
       ["xe điện ngầm","tàu điện ngầm","지하철 (5곳)","교재 단어 1곳 · 문법 2곳 · 문장 2곳. 슬라이드는 Tàu điện ngầm"],
       ["xe tắc xi","tắc xi","택시 (11과 3곳)","교재 문법 1곳 · 문장 2곳. 북부는 앞에 xe 를 잘 안 붙여요. 위 16곳에는 안 넣었어요"],
-    ], note:"**8/1 시험은 교재 기준입니다. 왼쪽을 외우세요.** 오른쪽은 수업에서 들릴 때 알아듣기 위한 것이에요. 참고로 Chan 님이 여백에 적으신 「kẹt xe = tắc đường」 메모가 정확합니다. **kẹt xe 가 호치민 말, tắc đường 이 하노이 말**이에요." },
+    ], note:"**시험은 교재 기준입니다. 왼쪽을 외우세요.** 오른쪽은 수업에서 들릴 때 알아듣기 위한 것이에요. 참고로 Chan 님이 여백에 적으신 「kẹt xe = tắc đường」 메모가 정확합니다. **kẹt xe 가 호치민 말, tắc đường 이 하노이 말**이에요." },
   ]},
 
   12: { name:"남부 말 1곳", blocks:[
@@ -6937,18 +6937,14 @@ function renderExtra(){
 
 
 /* =========================================================
-   시험 대비 (8/1 1200단어 시험) — 간격 반복 + 생산형(한→베) 연습
+   단어 연습 (예전 이름: 시험 대비) : 간격 반복 + 생산형(한→베) 연습
    · 단어마다 숙련도 0~3(3=마스터). 맞히면 +1, 틀리면 0 → 약한 단어에 시간이 저절로 몰림.
    · 진도(_srs)는 각자 폰에 저장(개인). 단어 자체는 코드라 동기 전원 공유.
+   · 2026-08-01 1200단어 시험이 끝나서 D-day 표시와 '8/1 시험 범위' 칩은 뺐음.
+     다음 시험이 잡히면 CLAUDE.md 5번 항목에 적어 둔 코드(PREP_EXAM/prepDaysLeft/prepDlabel)를
+     그대로 되살리고, 화면 이름을 '시험 대비'로 되돌리면 됨.
    ========================================================= */
-const PREP_EXAM = { y:2026, m:8, d:1 };   // 시험일 2026-08-01(토)
 const SRS_MAX = 3;                        // 3번 연속 맞히면 '마스터'
-function prepDaysLeft(){
-  const exam = new Date(PREP_EXAM.y, PREP_EXAM.m-1, PREP_EXAM.d);
-  const n = new Date(); const t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  return Math.round((exam - t)/86400000);
-}
-function prepDlabel(){ const d=prepDaysLeft(); return d>0?("D-"+d):(d===0?"D-DAY":"시험 후"); }
 const srsKey = w => w.lesson + "|" + normTone(w.vn);
 const srsAll = () => lsGet("_srs", {}) || {};
 const srsLv = w => Number(srsAll()[srsKey(w)] || 0);
@@ -6959,20 +6955,18 @@ function srsRec(w, ok){
   lsSet("_srs", a);
 }
 const prepDeck = () => WORDS;                         // 전체 단어장(교재1권 + Expats + 교재2권 + 내 단어)
-/* 공부 범위 — 시험 대비(한 단어씩 써내는 연습)에서 어느 단원까지 낼지.
-   8/1 시험은 교재2권(33~44과)이 범위 밖이라, 그걸 빼고 볼 수 있어야 남은 기간을 시험 단어에 쓸 수 있음.
+/* 공부 범위 : 단어 연습(한 단어씩 써내는 연습)에서 어느 단원까지 낼지.
    비어 있으면 = 전체. 고른 범위는 문제 출제·위 진도 숫자·홈 배너에 모두 적용됨(리스트 뽑기는 따로 고름). */
 const PREP_PICK = new Set(lsGet("_prepPick", []) || []);
 function prepPickSave(){ lsSet("_prepPick", [...PREP_PICK]); }
 function prepPool(){ return PREP_PICK.size ? WORDS.filter(w=>PREP_PICK.has(w.lesson)) : WORDS; }
-/* 교재 묶음의 단원 번호 — 시험 대비 '공부 범위'(prepRange), 단어 리스트 '빠른 선택'(plBundle),
-   시험지·시험 대비 범위 고르기(selBundle) 세 곳이 같이 씀. 단원이 늘면 여기만 고치면 됨. */
+/* 교재 묶음의 단원 번호 : 단어 연습 '공부 범위'(prepRange), 단어 리스트 '빠른 선택'(plBundle),
+   시험지·단어 연습 범위 고르기(selBundle) 세 곳이 같이 씀. 단원이 늘면 여기만 고치면 됨. */
 const PREP_RANGES = { t1:[1,12], ex:[15,26], th:[27,32], t2:[33,44] };   // 교재1권 · Expats · 흔한어휘 · 교재2권
 const inBook2 = l => typeof l==="number" && l>=33 && l<=44;
 function prepRangeLessons(g){                          // g="all"이면 빈 배열(= 전체)
   const ls = lessonsList();
   if(g==="all") return [];
-  if(g==="exam") return ls.filter(l=>!inBook2(l));     // 교재2권만 빼고 전부(내 단어 포함)
   const R = PREP_RANGES[g];
   return R ? ls.filter(l=>typeof l==="number" && l>=R[0] && l<=R[1]) : [];
 }
@@ -6984,6 +6978,21 @@ function prepRangeIs(g){                               // 지금 고른 범위�
   const ls = prepRangeLessons(g);
   if(!ls.length) return PREP_PICK.size===0;
   return PREP_PICK.size===ls.length && ls.every(l=>PREP_PICK.has(l));
+}
+/* 8/1 시험이 끝나서 '8/1 시험 범위' 칩을 없앴는데, 그 범위가 폰에 저장된 채로 남아 있으면
+   교재2권(33~44과) 단어가 영영 안 나오는데 고를 칩도 없어서 빠져나갈 수가 없음.
+   그래서 딱 한 번, 저장된 범위가 그 시험 범위와 정확히 같을 때만 '전체'로 풀어 줌.
+   (직접 고른 다른 범위는 건드리지 않음. _prepExamOff 가 이미 한 번 했다는 표시) */
+function prepExamRangeRelease(){
+  try{
+    if(lsGet("_prepExamOff", false) === true) return;
+    lsSet("_prepExamOff", true);
+    if(!PREP_PICK.size) return;
+    const old = lessonsList().filter(l=>!inBook2(l));
+    if(PREP_PICK.size === old.length && old.every(l=>PREP_PICK.has(l))){
+      PREP_PICK.clear(); prepPickSave();
+    }
+  }catch(e){}
 }
 const prepCounts = () => { const d=prepPool(); let m=0,f=0,z=0;
   d.forEach(w=>{ const l=srsLv(w); if(l>=SRS_MAX) m++; else if(l>0) f++; else z++; });
@@ -7010,7 +7019,7 @@ function prepSessLoad(){
 function goPrep(){ renderPrep(); }
 
 /* =========================================================
-   시험 대비 · 단어 리스트 (필기용 · 인쇄용)
+   단어 연습 · 단어 리스트 (필기용 · 인쇄용)
    한 단어씩 타자로 치는 연습과 '별개로', 베트남어와 뜻을 한눈에 늘어놓고
    보면서 공책에 옮겨 적을 수 있는 화면. 그대로 A4 인쇄도 됨(동기들 나눠주기용).
    ⚠️ 화면 조작 부분은 전부 .noprint 안에 둬야 인쇄물에 안 딸려 나감.
@@ -7066,7 +7075,7 @@ function renderPrepList(){
 
   set(`
     <div class="noprint">
-      <button class="link" data-action="goPrep">← 시험 대비로</button>
+      <button class="link" data-action="goPrep">← 단어 연습으로</button>
       <div class="card">
         <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-clipboard'/></svg> 단어 리스트 (보고 쓰기 · 인쇄)</h2>
         <div class="muted tiny" style="margin-top:-4px">베트남어와 뜻이 <b>둘 다</b> 보이는 목록이에요. 화면으로 보면서 공책에 옮겨 적거나, 그대로 <b>A4로 인쇄</b>해서 나눠줄 수 있어요.</div>
@@ -7123,7 +7132,7 @@ function renderPrepList(){
     </div>`:""}
 
     <div class="noprint">
-      <button class="btn line" style="margin-top:10px" data-action="goPrep">← 시험 대비로</button>
+      <button class="btn line" style="margin-top:10px" data-action="goPrep">← 단어 연습으로</button>
     </div>
   `);
 }
@@ -7134,7 +7143,6 @@ function renderPrep(){
   state.screen = "prep";
   const c = prepCounts();
   const pct = c.total ? Math.round(c.master/c.total*100) : 0;
-  const dleft = prepDaysLeft();
   const saved0 = prepSessLoad();   // 이어서 풀 세션이 있으면
   /* 저장된 세션이 지금 고른 범위 밖 단어를 품고 있으면 '이어서 풀기'를 감춤
      (범위를 바꿨는데 옛 단어가 계속 나오면 필터가 안 듣는 것처럼 보임. 세션은 지우지 않음) */
@@ -7142,10 +7150,10 @@ function renderPrep(){
   set(`
     <button class="link" data-action="goHome">← 처음으로</button>
     <div class="card">
-      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 시험 대비</h2>
+      <h2><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 단어 연습</h2>
       <div class="prepdday">
-        <div class="ddbig">${esc(prepDlabel())}</div>
-        <div class="ddsub">8월 1일(토) 1200단어 시험까지${dleft>0?` · ${dleft}일 남음`:""}</div>
+        <div class="ddbig">${pct}%</div>
+        <div class="ddsub">${c.master} / ${c.total} 단어 마스터</div>
       </div>
       <div class="muted tiny" style="margin:4px 0 12px">한국어 뜻을 보고 <b>베트남어를 성조까지 직접 써내는</b> 연습이에요. 실제 시험처럼요.</div>
 
@@ -7161,14 +7169,13 @@ function renderPrep(){
 
       <label class="fld" style="margin-top:14px">공부 범위</label>
       <div class="row">
-        <button class="chip ${prepRangeIs("exam")?"on":""}" data-action="prepRange" data-g="exam">8/1 시험 범위 <small>${prepRangeCount("exam")}</small></button>
         <button class="chip ${prepRangeIs("all")?"on":""}" data-action="prepRange" data-g="all">전체 <small>${prepRangeCount("all")}</small></button>
         <button class="chip ${prepRangeIs("t1")?"on":""}" data-action="prepRange" data-g="t1">교재1권 <small>${prepRangeCount("t1")}</small></button>
         <button class="chip ${prepRangeIs("t2")?"on":""}" data-action="prepRange" data-g="t2">교재2권 <small>${prepRangeCount("t2")}</small></button>
         <button class="chip ${prepRangeIs("ex")?"on":""}" data-action="prepRange" data-g="ex">Expats <small>${prepRangeCount("ex")}</small></button>
         <button class="chip ${prepRangeIs("th")?"on":""}" data-action="prepRange" data-g="th">주제별 <small>${prepRangeCount("th")}</small></button>
       </div>
-      <div class="muted tiny" style="margin-top:6px">고른 범위 안에서만 문제가 나오고, 위 진도 숫자도 그 범위 기준이에요. <b>8/1 시험 범위</b>는 교재2권(33~44과)을 뺀 ${prepRangeCount("exam")}개입니다.</div>
+      <div class="muted tiny" style="margin-top:6px">고른 범위 안에서만 문제가 나오고, 위 진도 숫자도 그 범위 기준이에요.</div>
 
       ${saved ? `
       <button class="btn" style="width:100%;margin-top:14px" data-action="prepResume"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 이어서 풀기 (${saved.idx+1}번째부터 · 총 ${saved.total}단어)</button>
@@ -7241,7 +7248,7 @@ function renderPrepQuiz(){
   }
   set(`
     <div class="quizbar"><div class="quizbar-in" style="width:${Math.round(n/tot*100)}%"></div></div>
-    <div class="prephead"><span>${n} / ${tot}</span><span class="muted">${esc(prepDlabel())} · 맞은 개수 ${PREP.correct}</span></div>
+    <div class="prephead"><span>${n} / ${tot}</span><span class="muted">맞은 개수 ${PREP.correct}</span></div>
     <div class="card">
       <div class="plesson">${esc(lessonLabel(w.lesson))} · 숙련도 <span class="pdots">${dots}</span></div>
       <div class="pprompt">${esc(w.en)}</div>
@@ -7297,15 +7304,15 @@ function renderPrepDone(){
         <div><span class="pnum">${c.familiar}</span><span class="plab">익히는 중</span></div>
         <div><span class="pnum muted">${c.fresh}</span><span class="plab">아직</span></div>
       </div>
-      <div class="muted tiny" style="margin-top:12px">${esc(prepDlabel())} · 내일 또 한 번 하면 훨씬 오래 기억돼요.</div>
+      <div class="muted tiny" style="margin-top:12px">내일 또 한 번 하면 훨씬 오래 기억돼요.</div>
     </div>
     <button class="btn" style="width:100%" data-action="prepStart"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 한 번 더 (${PREP.sessN}단어)</button>
     ${IS_MOBILE?"":`<div class="muted tiny" style="margin-top:6px;text-align:center">Enter 로 '한 번 더'</div>`}
-    <button class="btn line" style="margin-top:10px" data-action="goPrep">시험 대비 화면으로</button>
+    <button class="btn line" style="margin-top:10px" data-action="goPrep">단어 연습 화면으로</button>
     <button class="btn line" style="margin-top:10px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
   `);
 }
-function quitPrep(){ if(PREP.correct>0 || PREP.idx>0){ if(!confirm("여기까지 한 걸로 하고 시험 대비 화면으로 갈까요? (푼 만큼은 저장돼요)")) return; } goPrep(); }
+function quitPrep(){ if(PREP.correct>0 || PREP.idx>0){ if(!confirm("여기까지 한 걸로 하고 단어 연습 화면으로 갈까요? (푼 만큼은 저장돼요)")) return; } goPrep(); }
 
 /* =========================================================
    지문 해석 — 각 단원 대화·읽기·받아쓰기 지문을 베트남어 + 한국어로 (시험 아님, 읽기용)
@@ -7448,9 +7455,9 @@ function renderHome(){
     <div id="findResults"></div>
 
     <button class="h-banner" data-action="goPrep">
-      <div class="bt"><span class="l"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 시험 대비</span><span class="dd">${esc(prepDlabel())}</span></div>
+      <div class="bt"><span class="l"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-target'/></svg> 단어 연습</span><span class="dd">${mPct}%</span></div>
       <div class="bbar"><i style="width:${mPct}%"></i></div>
-      <div class="bsub"><span>${pc.master} / ${pc.total} 마스터 · 8/1 시험</span><span style="font-weight:700">오늘 공부 시작 →</span></div>
+      <div class="bsub"><span>${pc.master} / ${pc.total} 마스터</span><span style="font-weight:700">오늘 공부 시작 →</span></div>
     </button>
 
     <div class="card">
@@ -9834,7 +9841,7 @@ const actions = {
   lisKoToggle:()=>{ lsSet("_lisKo", !(lsGet("_lisKo", true) !== false)); renderListen(); },
   lisStop:()=>{ stopSpeak(); lisClearPlay(); },
   goPrep, prepStart, prepResume, prepGrade, prepSkip, prepNext, quitPrep,
-  /* 공부 범위 고르기 — 고른 묶음만 시험 대비에 나옴(8/1 시험은 교재2권 제외) */
+  /* 공부 범위 고르기 : 고른 묶음만 단어 연습에 나옴 */
   prepRange:(el)=>{
     const ls = prepRangeLessons(el.dataset.g);
     PREP_PICK.clear();
@@ -10005,6 +10012,7 @@ function bindBrand(){
    ========================================================= */
 buildWords();
 seedNote();
+prepExamRangeRelease();   // 끝난 8/1 시험 범위가 저장돼 있으면 한 번만 '전체'로 풀어 줌(buildWords 뒤 goHome 앞이어야 함)
 // 앱 시작 시 단원은 '전체 해제' 상태(아무 것도 선택 안 됨) — 시험지·홈 모두. 사용자가 필요한 단원만 골라 씀(사용자 요청 2026-07-03)
 state.rStart = 0; state.rEnd = WORDS.length-1;
 goHome();
@@ -10013,7 +10021,7 @@ bindBrand();        // 좌상단 '베트남어 학습' → 어느 화면에서�
 requestPersist();   // 브라우저에 '데이터 자동 삭제 하지 마' 요청
 cloudInit();        // 클라우드 동기화(설정돼 있고 로그인돼 있으면 자동 복원) — 설정 없으면 아무 일도 안 함
 
-/* 시험대비 키보드 조작 — 전역 keydown 하나만 달아 화면(state.screen)으로 분기(리스너 누수·이중발동 없음).
+/* 단어 연습 키보드 조작 — 전역 keydown 하나만 달아 화면(state.screen)으로 분기(리스너 누수·이중발동 없음).
    문제 화면의 Enter(채점/다음)는 입력칸 리스너가 처리하고, 여기선 그와 겹치지 않는 키만 다룸. */
 document.addEventListener("keydown", e=>{
   if(e.isComposing) return;                       // 한글·베트남어 조합 중이면 무시
