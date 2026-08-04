@@ -5977,6 +5977,24 @@ function lessonsList(){
   if(WORDS.some(w=>w.lesson==="custom")) nums.push("custom");
   return nums;
 }
+/* 범위 고르기 화면에 단원을 늘어놓는 순서 : 지금 배우는 교재2권(33~44)을 맨 앞,
+   그다음 교재1권(1~12), 그다음 나머지(오늘 배운 ★·7/2 복습·Expats·주제별), 내 단어는 맨 끝.
+   ⚠️ 보여 주는 순서만 바꾸는 것. 데이터 순서(lessonsList·sentLessons·WORDS 차례)는 그대로 둠.
+   그래서 '번호로 범위 지정'(시작~끝 단어)은 원래 차례를 그대로 씀. 거긴 순서가 곧 범위라서.
+   2026-08-04 사용자 요청("교재2 -> 교재1 -> 다른것들"). 단어 리스트 '빠른 선택'은 원래부터 이 차례였음. */
+function pickRank(l){
+  if(typeof l!=="number") return 3;      // "custom"(내 단어) 등
+  if(l>=33 && l<=44) return 0;           // 교재2권
+  if(l>=1  && l<=12) return 1;           // 교재1권
+  return 2;                              // 개인 세트(13·14) · Expats(15~26) · 주제별(27~32)
+}
+function byPickOrder(ls){
+  return (ls||[]).slice().sort((a,b)=>{
+    const d = pickRank(a)-pickRank(b); if(d) return d;
+    if(typeof a==="number" && typeof b==="number") return a-b;
+    return String(a).localeCompare(String(b));
+  });
+}
 const LESSON_NAMES = {
   /* 1~12 = 교재 1권 BÀI 1~12. 33~44(교재2)와 나란히 놓였을 때 어느 책 단어인지 바로 알게 "교재1"을 앞에 붙임.
      (예전엔 이름이 없어 "Lesson 1"로 새어 나왔고, 옆의 "교재2 · 1과"와 짝이 안 맞아 헷갈렸음) */
@@ -6518,7 +6536,7 @@ function numOptionsFor(lesson, selectedGi){
 function rangeBounds(){ return [Math.min(state.rStart,state.rEnd), Math.max(state.rStart,state.rEnd)]; }
 
 function selectionBlockHTML(showCount){
-  const lessons = lessonsList();
+  const lessons = byPickOrder(lessonsList());   // 교재2권 → 교재1권 → 나머지 → 내 단어 (보여 주는 차례만)
   const chips = lessons.map(l=>{
     const c = WORDS.filter(w=>w.lesson===l).length;
     return `<button class="chip ${state.lessons.has(l)?"on":""}" data-action="toggleLesson" data-l="${l}">${lessonLabel(l)} <small>${c}</small></button>`;
@@ -6543,8 +6561,8 @@ function selectionBlockHTML(showCount){
   const bundles = `
       <div class="muted tiny" style="margin-bottom:6px">교재별로 한 번에 고르기</div>
       <div class="row" style="margin-bottom:10px">
-        <button class="chip" data-action="selBundle" data-g="t1">교재1권 전체</button>
         <button class="chip" data-action="selBundle" data-g="t2">교재2권 전체</button>
+        <button class="chip" data-action="selBundle" data-g="t1">교재1권 전체</button>
         <button class="chip" data-action="selBundle" data-g="ex">Expats 전체</button>
         <button class="chip" data-action="selBundle" data-g="th">주제별 전체</button>
       </div>`;
@@ -7168,7 +7186,7 @@ function goPrepList(){ renderPrepList(); }
 function renderPrepList(){
   state.screen = "preplist";
   const list = plWords();
-  const lessons = lessonsList();
+  const lessons = byPickOrder(lessonsList());   // 위 '빠른 선택'이 교재2권부터라 칩 차례도 맞춤
   const chips = lessons.map(l=>{
     const c = prepDeck().filter(w=>w.lesson===l).length;
     return `<button class="chip ${PL.pick.has(l)?"on":""}" data-action="plLesson" data-l="${l}">${lessonLabel(l)} <small>${c}</small></button>`;
@@ -7283,8 +7301,8 @@ function renderPrep(){
       <label class="fld" style="margin-top:14px">공부 범위</label>
       <div class="row">
         <button class="chip ${prepRangeIs("all")?"on":""}" data-action="prepRange" data-g="all">전체 <small>${prepRangeCount("all")}</small></button>
-        <button class="chip ${prepRangeIs("t1")?"on":""}" data-action="prepRange" data-g="t1">교재1권 <small>${prepRangeCount("t1")}</small></button>
         <button class="chip ${prepRangeIs("t2")?"on":""}" data-action="prepRange" data-g="t2">교재2권 <small>${prepRangeCount("t2")}</small></button>
+        <button class="chip ${prepRangeIs("t1")?"on":""}" data-action="prepRange" data-g="t1">교재1권 <small>${prepRangeCount("t1")}</small></button>
         <button class="chip ${prepRangeIs("ex")?"on":""}" data-action="prepRange" data-g="ex">Expats <small>${prepRangeCount("ex")}</small></button>
         <button class="chip ${prepRangeIs("th")?"on":""}" data-action="prepRange" data-g="th">주제별 <small>${prepRangeCount("th")}</small></button>
       </div>
@@ -7922,7 +7940,7 @@ function renderSetup(){
   const rangeCard = (studyDlg||studyCt) ? ""
     : studySent
     ? `<div class="card"><h2>① 단원 (문장)</h2>
-         <div class="row">${sentLessons().map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="studySentLesson" data-l="${l}">${esc(lessonLabel(l))} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
+         <div class="row">${byPickOrder(sentLessons()).map(l=>`<button class="chip ${String(curSent)===String(l)?"on":""}" data-action="studySentLesson" data-l="${l}">${esc(lessonLabel(l))} <small>${(SENT_BY_LESSON[l]||[]).length}문장</small></button>`).join("")}</div>
        </div>`
     : `<div class="card"><h2>① 공부할 범위</h2>${selectionBlockHTML(true)}</div>`;
   const countSeg = (s.count && !studyDlg && !studyCt && !isBulk) ? `
@@ -9884,7 +9902,7 @@ function renderPaper(){
         ${isWS ? `<label class="fld">문장 범위 <span style="font-weight:600;color:var(--muted)">(2부 문장)</span></label>
         <div class="row">
           <button class="chip ${P.sentPick.size===0?"on":""}" data-action="paperSentLesson" data-l="all">전체 <small>${allPaperSentences().length}</small></button>
-          ${sentLessons().map(l=>`<button class="chip ${P.sentPick.has(l)?"on":""}" data-action="paperSentLesson" data-l="${l}">${esc(lessonLabel(l))} <small>${paperSents(l).length}</small></button>`).join("")}
+          ${byPickOrder(sentLessons()).map(l=>`<button class="chip ${P.sentPick.has(l)?"on":""}" data-action="paperSentLesson" data-l="${l}">${esc(lessonLabel(l))} <small>${paperSents(l).length}</small></button>`).join("")}
         </div>`:""}
         <label class="fld">출제 방향</label>
         <div class="seg">
