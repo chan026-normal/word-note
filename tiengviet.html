@@ -6595,7 +6595,71 @@ function ttsKeepStart(){
     }catch(e){ ttsKeepStop(); }
   }, 8000);
 }
-function speak(text, lang){
+/* ---------- 화자별 목소리 (2026-08-06) ----------
+   듣기 연습·대화에서 말하는 사람마다 다르게 들리게 함.
+   ⚠️ 폰에 깔린 베트남어 목소리는 보통 1개뿐임(아이폰은 'Linh' 하나뿐인 경우가 많음).
+      그래서 '진짜 다른 목소리'를 늘 줄 수는 없고, 아래 두 단계로 처리함.
+        ① 음질 등급이 같은 목소리가 2개 이상 있으면 : 사람마다 진짜 다른 목소리를 배정
+        ② 1개뿐이면 : 같은 목소리에 음높이(pitch)를 조금 달리해서 구분
+   ⚠️ 베트남어는 성조 언어라서 음높이를 크게 흔들면 성조가 이상하게 들림 → 폭을 0.86~1.12로 좁게 둠.
+   ⚠️ 브라우저가 pitch를 무시하면(일부 아이폰) 예전처럼 같은 목소리로 들림. 고장이 아니라 그 기기의 한계임.
+   ⚠️ 아이폰 규칙(누른 순간 speak 호출)은 그대로 지킴. 여기서는 utterance 설정만 바꿈. */
+function spkVoiceOn(){ return lsGet("_spkvoice", true) !== false; }
+/* 프로필 : 한 문항(또는 한 대화) 안에서 서로 겹치지 않게 번호로 나눠 씀 */
+const SPK_PROFILES = [
+  { i:0, pitch:1.12, rate:1.00 },   // 0 : 높은 쪽 (여자로 적혀 있으면 여기)
+  { i:1, pitch:0.86, rate:0.98 },   // 1 : 낮은 쪽 (남자로 적혀 있으면 여기)
+  { i:2, pitch:1.02, rate:1.07 },   // 2 : 세 번째 사람
+  { i:3, pitch:0.94, rate:1.03 },   // 3 : 네 번째 사람
+];
+const SPK_NARR = { i:-1, pitch:1.00, rate:1.00 };   // 'Q'(문제 읽어주는 목소리)는 건드리지 않음
+function spkIsNarr(who){ const w = String(who||"").trim().toLowerCase(); return w==="q" || w==="질문"; }
+/* 교재가 대놓고 남/여를 적어 준 화자만 성별로 배정.
+   이름(Mai·Hải 같은 것)으로 성별을 넘겨짚으면 틀릴 수 있어서 일부러 안 함. */
+function spkSex(who){
+  const w = stripDia(String(who||"").toLowerCase()).replace(/\s+/g,"");
+  if(w==="nam" || w==="chong") return 1;   // 남자(Nam·Chồng) → 낮은 쪽
+  if(w==="nu"  || w==="vo")    return 0;   // 여자(Nữ·Vợ) → 높은 쪽
+  return -1;
+}
+/* 화자 이름 목록 → { 이름 : 프로필 }. 같은 문항 안에서는 절대 안 겹치게 배정 */
+function spkPlan(whos){
+  const plan = {}, used = [], order = [];
+  (whos||[]).forEach(w=>{ const k = String(w||""); if(k && order.indexOf(k)<0) order.push(k); });
+  const take = i => { used[i] = 1; return SPK_PROFILES[i]; };
+  order.forEach(k=>{                                   // ① 남/여로 적힌 사람 먼저
+    if(spkIsNarr(k)){ plan[k] = SPK_NARR; return; }
+    const s = spkSex(k); if(s >= 0 && !used[s]) plan[k] = take(s);
+  });
+  order.forEach(k=>{                                   // ② 나머지는 나온 차례대로 남은 번호
+    if(plan[k]) return;
+    let i = 0; while(i < SPK_PROFILES.length && used[i]) i++;
+    plan[k] = (i < SPK_PROFILES.length) ? take(i) : SPK_PROFILES[0];   // 5명 넘으면 첫 번째를 다시 씀
+  });
+  return plan;
+}
+/* 지금 쓸 수 있는 베트남어 목소리 중 '음질 등급이 같은' 것만 모음.
+   자연스러운 목소리와 옛날 기계음을 섞으면 한 사람만 어색하게 튀어서 오히려 듣기 나쁨. */
+function spkPool(){
+  const base = pickedVoice("vi-VN"); if(!base) return [];
+  let vs = viVoices();
+  if(!ttsNetOn() || TTS_NET_FAIL) vs = vs.filter(v=>v.localService!==false);
+  const s = voiceScore(base);
+  return [base].concat(vs.filter(v=>v!==base && voiceScore(v)===s));
+}
+/* 프로필을 실제 utterance에 입힘. 목소리가 여러 개면 목소리로, 하나뿐이면 음높이로 구분. */
+function spkApply(u, prof, pool, baseRate){
+  const r = baseRate || ttsRate();
+  if(!prof || prof.i < 0 || !spkVoiceOn()){ u.rate = r; return; }
+  const n = (pool && pool.length) || 0;
+  if(n > 1){
+    const v = pool[prof.i % n]; u.voice = v; u.lang = v.lang;   // 사람마다 진짜 다른 목소리
+    if(prof.i < n){ u.rate = r; }
+    /* 사람이 목소리보다 많으면 남는 사람은 음높이로 한 번 더 갈라 줌 */
+    else { try{ u.pitch = prof.pitch; }catch(e){} u.rate = r * prof.rate; }
+  } else { try{ u.pitch = prof.pitch; }catch(e){} u.rate = r * prof.rate; }   // 목소리 1개 → 음높이로만 구분
+}
+function speak(text, lang, prof){
   try{
     if(!window.speechSynthesis) return;
     if(!VOICES.length) loadVoices();
@@ -6614,6 +6678,8 @@ function speak(text, lang){
         u.lang = lang || "en-US";
         u.rate = ttsRate();
         const v = pickedVoice(lang); if(v){ u.voice = v; u.lang = v.lang; }
+        /* 화자별 목소리 : 베트남어를 읽을 때만. 목소리를 못 고른 기기에서도 음높이는 먹으니 v 여부와 무관하게 적용 */
+        if(/^vi/i.test(String(lang||"").replace("_","-"))) spkApply(u, prof, spkPool(), u.rate);
         u.onend = ttsKeepStop; u.onerror = ttsOnError;
         speechSynthesis.speak(u);
         ttsKeepStart();
@@ -6622,12 +6688,15 @@ function speak(text, lang){
     if(busy) setTimeout(go, 80); else go();
   }catch(e){}
 }
-/* 여러 줄을 순서대로 재생 (대화 '전체 듣기'). onLine(i)로 지금 읽는 줄을 표시 */
-function speakLines(texts, onLine, onDone){
+/* 여러 줄을 순서대로 재생 (대화·듣기 문항 '전체 듣기'). onLine(i)로 지금 읽는 줄을 표시.
+   items 는 문자열 배열이거나 {vn, who} 배열. who가 있으면 화자별로 목소리를 달리함(spkPlan). */
+function speakLines(items, onLine, onDone){
   try{
     if(!window.speechSynthesis) return;
     if(!VOICES.length) loadVoices();
     ttsKeepStop();
+    const texts = (items||[]).map(x => (typeof x === "string") ? {vn:x, who:""} : (x || {vn:"", who:""}));
+    const plan = spkPlan(texts.map(x=>x.who)), pool = spkPool();
     const busy = speechSynthesis.speaking || speechSynthesis.pending;   // 아이폰: 누른 순간 speak해야 소리 남
     speechSynthesis.cancel();
     const my = ++TTS_SEQ;
@@ -6637,9 +6706,10 @@ function speakLines(texts, onLine, onDone){
         try{ if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}   // 굳어 있으면 풀고 시작
         const v = pickedVoice("vi-VN"), r = ttsRate();
         texts.forEach((t, i)=>{
-          const u = new SpeechSynthesisUtterance(ttsText(t, "vi-VN"));
+          const u = new SpeechSynthesisUtterance(ttsText(t.vn, "vi-VN"));
           u.lang = "vi-VN"; u.rate = r;
           if(v){ u.voice = v; u.lang = v.lang; }
+          spkApply(u, plan[String(t.who||"")], pool, r);   // 화자별 목소리
           u.onstart = ()=>{ if(my===TTS_SEQ && onLine) try{ onLine(i); }catch(e){} };
           if(i === texts.length-1){
             u.onend = ()=>{ ttsKeepStop(); if(my===TTS_SEQ && onDone) try{ onDone(); }catch(e){} };
@@ -6681,8 +6751,10 @@ const SKILLS = {
   flash: {label:"플래시카드", emoji:"<svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg>", mode:"flash", dir:"vn2en", count:true,  tag:"암기·복습",    cardDesc:"카드를 넘기며 암기",              desc:"카드를 넘기며 외워요. 탭하면 뒤집혀서 뜻이 보여요."}
 };
 const SKILL_ORDER = ["read","listen","write","speak"];
-function spkBtn(text, lang, sm){
-  return `<button class="spk${sm?" sm":""}" data-action="speak" data-text="${esc(text)}" data-lang="${lang}" title="발음 듣기"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg></button>`;
+/* prof(선택) = 화자별 목소리 프로필. 넣으면 그 한 줄도 전체 듣기와 같은 목소리로 읽어 줌 */
+function spkBtn(text, lang, sm, prof){
+  const pi = (prof && prof.i >= 0) ? ` data-pi="${prof.i}"` : "";
+  return `<button class="spk${sm?" sm":""}" data-action="speak" data-text="${esc(text)}" data-lang="${lang}"${pi} title="발음 듣기"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg></button>`;
 }
 
 /* =========================================================
@@ -7745,13 +7817,15 @@ function renderListen(){
   state.screen = "listen:" + L;
   const showAll = lsGet("_lisAll", false) === true;
   const showKo  = lsGet("_lisKo", true) !== false;
+  const spkOn   = spkVoiceOn();   // 화자별 목소리 (말하는 사람마다 다르게 들리게)
   const chips = Ls.map(l=>`<button class="chip${l===L?" on":""}" data-action="listenLesson" data-l="${l}">${esc(lessonName(l))}</button>`).join("");
   const secs = LISTEN[L] || [];
   const body = secs.map((sec, si)=>{
     const groups = sec.groups.map((grp, gi)=>{
       const k = si + "-" + gi;
       const open = showAll || LIS_SHOW.has(k);
-      const lines = grp.lines.map(x=>`<div class="lsline">${x.who?`<span class="lswho">${esc(x.who==="Q"?"질문":x.who)}</span>`:`<span class="lswho"></span>`}<div class="lstxt"><div class="lsvn">${esc(x.vn)}</div>${showKo?`<div class="lsko">${esc(x.ko)}</div>`:""}</div>${spkBtn(x.vn,"vi-VN",true)}</div>`).join("");
+      const plan = spkPlan(grp.lines.map(x=>x.who));   // 이 문항 안에서 화자별 목소리 배정
+      const lines = grp.lines.map(x=>`<div class="lsline">${x.who?`<span class="lswho">${esc(x.who==="Q"?"질문":x.who)}</span>`:`<span class="lswho"></span>`}<div class="lstxt"><div class="lsvn">${esc(x.vn)}</div>${showKo?`<div class="lsko">${esc(x.ko)}</div>`:""}</div>${spkBtn(x.vn,"vi-VN",true,plan[String(x.who||"")])}</div>`).join("");
       return `<div class="lsblk${open?"":" hid"}" data-k="${k}">
         <div class="lsbar">
           ${grp.no?`<span class="lsno">${esc(grp.no)}</span>`:""}
@@ -7776,6 +7850,7 @@ function renderListen(){
       <div class="row" style="margin:-6px 0 10px">
         <button class="chip tiny${showAll?" on":""}" data-action="lisAllToggle"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-${showAll?"eye":"eye-off"}'/></svg> 대본 항상 보기</button>
         <button class="chip tiny${showKo?" on":""}" data-action="lisKoToggle">한국어 해석</button>
+        <button class="chip tiny${spkOn?" on":""}" data-action="lisSpkToggle" title="말하는 사람마다 목소리를 다르게">화자별 목소리</button>
         <button class="chip tiny" data-action="lisStop">소리 끄기</button>
       </div>
       <div class="ghead">${esc(lessonName(L))}${page?` · ${page}쪽`:""}</div>
@@ -8425,6 +8500,7 @@ function renderDlg(){
   const isSentCloze = DLG.kind==="sent";
   const isCt = DLG.kind==="ct";
   state.screen="dlg:"+DLG.kind+":"+DLG.lesson+":"+(isSentCloze?(DLG.batch||0):DLG.no)+":"+DLG.retry;   // 대화/문제묶음/회차가 바뀔 때만 맨 위로
+  const dplan = spkPlan(DLG.lines.map(l=>l.who));   // 이 대화 안에서 화자별 목소리 배정
   const rows = DLG.lines.map((ln,li)=>{
     // 전부 받아쓰기 — 줄 통째로 입력
     if(DLG.full){
@@ -8441,7 +8517,7 @@ function renderDlg(){
           ${showKo ? `<div class="dhint" style="margin:0 0 5px">${esc(ln.ko)}</div>` : ""}
           ${body}
           <div class="dbtns">
-            ${spkBtn(ln.vn,"vi-VN",true)}
+            ${spkBtn(ln.vn,"vi-VN",true,dplan[String(ln.who||"")])}
             ${(!state.dlgKo && !DLG.graded) ? `<button class="chip tiny" data-action="dlgHint" data-li="${li}">${DLG.hint[li]?"뜻 숨기기":"뜻 보기"}</button>` : ""}
           </div>
         </div>
@@ -8467,7 +8543,7 @@ function renderDlg(){
       <div class="dbody">
         <div class="dtext">${body}</div>
         <div class="dbtns">
-          ${spkBtn(ln.vn,"vi-VN",true)}
+          ${spkBtn(ln.vn,"vi-VN",true,dplan[String(ln.who||"")])}
           <button class="chip tiny" data-action="dlgHint" data-li="${li}">${DLG.hint[li]?"뜻 숨기기":"힌트"}</button>
         </div>
         ${DLG.hint[li]||DLG.graded ? `<div class="dhint">${esc(ln.ko)}</div>`:""}
@@ -8555,7 +8631,7 @@ function dlgHighlight(li){
 }
 function dlgPlayAll(){
   dlgSaveInputs();
-  speakLines(DLG.lines.map(l=>l.vn), dlgHighlight, ()=>{ DLG.playing=false; view.querySelectorAll(".dline.now").forEach(el=>el.classList.remove("now")); });
+  speakLines(DLG.lines.map(l=>({vn:l.vn, who:l.who})), dlgHighlight, ()=>{ DLG.playing=false; view.querySelectorAll(".dline.now").forEach(el=>el.classList.remove("now")); });
 }
 function dlgGrade(){
   if(DLG.graded) return;
@@ -9495,6 +9571,7 @@ function renderVoice(){
   const curURI = lsGet("_voiceURI","");
   const rate = ttsRate();
   const now = pickedVoice("vi-VN");
+  const spkOn = spkVoiceOn(), spkN = spkPool().length;   // 화자별 목소리 : 켬/끔, 쓸 수 있는 같은 등급 목소리 개수
   const voiceRows = vs.length
     ? vs.map(v=>`<button class="chip ${curURI && v.voiceURI===curURI ? "on":""}" data-action="pickVoice" data-uri="${esc(v.voiceURI)}">${esc(v.name)}${isEnhancedVoice(v)?" ★":""} <small>${esc(v.lang)}${v.localService===false?" · 인터넷":""}</small></button>`).join("")
     : (!netOn && vsAll.length
@@ -9530,6 +9607,23 @@ function renderVoice(){
         ${voiceRows}
       </div>
       <div class="muted tiny" style="margin-top:8px">지금 읽는 목소리: <b>${now?esc(now.name):"(기기 기본)"}</b>${nowNudge}</div>
+    </div>
+    <div class="card">
+      <h2>화자별 다른 목소리</h2>
+      <div class="seg" style="margin-top:2px">
+        <button class="${spkOn?"on":""}" data-action="spkVoice" data-v="1">켜기</button>
+        <button class="${spkOn?"":"on"}" data-action="spkVoice" data-v="0">끄기 (전부 같은 목소리)</button>
+      </div>
+      <button class="btn line" style="margin-top:10px" data-action="spkTest"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-volume'/></svg> 두 사람 목소리 들어보기</button>
+      <div class="muted tiny" style="margin-top:10px; line-height:1.75">
+        <b>듣기 연습</b>과 <b>대화</b>에서 말하는 사람이 바뀌면 목소리도 바뀌게 해요. 누구 차례인지 귀로 바로 알 수 있어요.<br>
+        ${spkN>1
+          ? `지금 이 기기에는 <b>음질이 같은 베트남어 목소리가 ${spkN}개</b> 있어서, 사람마다 <b>진짜 다른 목소리</b>로 읽어 줍니다.`
+          : spkN===1
+          ? `지금 이 기기에서 쓸 수 있는 베트남어 목소리는 <b>1개</b>뿐이라, 같은 목소리의 <b>음높이를 조금 다르게</b> 해서 구분해요. 아래 안내대로 목소리를 더 설치하면 진짜 다른 목소리로 바뀝니다.`
+          : `지금은 쓸 수 있는 베트남어 목소리를 못 찾았어요. 위 <b>목소리</b> 칸이 비어 있으면 이 기능도 들리지 않습니다.`}<br>
+        <span style="opacity:.85">베트남어는 성조가 있는 말이라 음높이를 크게 바꾸면 성조가 이상하게 들려요. 그래서 차이를 일부러 작게 두었습니다. 기기가 음높이 조절을 아예 안 받아 주면 예전처럼 같은 목소리로 들리는데, 고장이 아니에요.</span>
+      </div>
     </div>
     <div class="card">
       <h2>인터넷 목소리 사용</h2>
@@ -10196,12 +10290,17 @@ const actions = {
     if(!grp) return;
     LIS_PLAYK = s + "-" + g;
     /* ⚠️ 아이폰은 '누른 그 순간' 재생돼야 소리가 남 → 여기서 바로 호출(미루지 않기) */
-    speakLines(grp.lines.map(x=>x.vn), lisHighlight, lisClearPlay);
+    speakLines(grp.lines.map(x=>({vn:x.vn, who:x.who})), lisHighlight, lisClearPlay);
   },
   lisOpen:(el)=>{ const k = el.dataset.k; if(LIS_SHOW.has(k)) LIS_SHOW.delete(k); else LIS_SHOW.add(k); renderListen(); },
   lisAllToggle:()=>{ const on = lsGet("_lisAll", false) === true; lsSet("_lisAll", !on); if(on) LIS_SHOW = new Set(); renderListen(); },
   lisKoToggle:()=>{ lsSet("_lisKo", !(lsGet("_lisKo", true) !== false)); renderListen(); },
   lisStop:()=>{ stopSpeak(); lisClearPlay(); },
+  lisSpkToggle:()=>{ lsSet("_spkvoice", !spkVoiceOn()); stopSpeak(); lisClearPlay(); renderListen(); },
+  /* 화자별 목소리 켜기/끄기 (발음 설정 화면) */
+  spkVoice:(el)=>{ lsSet("_spkvoice", el.dataset.v==="1"); stopSpeak(); renderVoice(); },
+  /* ⚠️ 아이폰은 '누른 그 순간' 재생돼야 소리가 남 → 여기서 바로 호출(미루지 않기) */
+  spkTest:()=>speakLines([{vn:"Chào anh, anh khỏe không?", who:"Nữ"}, {vn:"Cảm ơn chị, tôi khỏe.", who:"Nam"}]),
   goPrep, prepStart, prepResume, prepGrade, prepSkip, prepNext, quitPrep,
   /* 공부 범위 고르기 : 고른 묶음만 단어 연습에 나옴 */
   prepRange:(el)=>{
@@ -10347,7 +10446,7 @@ const actions = {
   revealSpeak:()=>{ SP.revealed=true; renderSpeak(); },
   speakAgain:()=>speakAdvance(true),
   speakNext:()=>speakAdvance(false),
-  speak:(el)=>speak(el.dataset.text, el.dataset.lang)
+  speak:(el)=>speak(el.dataset.text, el.dataset.lang, (el.dataset.pi != null) ? SPK_PROFILES[Number(el.dataset.pi)] : null)
 };
 view.addEventListener("click", e=>{
   const t = e.target.closest("[data-action]");
