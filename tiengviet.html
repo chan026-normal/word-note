@@ -8077,7 +8077,10 @@ function lisClearPlay(){
 }
 function goListen(){ LIS_SHOW = new Set(); LIS_PLAYK = null; renderListen(); }
 function renderListen(){
-  const Ls = listenLessons();
+  /* 칩 차례 : 지금 배우는 교재2권(33~44)을 맨 앞으로. 시험지·문장 범위와 같은 규칙(byPickOrder).
+     ⚠️ 보여 주는 차례만 바꾸는 것. LISTEN 데이터와 listenLessons()의 원래 차례는 그대로 둠
+        (lisLesson()이 기본 단원을 고를 때는 원래 차례를 씀). 2026-08-13 사용자 요청. */
+  const Ls = byPickOrder(listenLessons());
   const L = lisLesson();
   state.screen = "listen:" + L;
   const showAll = lsGet("_lisAll", false) === true;
