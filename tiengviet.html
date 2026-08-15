@@ -10568,6 +10568,20 @@ function rangeTitle(){
   const ls=[...state.lessons].filter(l=>l!=="custom").sort((a,b)=>a-b);
   return ls.length ? compactLessons(ls)+(state.lessons.has("custom")?", 내 단어":"") : "선택 범위";
 }
+/* 2부 문장이 어느 단원에서 나오는지 (시험지 머리글과 만들기 화면 요약에 같이 씀).
+   ⚠️ 1부 단어 범위(state.lessons)와 2부 문장 범위(P.sentPick)는 서로 다른 목록임.
+      아무것도 안 고르면 문장은 '전체'에서 뽑으므로 여기서도 '문장 전체'로 적음.
+   2026-08-13 사용자 요청("문장 범위도 어느 범위에서 출제하는지 표시해줄 수 있어?"). */
+function sentRangeTitle(){
+  const ls=[...P.sentPick].map(Number).sort((a,b)=>a-b);
+  return ls.length ? compactLessons(ls) : "전체";
+}
+/* 지금 2부 문장을 뽑는 후보가 몇 개인지 (genPaper의 sentPool과 같은 셈법) */
+function sentPoolCount(){
+  return P.sentPick.size
+    ? sentLessons().filter(l=>P.sentPick.has(l)).reduce((n,l)=>n+paperSents(l).length,0)
+    : allPaperSentences().length;
+}
 // 시험지 / 정답지 따로 인쇄: body에 클래스 잠깐 붙여 한쪽만 보이게 한 뒤 print
 function printOnly(which){
   const cls = which==="key" ? "ponly-key" : "ponly-paper";
@@ -10728,7 +10742,7 @@ function renderPaper(){
   const keyBlock = (wQs.length>0)
     ? `<div class="paper pkey${P.onePage?" onepage":""}">
          <div class="ptitle">정답지</div>
-         <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 10":""}</div>${cLegend}
+         <div class="pinstr">범위: ${isWS?`단어 ${esc(rangeTitle())} · 문장 ${esc(sentRangeTitle())} (단어 40 + 문장 10)`:esc(rangeTitle())}</div>${cLegend}
          ${isWS?`<div class="ppart">1부. 단어 (${wQs.length})</div>`:""}
          <div class="pgrid" style="--prows:${Math.ceil(wQs.length/2)}">${keyWords}</div>
          ${isWS?`<div class="ppart">2부. 문장 (${sQs.length})</div><div class="pslist">${keySents}</div>`:""}
@@ -10756,11 +10770,13 @@ function renderPaper(){
         <button class="chip ${P.priority?"on":""}" style="margin-top:10px" data-action="paperPriority"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pin'/></svg> 오늘 배운 ★ 단어 먼저 출제${P.priority?" <svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-check'/></svg>":""}</button>
         <label class="fld">시험 범위 <span style="font-weight:600;color:var(--muted)">(1부 단어)</span></label>
         ${selectionBlockHTML(false)}
+        <div class="rsum"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pin'/></svg> ${esc(rangeTitle())}에서 출제 · 단어 ${poolSelected().length}개 중 ${wQs.length}문제</div>
         ${isWS ? `<label class="fld">문장 범위 <span style="font-weight:600;color:var(--muted)">(2부 문장)</span></label>
         <div class="row">
           <button class="chip ${P.sentPick.size===0?"on":""}" data-action="paperSentLesson" data-l="all">전체 <small>${allPaperSentences().length}</small></button>
           ${byPickOrder(sentLessons()).map(l=>`<button class="chip ${P.sentPick.has(l)?"on":""}" data-action="paperSentLesson" data-l="${l}">${esc(lessonLabel(l))} <small>${paperSents(l).length}</small></button>`).join("")}
-        </div>`:""}
+        </div>
+        <div class="rsum"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-pin'/></svg> ${esc(sentRangeTitle())}에서 출제 · 문장 ${sentPoolCount()}개 중 ${sQs.length}문제</div>`:""}
         <label class="fld">출제 방향</label>
         <div class="seg">
           <button class="${P.dir==="random"?"on":""}" data-action="paperDir" data-v="random">랜덤 섞기</button>
@@ -10791,7 +10807,7 @@ function renderPaper(){
     <div class="paper${P.onePage?" onepage":""}">
       <div class="ptitle">베트남어 시험</div>
       <div class="phead"><span>이름 : ____________</span><span>날짜 : ____________</span><span>점수 : ______ / ${total}</span></div>
-      <div class="pinstr">범위: ${esc(rangeTitle())}${isWS?" · 단어 40 + 문장 10":""}</div>${cLegend}
+      <div class="pinstr">범위: ${isWS?`단어 ${esc(rangeTitle())} · 문장 ${esc(sentRangeTitle())} (단어 40 + 문장 10)`:esc(rangeTitle())}</div>${cLegend}
       ${paperBody}
     </div>
     ${keyBlock}
