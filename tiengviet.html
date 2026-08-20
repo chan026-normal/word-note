@@ -5863,6 +5863,8 @@ const rdLessons = () => sentLessons().filter(l => rdSents(l).length);
    ⚠️ 제목이 없는 단원은 여기에 넣지 않음. 없다고 화면이 깨지지 않음(그냥 안 보임).
    2026-08-20 사용자 지적("교재2의 6과 읽기 부분은 제목이 있어. 그런데 앱에는 제목이 빠져있어"). */
 const RD_TITLES = {
+  33:"NƯỚC MẮM|느억맘(생선 액젓)|",
+  34:"MỘT CHUYẾN ĐI ĐÀ LẠT|달랏 여행|",
   35:"CHỢ BẾN THÀNH|벤탄 시장|",
   36:"CHIẾC ĐIỆN THOẠI ĐẦU TIÊN|첫 번째 전화기|",
   37:"MỘT LẦN BỊ BỆNH|아팠던 어느 날|",
@@ -6316,6 +6318,10 @@ const DIALOG_PAGES = {
       화자별 목소리(spkPlan)가 그 줄을 대사로 오해함. 그래서 DIALOG_PAGES처럼 옆에 두는 맵으로 만듦.
    2026-08-18 사용자 지적("그 위에 (Tại phòng khám)이라는 문구가 있어"). */
 const DIALOG_SITU = {
+  /* 교재2 1과는 대화 2에만 괄호 설명이 있고 1·3에는 없음 → 그 자리는 빈 문자열 */
+  33:["",
+      "Nhóm bạn của Mai và nhân viên phục vụ (NVPV) nhà hàng|Mai의 친구 일행과 식당 종업원(NVPV)",
+      ""],
   36:["Người giao hàng (NGH) gọi điện cho chị Thư|배달원(NGH)이 Thư 씨에게 전화함",
       "Người giao hàng (NGH) giao hàng cho chị Thư|배달원(NGH)이 Thư 씨에게 물건을 건넴",
       "Chị Thư gọi điện cho quán cơm 39|Thư 씨가 39 밥집에 전화함"],
