@@ -230,6 +230,9 @@
   .pgblabel{font-size:11.5px; font-weight:700; color:var(--muted); padding:5px 0 3px}
   /* 대화 앞 상황 설명 (교재가 괄호 안에 적어 둔 것). 대사가 아니라 배경이라 기울임+흐리게 */
   .pgsitu{font-size:12.5px; font-style:italic; color:var(--muted); padding:0 0 6px}
+  .pgtitle{font-weight:800; font-size:15px; color:var(--brand); text-align:center; line-height:1.45; padding:2px 0 12px}
+  .pgtitle span{display:block; font-weight:600; font-size:12.5px; color:var(--muted); margin-top:3px}
+  .pgsrc{font-size:12px; font-style:italic; color:var(--muted); text-align:right; padding:8px 2px 0}
   .pgsitu span{opacity:.8}
   .dsitu{margin:-6px 0 10px; background:var(--brandsoft); color:var(--brand); border-radius:12px; padding:9px 12px; font-size:13px; font-style:italic; line-height:1.6}
   .dsitu b{font-style:normal; font-weight:700}
@@ -5853,6 +5856,26 @@ Object.keys(SENT_RAW).forEach(L=>{
 const sentLessons = () => Object.keys(SENT_BY_LESSON).map(Number).sort((a,b)=>a-b);
 const rdSents = l => (SENT_BY_LESSON[l]||[]).filter(s=>s.rd);        // 읽기 지문(ĐỌC HIỂU)
 const rdLessons = () => sentLessons().filter(l => rdSents(l).length);
+/* 읽기 지문 제목·출처 : 교재가 지문 위에 굵게 얹어 둔 제목과, 지문 끝에 괄호로 적어 둔 출처.
+   한 줄에 "베트남어 제목|한국어 뜻|출처" (출처는 없으면 비워 둠).
+   ⚠️ SENT_RAW 안에 넣으면 안 됨 : 제목이 문장 연습·시험지·받아쓰기에 '한 문장'으로 섞여 버림.
+      그래서 DIALOG_SITU(대화 상황 설명문)처럼 옆에 두는 맵으로 만듦.
+   ⚠️ 제목이 없는 단원은 여기에 넣지 않음. 없다고 화면이 깨지지 않음(그냥 안 보임).
+   2026-08-20 사용자 지적("교재2의 6과 읽기 부분은 제목이 있어. 그런데 앱에는 제목이 빠져있어"). */
+const RD_TITLES = {
+  35:"CHỢ BẾN THÀNH|벤탄 시장|",
+  36:"CHIẾC ĐIỆN THOẠI ĐẦU TIÊN|첫 번째 전화기|",
+  37:"MỘT LẦN BỊ BỆNH|아팠던 어느 날|",
+  38:"NGƯỜI TA DÙNG ĐIỆN THOẠI VÀO VIỆC GÌ?|사람들은 전화기를 어디에 쓸까요?|(Theo PLXH, vietgiaitri.com)",
+};
+/* "제목vn|제목ko|출처" 한 줄을 {vn, ko, src}로. 없으면 null */
+function rdTitle(L){
+  const raw = RD_TITLES[Number(L)];
+  if(!raw) return null;
+  const p = String(raw).split("|");
+  const vn = (p[0]||"").trim(), ko = (p[1]||"").trim(), src = (p[2]||"").trim();
+  return vn ? {vn, ko, src} : null;
+}
 /* 받아쓰기(Chính tả) 지문이 있는 단원 / 그 지문 문장들 */
 const ctSents = l => (SENT_BY_LESSON[l]||[]).filter(s=>s.ct);
 const ctLessons = () => sentLessons().filter(l => ctSents(l).length);
@@ -8715,7 +8738,9 @@ function renderPassage(){
   const diaHtml = dias.length ? sec("headphones","대화",
     dias.map(d=>`<div class="pgblock"><div class="pgblabel">대화 ${d.no}${d.page?` · ${d.page}쪽`:""}</div>${d.situ?`<div class="pgsitu">${esc(d.situ.vn)}${d.situ.ko?` <span>${esc(d.situ.ko)}</span>`:""}</div>`:""}${d.lines.map(x=>line(x.vn,x.ko,x.who)).join("")}</div>`).join("")) : "";
   const rd = rdSents(L);
-  const rdHtml = rd.length ? sec("book","읽기", `<div class="pgblock">${rd.map(s=>line(s.vn,s.en)).join("")}</div>`) : "";
+  const rdT = rdTitle(L);
+  const rdPage = (rd[0] && rd[0].page) ? rd[0].page+"쪽" : "";
+  const rdHtml = rd.length ? sec("book","읽기", `<div class="pgblock">${rdPage?`<div class="pgblabel">${esc(rdPage)}</div>`:""}${rdT?`<div class="pgtitle">${esc(rdT.vn)}${rdT.ko?`<span>${esc(rdT.ko)}</span>`:""}</div>`:""}${rd.map(s=>line(s.vn,s.en)).join("")}${(rdT&&rdT.src)?`<div class="pgsrc">${esc(rdT.src)}</div>`:""}</div>`) : "";
   const ct = ctSents(L);
   const ctHtml = ct.length ? sec("keyboard","받아쓰기", `<div class="pgblock">${ct.map(s=>line(s.vn,s.en)).join("")}</div>`) : "";
   const empty = (!dias.length && !rd.length && !ct.length) ? `<div class="muted center" style="padding:16px">이 단원엔 아직 지문이 없어요.</div>` : "";
