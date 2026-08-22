@@ -8897,10 +8897,16 @@ function renderHome(){
 
     ${bkNudgeHTML()}
 
+    <!-- 연습 더 = 직접 풀어 보는 것. 교재 보기 = 펼쳐서 읽는 것.
+         2026-08-22 사용자 요청으로 둘로 나눔("'연습 더' 카테고리에 내용들이 너무 많기도 하고, 무분별한 느낌") -->
     <div class="seclbl">연습 더</div>
     <div class="lcard">
-      <button class="lrow" data-action="goSkill" data-skill="exam"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg><span class="lr-nm">실전 시험</span><span class="lr-meta">단어 40 + 문장 10</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goSkill" data-skill="flash"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg><span class="lr-nm">플래시카드</span><span class="lr-meta">암기·복습</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goSkill" data-skill="exam"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-note'/></svg><span class="lr-nm">실전 시험</span><span class="lr-meta">단어 40 + 문장 10</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+    </div>
+
+    <div class="seclbl">교재 보기</div>
+    <div class="lcard">
       <button class="lrow" data-action="goPassage"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">지문 해석</span><span class="lr-meta">대화·읽기·받아쓰기</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goListen"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg><span class="lr-nm">듣기 연습</span><span class="lr-meta">교재1·2 듣기 대본</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goGrammar"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg><span class="lr-nm">문법 정리</span><span class="lr-meta">단원별</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
@@ -8909,8 +8915,8 @@ function renderHome(){
 
     <div class="seclbl">복습 · 관리</div>
     <div class="lcard">
-      <button class="lrow" data-action="goNote"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">오답 노트</span>${noteMeta}<svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goPaper"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true' style="color:var(--accent)"><use href='#i-printer'/></svg><span class="lr-nm">시험지 만들기</span><span class="lr-meta">인쇄·여럿이</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
+      <button class="lrow" data-action="goNote"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">오답 노트</span>${noteMeta}<svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goList"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">단어장</span><span class="lr-meta">전체 단어</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goSettings"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true' style="color:var(--muted)"><use href='#i-gear'/></svg><span class="lr-nm">설정</span><span class="lr-meta">발음·백업</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
     </div>
