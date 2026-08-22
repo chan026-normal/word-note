@@ -10692,6 +10692,7 @@ function renderTelex(){
 /* ---------- 플래시카드 ---------- */
 const F = {};
 function startFlash(pool){
+  F.pool = pool;                 // '새 카드 뽑기'가 같은 범위에서 다시 뽑을 수 있게 기억해 둠
   let list = shuffle(pool);
   if(state.count!=="all") list = list.slice(0, Math.min(Number(state.count), list.length));
   F.cards = list.map(w=>makeQ(w, dirOf(state.dir)));
@@ -10719,6 +10720,26 @@ function renderFlash(){
     </div>
     <button class="btn line" style="margin-top:10px" data-action="shuffleF"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-shuffle'/></svg> 순서 섞기</button>
     <button class="btn line" style="margin-top:8px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
+  `);
+}
+/* 카드를 다 넘긴 뒤 화면. 예전엔 마지막 장에서 바로 goHome()이라 홈으로 튕겨 나갔음
+   (다른 영역은 모두 끝 화면이 있는데 플래시카드만 없었음).
+   2026-08-20 사용자 요청("맨 처음 화면 말고 플래시카드 화면으로 돌아가게 해 줘"). */
+function renderFlashDone(){
+  state.screen="flashdone";
+  const n = F.cards.length;
+  set(`
+    <div class="card center" style="padding:30px 20px">
+      <div class="emoji"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-cards'/></svg></div>
+      <h2 style="margin:10px 0 4px">카드 ${n}장 다 봤어요!</h2>
+      <div class="muted tiny">헷갈린 카드는 한 번 더 넘겨 보세요.</div>
+      <div class="btn2" style="margin-top:18px">
+        <button class="btn soft" data-action="flashSame"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-repeat'/></svg> 같은 카드 다시</button>
+        <button class="btn" data-action="flashAgain"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-shuffle'/></svg> 새 카드 뽑기</button>
+      </div>
+      <button class="btn line" style="margin-top:10px" data-action="backToSetup">← 범위 다시 고르기</button>
+      <button class="btn line" style="margin-top:8px" data-action="goHome"><svg class='ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-home'/></svg> 처음으로</button>
+    </div>
   `);
 }
 
@@ -11351,7 +11372,12 @@ const actions = {
   selfRight:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=true; Q.score++; noteRight(Q.queue[Q.idx].word); renderQuiz(); },
   selfWrong:()=>{ if(Q.answered) return; Q.answered=true; Q.lastOk=false; Q.wrong.push(wrongItem()); noteWrong(Q.queue[Q.idx].word); renderQuiz(); },
   flip:()=>{ F.flip=!F.flip; renderFlash(); },
-  nextCard:()=>{ if(F.idx+1>=F.cards.length){ goHome(); } else { F.idx++; F.flip=false; renderFlash(); } },
+  nextCard:()=>{ if(F.idx+1>=F.cards.length){ renderFlashDone(); } else { F.idx++; F.flip=false; renderFlash(); } },
+  /* 같은 카드 다시 = 방금 본 그 카드들을 처음부터. 새 카드 뽑기 = 같은 범위에서 다시 섞어 뽑기.
+     ⚠️ 플래시카드는 startSkill 말고 오답 다시 풀기·오답 노트에서도 시작되므로,
+        startSkill()을 부르지 않고 startFlash(F.pool)로 되돌린다(엉뚱한 영역으로 새지 않게). */
+  flashSame:()=>{ F.idx=0; F.flip=false; renderFlash(); },
+  flashAgain:()=>{ const p = F.pool || F.cards.map(c=>c.word); startFlash(p); },
   prevCard:()=>{ if(F.idx>0){ F.idx--; F.flip=false; renderFlash(); } },
   shuffleF:()=>{ F.cards=shuffle(F.cards); F.idx=0; F.flip=false; renderFlash(); },
   toggleLesson:(el)=>{ const l=el.dataset.l==="custom"?"custom":Number(el.dataset.l); if(state.lessons.has(l)) state.lessons.delete(l); else state.lessons.add(l); refresh(); },
