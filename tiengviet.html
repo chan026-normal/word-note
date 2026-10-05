@@ -12508,8 +12508,9 @@ function renderHome(){
       <button class="lrow" data-action="goPassage"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-book'/></svg><span class="lr-nm">지문 해석</span><span class="lr-meta">대화·읽기·받아쓰기</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goListen"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-headphones'/></svg><span class="lr-nm">듣기 연습</span><span class="lr-meta">교재1·2 듣기 대본</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
       <button class="lrow" data-action="goGrammar"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-bulb'/></svg><span class="lr-nm">문법 정리</span><span class="lr-meta">단원별</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
-      <button class="lrow" data-action="goExtra"><svg class='ic lr-ic' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-clipboard'/></svg><span class="lr-nm">추가자료</span><span class="lr-meta">수업 PPT · 하노이식 대응</span><svg class='ic lr-chev' viewBox='0 0 24 24' aria-hidden='true'><use href='#i-chev'/></svg></button>
     </div>
+    <!-- 2026-10-05 사용자 요청으로 '추가자료' 줄(goExtra)을 홈에서 뺐음. 이 줄이 화면으로 들어가는 유일한 입구였음.
+         renderExtra()와 EXTRA 데이터는 그대로 남겨 둠(다시 달려면 문법 정리 줄 아래에 그 버튼 한 줄만 되살리면 됨) -->
 
     <div class="seclbl">복습 · 관리</div>
     <div class="lcard">
