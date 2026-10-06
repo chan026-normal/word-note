@@ -362,14 +362,18 @@
   .pcust{width:.8em; height:.8em; margin-left:2px; vertical-align:baseline; opacity:.85; stroke-width:2.4}
   .plegend{display:flex; align-items:center; gap:4px; font-size:11px; color:#444; margin:-10px 0 14px}
   .paper.onepage .plegend{font-size:9.5px; margin:-4px 0 6px}
-  .pgrid{display:grid; grid-template-columns:1fr; gap:9px 28px}
-  .pq{display:flex; align-items:baseline; gap:7px; font-size:14.5px; color:#111; break-inside:avoid; padding:2px 0}
+  /* 2026-10-06 교재3 영어 뜻이 길어(최대 87자) 'nowrap' 문제가 칸을 밀어 시험지가 A4보다 넓어졌음 → 인쇄할 때 브라우저가 쪽 전체를 줄여(배율 하락) 글씨가 작아졌음.
+     그래서 칸은 내용과 상관없이 반반(minmax(0,1fr))으로 고정하고, [번호+문제](.pqhd)와 밑줄이 한 줄에 안 들어가면 밑줄만 다음 줄로 내려가게 함(flex-wrap).
+     밑줄 자리 50px가 남는 짧은 문제는 예전과 똑같이 한 줄. 칸보다 긴 문제는 그 안에서 줄을 바꿈. */
+  .pgrid{display:grid; grid-template-columns:minmax(0,1fr); gap:9px 28px; align-items:start}   /* start: 옆 칸 문제가 두 줄이 돼 줄 높이가 커져도 짧은 문제의 밑줄은 제자리 */
+  .pq{display:flex; flex-wrap:wrap; align-items:baseline; gap:7px; font-size:14.5px; color:#111; break-inside:avoid; padding:2px 0; min-width:0}
+  .pqhd{display:flex; align-items:baseline; gap:7px; flex:0 1 auto; min-width:0; max-width:100%}
   .pqn{color:#777; font-weight:700; min-width:26px}
-  .pqp{font-weight:700; white-space:nowrap}
+  .pqp{font-weight:700; white-space:normal; overflow-wrap:break-word; min-width:0}
   .pqtag{font-size:10px; color:#999; white-space:nowrap}
-  .pqline{flex:1; border-bottom:1px dotted #aaa; min-width:50px; align-self:flex-end; height:15px}
+  .pqline{flex:1 0 50px; border-bottom:1px dotted #aaa; min-width:50px; align-self:flex-end; height:15px}
   /* 정답지: 시험지와 같은 밑줄 칸에 정답을 채워 넣음(초록) */
-  .pqline.answ{height:auto; align-self:auto; color:#1a7a4f; font-weight:700; padding-left:8px; white-space:normal; line-height:1.35}
+  .pqline.answ{height:auto; align-self:auto; color:#1a7a4f; font-weight:700; padding-left:8px; white-space:normal; line-height:1.35; flex:1 1 auto; max-width:100%}   /* 정답이 문제 옆에 다 안 들어가면 통째로 다음 줄로(좁은 틈에 여러 줄로 끼지 않게) */
   .ppart{margin:20px 0 6px; font-size:15px; font-weight:800; color:#111; border-bottom:2px solid #bbb; padding-bottom:5px}
   .pslist{display:flex; flex-direction:column; gap:15px}
   .psq{break-inside:avoid}
@@ -402,14 +406,14 @@
   .plist.c1 .plrow{font-size:14px; padding:5px 0}
   .pllz{font-size:12.5px; font-weight:800; color:#111; background:#f1f2f4; border-radius:6px;
         padding:4px 8px; margin:10px 0 4px; break-inside:avoid; break-after:avoid}
-  @media (min-width:560px){ .pgrid{grid-template-columns:1fr 1fr; grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)} }
+  @media (min-width:560px){ .pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)} }
   @page{ margin:0; }   /* 브라우저 자동 머리글·바닥글(날짜·페이지번호·주소) 제거 */
   @media print{
     .topbar,.foot,.noprint{display:none !important}
     body{background:#fff; margin:0; padding:0}
     .wrap{max-width:none; padding:0; zoom:1 !important}   /* 화면 확대는 인쇄에 영향 없게 */
     .paper{border:none; border-radius:0; margin:0; padding:16mm 14mm}  /* 여백은 직접 부여 */
-    .pgrid{grid-template-columns:1fr 1fr; grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)}
+    .pgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-auto-flow:column; grid-template-rows:repeat(var(--prows,20),auto)}
     .pq{break-inside:avoid}
     .pkey{ break-before:page; page-break-before:always; margin-top:0 }   /* 정답지는 새 페이지에 */
     .paper.onepage{ padding:7mm 11mm }   /* 한 장에 맞춤: 인쇄 여백도 축소 */
@@ -433,7 +437,7 @@
   .paper.onepage .pkeygrid{gap:3px 16px}
   .paper.onepage .pkq{font-size:11px}
   /* 정답지(밑줄에 정답) 압축: 채워진 줄 높이·줄간격 더 좁힘 */
-  .paper.onepage .pqline.answ{line-height:1.15; padding-left:6px}
+  .paper.onepage .pqline.answ{line-height:1.15; padding-left:6px; height:auto}   /* 위 .paper.onepage .pqline{height:12px}가 정답 칸까지 12px로 묶어 두 줄 정답이 아래 문제와 겹쳤음 */
   .paper.onepage .psline.answ{min-height:0; font-size:11px; padding-bottom:1px; line-height:1.2; margin-top:1px}
   .paper.onepage .psrc{font-size:9px; margin-left:4px}
   /* 인라인 SVG 라인 아이콘 (이모지 대체). 크기는 부모 font-size(1em)에 따름 */
@@ -14707,6 +14711,12 @@ Object.keys(WORD_SRC_RAW).forEach(L=>{ Object.keys(WORD_SRC_RAW[L]).forEach(vn=>
    쪽번호를 아는 35개는 "교재1 2과 15쪽", 나머지는 최소한 어느 교재 몇 과인지("교재1 2과")라도 보여준다.
    직접 출제한 문제는 lesson이 없어 빈 값 → 아무것도 안 붙음. */
 function wordSource(w){ return (w && w.lesson!=null) ? (WORD_SRC[w.lesson+"|"+normTone(w.vn)] || lessonSrcTag(w.lesson)) : ""; }
+/* 시험지에 내는 영어 뜻. 교재3 단어표의 '[lit. …]'(낱말 하나하나 직역)는 시험지에서만 뺌.
+   가장 긴 부분(최대 87자)이라 칸을 밀어내고, 'mother - round, child - square'처럼 답(mẹ tròn con vuông)을 거의 알려 주기 때문. 단어장 등 다른 화면의 뜻은 그대로. */
+function paperMeaning(w){
+  const e = String(w.eng||"").replace(/\[lit\.[^\]]*\]\s*/gi, "").trim();
+  return e || w.en;
+}
 function genPaper(bump){
   const rawPool = poolSelected();
   const lc = s => s.trim().toLowerCase();
@@ -14728,7 +14738,7 @@ function genPaper(bump){
   const qs = [];
   for(const w of pool){
     let d = P.dir==="random" ? (Math.random()<.5?"vn2en":"en2vn") : P.dir;
-    const meaning = w.eng || w.en;   // 시험지 '뜻→베트남어'(en2vn)는 교재 영어 뜻(없으면 한국어). '베→뜻'(vn2en)은 한국어 유지
+    const meaning = paperMeaning(w);   // 시험지 '뜻→베트남어'(en2vn)는 교재 영어 뜻(없으면 한국어). '베→뜻'(vn2en)은 한국어 유지
     let prompt = d==="vn2en" ? w.vn : meaning;
     if(seenPrompt.has(lc(prompt))){
       const d2 = d==="vn2en" ? "en2vn" : "vn2en";
@@ -14802,14 +14812,14 @@ function renderPaper(){
   const cmark = q => q.custom ? `<svg class="ic pcust" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pencil"/></svg>` : "";
   const hasCustom = wQs.some(q=>q.custom) || sQs.some(q=>q.custom);
   const wordGrid = wQs.map((q,i)=>
-    `<div class="pq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline"></span></div>`
+    `<div class="pq"><span class="pqhd"><span class="pqn">${i+1}.${cmark(q)}</span><span class="pqp">${esc(q.prompt)}</span></span><span class="pqline"></span></div>`
   ).join("");
   const sentList = sQs.map((q,i)=>
     `<div class="psq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="psp">${esc(q.prompt)}</span><div class="psline"></div></div>`
   ).join("");
   // 정답지: 시험지와 같은 레이아웃(같은 밑줄 칸)에 정답을 초록으로 채워 넣음
   const keyWords = wQs.map((q,i)=>
-    `<div class="pq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="pqp">${esc(q.prompt)}</span><span class="pqline answ">${esc(q.answer)}${q.src?`<span class="psrc">${esc(q.src)}</span>`:""}</span></div>`
+    `<div class="pq"><span class="pqhd"><span class="pqn">${i+1}.${cmark(q)}</span><span class="pqp">${esc(q.prompt)}</span></span><span class="pqline answ">${esc(q.answer)}${q.src?`<span class="psrc">${esc(q.src)}</span>`:""}</span></div>`
   ).join("");
   const keySents = sQs.map((q,i)=>
     `<div class="psq"><span class="pqn">${i+1}.${cmark(q)}</span><span class="psp">${esc(q.prompt)}</span>${q.src?`<span class="psrc">${esc(q.src)}</span>`:""}<div class="psline answ">${esc(q.answer)}</div></div>`
