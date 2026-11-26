@@ -222,7 +222,16 @@
   .ghead{font-weight:800; font-size:15px; color:var(--brand); margin:4px 0 10px}
   .gcard{border:1px solid var(--line); border-radius:12px; padding:11px 13px; margin-bottom:9px; background:var(--card)}
   .gcard .gt{font-weight:800; font-size:15px; margin-bottom:3px}
-  .gcard .gd{color:var(--muted); font-size:13.5px; line-height:1.55}
+  .gcard .gd{color:var(--muted); font-size:14px; line-height:1.62}
+  /* 2026-11-25 문법 카드 읽기 쉽게: 문단(gp)·목록 줄(gli)·꼬리표(glab)·교재 원문 인용(gq)·베트남어 줄(vi) */
+  .gcard .gd b{color:var(--ink)}
+  .gcard .gd .gp{margin-top:8px}
+  .gcard .gd .gp:first-child{margin-top:0}
+  .gcard .gd .gli{position:relative; padding-left:15px; margin-top:4px}
+  .gcard .gd .gli::before{content:""; position:absolute; left:3px; top:.7em; width:5px; height:5px; border-radius:50%; background:var(--brand2)}
+  .gcard .gd .vi{color:var(--ink)}
+  .gcard .gd .glab{display:inline-block; font-size:11.5px; font-weight:700; color:var(--brand); background:var(--brandsoft); border-radius:6px; padding:0 6px; margin-right:5px; line-height:1.7; vertical-align:1px}
+  .gcard .gd .gq{color:var(--ink); background:var(--brandsoft); border-radius:4px; padding:0 4px}
   /* 지문 해석 */
   .pgsec{margin-top:14px}
   .pghead{font-weight:800; font-size:14px; color:var(--brand); display:flex; align-items:center; gap:6px; margin-bottom:7px}
@@ -15402,7 +15411,85 @@ const GRAMMAR = {
 const gramLessons = () => Object.keys(GRAMMAR).map(Number).sort((a,b)=>a-b);
 /* 설명 속 **강조**를 굵게. esc()로 먼저 안전하게 바꾼 뒤에 ** 만 태그로 → 태그 주입 걱정 없음.
    (그동안 별표가 화면에 그대로 보였음) */
-function gramMd(s){ return esc(s).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>"); }
+/* 2026-11-25 문법 카드 읽기 쉽게(사용자: "문법 파트 가독성이 떨어져"). GRAMMAR 데이터는 그대로 두고 보여 주는 방식만 바꿈.
+   ① ' · '로 이어 쓴 예문·낱말은 한 줄씩(앞에 점)  ② 문장이 끝난 뒤 오는 ⚠️, 한글·괄호·숫자로 시작하는 굵은 소제목,
+   '예:' '듣기 2:' 같은 짧은 꼬리표, a/b/c 예문은 새 줄  ③ `…`(교재 원문 인용)는 백틱 없이 옅은 바탕
+   ④ 목록 줄과 베트남어 문단은 글자색을 한 단계 진하게.
+   괄호 ( ) 와 백틱 안의 . ! ? : · 는 나누는 자리로 보지 않음(잠시 다른 글자로 바꿔 두었다가 되돌림).
+   ⚠️ 정규식 뒤보기 (?<=…)는 옛 iPhone 사파리에서 스크립트 전체를 멈추게 하므로 쓰지 않음 */
+const GRAM_MASK = {".":"\uE000", "!":"\uE001", "?":"\uE002", ":":"\uE003", "·":"\uE004"};
+function gramUnmask(t){ return String(t).replace(/[\uE000-\uE004]/g, c => ".!?:·".charAt(c.charCodeAt(0) - 0xE000)); }
+function gramInline(t){
+  return esc(gramUnmask(t)).replace(/`([^`]+)`/g, '<span class="gq">$1</span>').replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+}
+function gramIsVi(t){
+  const plain = gramUnmask(t).replace(/\([^)]*\)/g, "");      /* 괄호 속 한국어 풀이는 빼고 셈 */
+  const ko = (plain.match(/[가-힣]/g) || []).length;
+  const vi = (plain.match(/[A-Za-zÀ-ỹ]/g) || []).length;
+  return vi > ko * 2 && vi > 3;
+}
+const GRAM_LAB = /^((?:[0-9]{1,3}쪽 ?)?[가-힣][^.!?:`*\u0001]{0,21}): ([\s\S]+)$/;
+function gramMd(s){
+  s = String(s);
+  /* 1) 백틱·굵은 글씨·괄호 밖에 있는 ' · '만 나눔표(\u0002)로, 괄호·백틱 안 문장부호는 가림 */
+  let t = "", inQ = false, inB = false, dep = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (c === "`") { inQ = !inQ; t += c; continue; }
+    if (!inQ && c === "*" && s[i + 1] === "*") { inB = !inB; t += "**"; i++; continue; }
+    if (!inQ && c === "(") { dep++; t += c; continue; }
+    if (!inQ && c === ")") { if (dep > 0) dep--; t += c; continue; }
+    if (!inQ && !inB && dep === 0 && s.substr(i, 3) === " · ") { t += "\u0002"; i += 2; continue; }
+    t += ((inQ || dep > 0) && GRAM_MASK[c]) ? GRAM_MASK[c] : c;
+  }
+  const isUp = ch => !!ch && (ch === "(" || ch === "*" || (ch === ch.toUpperCase() && ch !== ch.toLowerCase()));
+  /* 2) 새 줄(\u0001)을 넣을 자리 */
+  const brk = x => x
+    .replace(/ (⚠️)/g, "\u0001$1")
+    .replace(/([.!?]) (\*\*[가-힣(0-9①-⑳])/g, "$1\u0001$2")
+    .replace(/([.!?)]) ((?:[0-9]{1,3}쪽 ?)?[가-힣][^.!?:`*\u0001]{0,21}: )/g, "$1\u0001$2")
+    .replace(/([.!?:]) ([a-j]) (.)/g, (m, p, l, nx) => isUp(nx) ? p + "\u0001" + l + " " + nx : m);
+  /* 굵은 베트남어 바로 뒤에 한글 조사(는·을…)가 붙으면 설명 문장의 시작이지 목록 항목이 아님 */
+  const itemStart = /^([0-9]{1,2} |\([0-9]{1,2}\) |[a-j] [(A-ZÀ-ỹ*]|\*\*[^가-힣(0-9*][^*]*\*\*(?![가-힣]))/;
+  /* 목록이 이어질 때, 앞 설명 끝에 붙은 첫 항목을 떼어 냄(마지막 '. ' ') ' ': ' 뒤가 번호·a) 표시나 베트남어일 때) */
+  const cutFirst = x => {
+    let at = -1, m;
+    const re = /[.!?):] /g;
+    while ((m = re.exec(x))) { const rest = x.slice(m.index + 2); if (itemStart.test(rest) || gramIsVi(rest)) at = m.index + 1; }
+    return at > 0 ? [x.slice(0, at).trim(), x.slice(at).trim()] : null;
+  };
+  const segs = t.split("\u0002");
+  if (segs.length === 1 && brk(t).indexOf("\u0001") < 0) return gramInline(t);
+  const out = [];
+  segs.forEach((seg, k) => {
+    const more = k < segs.length - 1;
+    const parts = brk(seg).split("\u0001").map(x => x.trim()).filter(Boolean);
+    if (!parts.length) return;
+    let tail = null;
+    if (k > 0) {                       /* 항목 뒤에 이어지는 한국어 문장은 떼어 문단으로 */
+      const m = parts[0].match(/^([\s\S]*?[.!?]) ((?:[0-9]{1,3})?[가-힣][\s\S]*)$/);
+      if (m) { parts[0] = m[1]; if (parts.length === 1 && more) parts.push(m[2]); else tail = m[2]; }
+    }
+    parts.forEach((x, j) => {
+      const last = j === parts.length - 1;
+      let li = (k > 0 && j === 0);
+      if (more && last && !li) {       /* 다음 조각부터 목록 → 이 조각의 끝이 목록 첫 항목 */
+        const c = (itemStart.test(x) || GRAM_LAB.test(x)) ? null : cutFirst(x);
+        if (c) { out.push({ x: c[0], li: false }); x = c[1]; li = true; }
+        else li = (j > 0 || k > 0 || itemStart.test(x) || gramIsVi(x) || GRAM_LAB.test(x));
+      }
+      out.push({ x: x, li: li });
+      if (j === 0 && tail) { out.push({ x: tail, li: false }); tail = null; }
+    });
+  });
+  return out.map(o => {
+    let x = o.x, lab = "";
+    const lm = x.match(GRAM_LAB);
+    if (lm) { lab = '<span class="glab">' + esc(gramUnmask(lm[1])) + '</span>'; x = lm[2]; }
+    const cls = o.li ? "gli vi" : ("gp" + (gramIsVi(x) ? " vi" : ""));
+    return '<div class="' + cls + '">' + lab + gramInline(x) + '</div>';
+  }).join("");
+}
 function goGrammar(){ renderGrammar(); }
 function renderGrammar(){
   let L = Number(lsGet("_gramL", 1));
